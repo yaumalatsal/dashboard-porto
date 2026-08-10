@@ -1063,23 +1063,48 @@ body:has(.astrolabe-navigator) { height: 100svh; overflow: hidden; }
 /* Named by default. Hidden until hover, the map had no legend at all — you had to sweep
    the pointer blindly to discover that six of the instrument's dots were destinations. The
    button's own opacity still fades these out as a star turns to the back of the sphere. */
-.orrery-star-3d .orrery-star__name { color: rgba(255, 240, 189, 0.78); font-size: 0.5rem; opacity: 0.85; text-shadow: 0 1px 6px #0a0416, 0 0 12px #0a0416; transform: translateY(-0.65rem); transition: color 180ms ease, opacity 180ms ease; }
+.orrery-star-3d .orrery-star__name {
+  position: relative;
+  color: rgba(255, 240, 189, 0.78);
+  font-size: 0.5rem;
+  opacity: 0.85;
+  text-shadow: 0 1px 6px #0a0416, 0 0 12px #0a0416;
+  transform: translateY(-0.65rem);
+  transition: color 180ms ease, opacity 180ms ease, text-shadow 180ms ease;
+}
+/* Gold underline that sweeps in from the left on hover */
+.orrery-star-3d .orrery-star__name::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.12rem;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--ember), rgba(240, 204, 124, 0.2));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.orrery-star-3d.is-hovered .orrery-star__name::after {
+  transform: scaleX(1);
+}
 .orrery-star-3d .orrery-star__chapter { color: rgba(244, 231, 200, 0.58); font-size: 0.38rem; opacity: 0; transform: translateY(0.3rem); transition: opacity 180ms ease, transform 220ms ease; }
-/* The WebGL star labels sit in their own overlay, so the .is-reading dimming has to reach them here.
-   Their base opacity is written per-frame from how squarely each star faces the viewer. */
 /* Only the invisible coordinate-sized target is clickable; labels never block a drag. */
 .orrery-star-3d { pointer-events: none; }
 .orrery-star-3d[data-faces="1"] .orrery-star-3d__flare { pointer-events: auto; }
 .astrolabe-scene.is-reading .orrery-star-3d,
 .astrolabe-scene.is-reading .orrery-star-3d * { opacity: 0 !important; pointer-events: none !important; }
-/* Stars on the right of the chart read their labels inward, so they neither collide with
-   the next star along nor run off the globe's limb. */
+/* Stars on the right of the chart read their labels inward */
 .orrery-star-3d.is-flipped .orrery-star__name, .orrery-star-3d.is-flipped .orrery-star__chapter { left: auto; right: calc(50% + 0.65rem); text-align: right; }
+.orrery-star-3d.is-flipped .orrery-star__name::after { transform-origin: right; }
 .orrery-star-3d .orrery-star__chapter { text-shadow: 0 1px 6px #0a0416, 0 0 12px #0a0416; }
-.orrery-star-3d.is-hovered .orrery-star__name { color: #fff; opacity: 1; }
+.orrery-star-3d.is-hovered .orrery-star__name { color: #fff; opacity: 1; text-shadow: 0 1px 8px rgba(240, 204, 124, 0.35), 0 0 14px #0a0416; }
 .orrery-star-3d.is-hovered .orrery-star__chapter,
 .orrery-star-3d[aria-pressed="true"] .orrery-star__chapter { opacity: 1; transform: translateY(0.12rem); }
 .orrery-star-3d.is-hovered .orrery-star-3d__flare { background: transparent; box-shadow: none; transform: translate(-50%, -50%); }
+/* Selected star gets a subtle glow on its label */
+.orrery-star-3d.is-selected .orrery-star__name { color: var(--ember); opacity: 1; }
+.orrery-star-3d.is-selected .orrery-star__name::after { transform: scaleX(1); background: var(--ember); }
 
 .orrery *, .orrery__instruction { letter-spacing: 0; }
 .orrery > span, .orrery > button, .orrery-map { position: absolute; display: block; transform-style: preserve-3d; }
@@ -1296,6 +1321,38 @@ body:has(.astrolabe-scene.is-reading) .cursor-ring span, body:has(.astrolabe-sce
 @keyframes map-scrim-arrive { from { opacity: 0; } to { opacity: 1; } }
 @keyframes guide-beacon { 0%, 100% { opacity: 0.55; box-shadow: 0 0 0 0.18rem rgba(240, 204, 124, 0.1); } 50% { opacity: 1; box-shadow: 0 0 0 0.34rem rgba(240, 204, 124, 0.2); } }
 
+/* ── Staggered detail panel entry ── */
+@keyframes detail-stagger-in {
+  from { opacity: 0; transform: translateY(0.8rem); filter: blur(2px); }
+  to   { opacity: 1; transform: translateY(0);     filter: blur(0); }
+}
+@keyframes detail-media-in {
+  from { opacity: 0; transform: translateY(1.2rem); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.orrery-detail__stagger-1 { animation: detail-stagger-in 420ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.orrery-detail__stagger-2 { animation: detail-stagger-in 480ms 320ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.orrery-detail__stagger-3 { animation: detail-media-in  520ms 480ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+/* Stagger the h2 title within each content block for extra drama */
+.orrery-detail__stagger-2 h2 {
+  animation: detail-stagger-in 500ms 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Detail image reticle stroke-draw ── */
+@keyframes reticle-draw {
+  from { stroke-dashoffset: 200; opacity: 0; }
+  to   { stroke-dashoffset: 0;   opacity: 1; }
+}
+.orrery-detail__reticle {
+  animation: detail-stagger-in 400ms 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.orrery-detail__reticle i:first-child {
+  animation: detail-stagger-in 350ms 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.orrery-detail__reticle i:last-child {
+  animation: detail-stagger-in 300ms 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .orrery__boss { left: 45.25%; top: 45.25%; z-index: 24; display: grid !important; place-items: center; width: 9.5%; aspect-ratio: 1; padding: 0; border: 0.26rem solid #5a3519; border-radius: 50%; background: #d2a04a; box-shadow: inset 0.14rem 0.12rem 0 #f4d98d, 0.3rem 0.36rem 0 rgba(43, 21, 9, 0.52); transform: translateZ(112px); cursor: pointer; transition: opacity 220ms ease, transform 220ms ease; }
 .orrery__boss i { width: 32%; aspect-ratio: 1; border-radius: 50%; background: #2b173a; box-shadow: inset 0.12rem 0.1rem 0 rgba(255, 255, 255, 0.18); }
 .orrery__boss span { position: absolute; bottom: -1rem; font-family: var(--font-label); font-size: 0.38rem; color: #d3a756; }
@@ -1450,6 +1507,49 @@ body:has(.astrolabe-scene.is-reading) .cursor-ring span, body:has(.astrolabe-sce
 .orrery-detail__reticle { position: absolute; right: 8%; top: 12%; width: 5rem; aspect-ratio: 1; border: 1px solid rgba(255, 240, 191, 0.64); border-radius: 50%; pointer-events: none; }
 .orrery-detail__reticle::before, .orrery-detail__reticle::after { content: ""; position: absolute; background: rgba(255, 240, 191, 0.48); }.orrery-detail__reticle::before { left: 50%; top: -18%; width: 1px; height: 136%; }.orrery-detail__reticle::after { left: -18%; top: 50%; width: 136%; height: 1px; }
 .orrery-detail__reticle i { position: absolute; border: 1px solid rgba(255, 240, 191, 0.46); border-radius: 50%; }.orrery-detail__reticle i:first-child { inset: 20%; }.orrery-detail__reticle i:last-child { inset: 42%; background: rgba(226, 183, 95, 0.72); }
+
+/* ── Chapter step navigation controls ── */
+.orrery-detail__nav-controls {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  pointer-events: auto;
+}
+.orrery-detail__nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.48rem 0.95rem;
+  border: 1px solid rgba(240, 204, 124, 0.38);
+  border-radius: 2rem;
+  background: rgba(14, 7, 23, 0.82);
+  color: var(--ember);
+  font-family: var(--font-label);
+  font-size: 0.46rem;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(4, 1, 8, 0.35);
+  transition: all 220ms ease;
+}
+.orrery-detail__nav-btn svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  transition: transform 200ms ease;
+}
+.orrery-detail__nav-btn:hover {
+  background: rgba(119, 67, 139, 0.38);
+  border-color: rgba(255, 240, 191, 0.8);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(168, 91, 198, 0.3);
+}
+.orrery-detail__nav-btn:hover svg {
+  transform: scale(1.15);
+}
 .astrolabe-scene.is-reading .celestial-clock-3d { opacity: 0.88; filter: none; }
 .celestial-clock-3d { transition: opacity 420ms ease; }
 .orrery-star-3d { transition: opacity 180ms ease; }
@@ -1462,6 +1562,26 @@ body:has(.astrolabe-scene.is-reading) .hero-content-layer { opacity: 0.04 !impor
 .orrery-star__flare { box-shadow: none !important; }
 @keyframes map-detail-arrive { from { opacity: 0; transform: scale(0.994); } to { opacity: 1; transform: scale(1); } }
 @keyframes target-lock-arrive { from { opacity: 0; transform: translate(-50%, -50%) translateZ(35px) scale(2.2); } to { opacity: 1; transform: translate(-50%, -50%) translateZ(90px) scale(1); } }
+
+/* ── Cinematic vignette during star targeting ── */
+body:has(.astrolabe-scene.is-targeting)::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 610;
+  background: radial-gradient(ellipse 80% 70% at 56% 50%, transparent 30%, rgba(6, 3, 12, 0.48) 100%);
+  pointer-events: none;
+  animation: map-scrim-arrive 400ms ease both;
+}
+body:has(.astrolabe-scene.is-reading)::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 610;
+  background: radial-gradient(ellipse 90% 80% at 72% 50%, transparent 25%, rgba(6, 3, 12, 0.52) 100%);
+  pointer-events: none;
+  animation: map-scrim-arrive 500ms ease both;
+}
 
 .zodiac-overlay { background: rgba(8, 4, 15, 0.42); backdrop-filter: blur(2px); }
 .zodiac-content { width: min(74rem, 92vw); height: 100svh; padding: 6.5rem 0 1.5rem; }
@@ -1567,4 +1687,13 @@ body:has(.astrolabe-scene.is-reading) .hero-content-layer { opacity: 0.04 !impor
   .astrolabe-scene { opacity: 0.92 !important; transform: translate(-50%, -50%) !important; }
   .orrery-star__flare { animation: none !important; }
   .orrery-detail { animation-delay: 0ms !important; }
+  .orrery-detail__stagger-1,
+  .orrery-detail__stagger-2,
+  .orrery-detail__stagger-3,
+  .orrery-detail__stagger-2 h2,
+  .orrery-detail__reticle,
+  .orrery-detail__reticle i { animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }
+  .orrery-star-3d .orrery-star__name::after { transition: none !important; }
+  body:has(.astrolabe-scene.is-targeting)::after,
+  body:has(.astrolabe-scene.is-reading)::after { animation: none !important; opacity: 1 !important; }
 }

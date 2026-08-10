@@ -40,15 +40,40 @@ export function celestialMapCoordinates(
     sheratan: { longitude: -22, latitude: 0 },
     mesarthim: { longitude: -45, latitude: -16 },
   };
-  if (constellation === "aries") return ariesDisplay[star.key];
+  if (constellation === "aries") return ariesDisplay[star.key] ?? { longitude: 0, latitude: 0 };
 
-  const projection = { centreRa: 0.3, centreDec: 8, raScale: 1.4, decScale: 1.7 };
-  const deltaHours = ((star.ra - projection.centreRa + 12) % 24) - 12;
-
-  return {
-    longitude: deltaHours * 15 * projection.raScale,
-    latitude: Math.max(-58, Math.min(58, (star.dec - projection.centreDec) * projection.decScale)),
+  // Hand-tuned display map for Pisces — same approach as Aries.
+  // The western fish loop (Gamma → Kappa → Lambda → 19 → Iota → Theta → 7 → Gamma)
+  // occupies the left/lower quadrant; the cord (Gamma → Omega → … → Alrescha) sweeps
+  // diagonally through centre; the northern fish branch (Alrescha → … → Rho) rises
+  // toward the upper-right.
+  const piscesDisplay: Record<string, { longitude: number; latitude: number }> = {
+    // ── Western fish loop ──
+    "gamma-psc":   { longitude: -42, latitude: -18 },
+    "kappa-psc":   { longitude: -50, latitude: -32 },
+    "lambda-psc":  { longitude: -38, latitude: -42 },
+    "nineteen-psc":{ longitude: -22, latitude: -38 },
+    "iota-psc":    { longitude: -14, latitude: -26 },
+    "theta-psc":   { longitude: -24, latitude: -14 },
+    "seven-psc":   { longitude: -34, latitude: -8 },
+    // ── Cord connecting the two fish ──
+    "omega-psc":   { longitude: -28, latitude:  2 },
+    "delta-psc":   { longitude: -12, latitude:  12 },
+    "epsilon-psc": { longitude:  0,  latitude:  16 },
+    "mu-psc":      { longitude:  12, latitude:  12 },
+    "nu-psc":      { longitude:  22, latitude:  6 },
+    "xi-psc":      { longitude:  32, latitude:  0 },
+    "alrescha":    { longitude:  40, latitude: -6 },
+    // ── Northern fish branch ──
+    "omicron-psc": { longitude:  34, latitude:  14 },
+    "pi-psc":      { longitude:  38, latitude:  26 },
+    "eta-psc":     { longitude:  44, latitude:  38 },
+    "rho-psc":     { longitude:  50, latitude:  48 },
   };
+  if (constellation === "pisces") return piscesDisplay[star.key] ?? { longitude: 0, latitude: 0 };
+
+  // Fallback for any unmapped star
+  return { longitude: 0, latitude: 0 };
 }
 
 export const ariesConstellation: Constellation = {

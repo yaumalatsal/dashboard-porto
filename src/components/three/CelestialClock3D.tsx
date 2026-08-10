@@ -457,6 +457,118 @@ function GlobeOrbitRing({
   );
 }
 
+/**
+ * Radial burst of golden particles when a star is selected — a brief celebratory flash
+ * that rewards the interaction before the chapter panel opens.
+ */
+function SelectionBurst({
+  position,
+  active,
+  reducedMotion,
+}: {
+  position: THREE.Vector3;
+  active: boolean;
+  reducedMotion: boolean;
+}) {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const phaseRef = useRef(-1);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const materialRef = useRef<THREE.MeshBasicMaterial>(null);
+  const wasActive = useRef(false);
+  const count = 14;
+  const directions = useMemo(() => {
+    const dirs: THREE.Vector3[] = [];
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < count; i++) {
+      const y = 1 - (i / (count - 1)) * 2;
+      const r = Math.sqrt(1 - y * y);
+      const a = goldenAngle * i;
+      dirs.push(new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r).normalize());
+    }
+    return dirs;
+  }, []);
+  const geometry = useMemo(() => new THREE.SphereGeometry(0.028, 6, 4), []);
+
+  useFrame((_, delta) => {
+    if (reducedMotion) return;
+    // Fire the burst on the rising edge of 'active'
+    if (active && !wasActive.current) phaseRef.current = 0;
+    wasActive.current = active;
+    if (phaseRef.current < 0 || !meshRef.current || !materialRef.current) return;
+
+    phaseRef.current += delta;
+    const t = phaseRef.current;
+    const duration = 0.85;
+    if (t > duration) {
+      phaseRef.current = -1;
+      meshRef.current.visible = false;
+      return;
+    }
+    meshRef.current.visible = true;
+    const progress = t / duration;
+    const ease = 1 - Math.pow(1 - progress, 2);
+    materialRef.current.opacity = 1 - progress;
+
+    for (let i = 0; i < count; i++) {
+      const spread = ease * 0.65;
+      dummy.position.copy(position).addScaledVector(directions[i], spread);
+      dummy.scale.setScalar(Math.max(0.001, (1 - progress) * (0.6 + Math.sin(i * 2.3) * 0.3)));
+      dummy.updateMatrix();
+      meshRef.current.setMatrixAt(i, dummy.matrix);
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[geometry, undefined, count]} visible={false}>
+      <meshBasicMaterial ref={materialRef} color={palette.starGold} transparent depthWrite={false} />
+    </instancedMesh>
+  );
+}
+
+/**
+ * Atmospheric limb glow around the globe that intensifies when a star is focused,
+ * giving the feeling of the globe "powering up".
+ */
+function GlobeAtmosphere({
+  isFocused,
+  reducedMotion,
+}: {
+  isFocused: boolean;
+  reducedMotion: boolean;
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const materialRef = useRef<THREE.MeshBasicMaterial>(null);
+  const intensityRef = useRef(0);
+
+  const geometry = useMemo(() => {
+    // A slightly larger sphere used as an additive glow shell
+    return new THREE.SphereGeometry(GLOBE_RADIUS + 0.08, 48, 32);
+  }, []);
+
+  useFrame(({ clock }, delta) => {
+    if (!meshRef.current || !materialRef.current) return;
+    const target = isFocused ? 0.28 : 0.06;
+    intensityRef.current = reducedMotion ? target : approach(intensityRef.current, target, 0.05, delta);
+    const breath = reducedMotion ? 0 : Math.sin(clock.elapsedTime * 0.8) * 0.02;
+    materialRef.current.opacity = intensityRef.current + breath;
+    meshRef.current.scale.setScalar(1 + breath * 0.5);
+  });
+
+  return (
+    <mesh ref={meshRef} geometry={geometry}>
+      <meshBasicMaterial
+        ref={materialRef}
+        color="#a06cd5"
+        transparent
+        opacity={0.06}
+        depthWrite={false}
+        side={THREE.BackSide}
+      />
+    </mesh>
+  );
+}
+
 function StarPin({
   star,
   selected,
@@ -478,13 +590,19 @@ function StarPin({
 }) {
   const anchorRef = useRef<THREE.Group>(null);
   const reticleRef = useRef<THREE.Group>(null);
+  const scanRingRef = useRef<THREE.Mesh>(null);
+  const scanMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
+  const confirmPulseRef = useRef<THREE.Mesh>(null);
+  const confirmMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
   const beaconRef = useRef<THREE.Mesh>(null);
   const beaconMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
+  const beaconPingRef = useRef<THREE.Mesh>(null);
+  const beaconPingMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
   const labelRef = useRef<HTMLButtonElement>(null);
   const mapLevelRef = useRef(0);
+  const lockPhaseRef = useRef(0);
+  const wasSelectedRef = useRef(false);
   const worldPosition = useMemo(() => new THREE.Vector3(), []);
-  // This is the same radius used by the constellation tube. The coordinate,
-  // connector endpoint and interaction target therefore share one world point.
   const position = useMemo(() => starPosition(star, GLOBE_RADIUS + 0.05), [star]);
   const quaternion = useMemo(
     () => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), position.clone().normalize()),
@@ -499,9 +617,13 @@ function StarPin({
     core: new THREE.OctahedronGeometry(1, 0),
     reticle: new THREE.TorusGeometry(0.3, 0.016, 6, 32),
     reticleOuter: new THREE.TorusGeometry(0.46, 0.012, 6, 32),
-    // The standing "this one is a target" ring. Every jewel on the instrument is a round
-    // bright dot; only the six navigable coordinates carry a ring around them.
     beacon: new THREE.TorusGeometry(0.34, 0.014, 6, 36),
+    // Second concentric beacon ring — the "radar ping" that expands outward
+    beaconPing: new THREE.TorusGeometry(0.34, 0.01, 6, 36),
+    // Scan ring: a wider, thinner ring used during the acquisition phase
+    scanRing: new THREE.TorusGeometry(0.62, 0.009, 6, 40),
+    // Confirmation pulse: a disc that flashes on lock
+    confirmPulse: new THREE.CircleGeometry(0.38, 24),
     reticleTick: radialMerge(new THREE.BoxGeometry(0.1, 0.022, 0.022), 4, 0.4),
     targetCross: radialMerge(new THREE.BoxGeometry(0.14, 0.018, 0.018), 4, 0.54),
   }));
@@ -514,26 +636,19 @@ function StarPin({
       : approach(mapLevelRef.current, targetMapLevel, 0.035, delta);
     if (anchorRef.current) anchorRef.current.scale.setScalar(Math.max(0.001, mapLevelRef.current));
 
-    // Fade each label by how squarely its star faces the viewer, so the far side of
-    // the sphere stays quiet and only what you have turned into view is readable.
+    // Label facing/opacity
     if (anchorRef.current && labelRef.current) {
       anchorRef.current.getWorldPosition(worldPosition);
       const facing = worldPosition.z / (worldPosition.length() || 1);
-      // Generous ramp: anything on the near side stays fully readable and clickable,
-      // and only stars genuinely around the back fade out.
       const presence = THREE.MathUtils.clamp((facing + 0.08) / 0.35, 0, 1)
         * stage(assemblyRef.current, 0.85, 1)
         * mapLevelRef.current;
       labelRef.current.style.opacity = presence.toFixed(3);
       labelRef.current.classList.toggle("is-flipped", worldPosition.x > 0);
-      // Drives which of the label's *visible* parts accept the pointer. The button box
-      // itself stays inert — it is a 5.4rem invisible rectangle lying over the map, and
-      // when it was hittable it swallowed drags started anywhere near a star.
       labelRef.current.dataset.faces = presence > 0.25 ? "1" : "0";
     }
 
-    // Idle beacon: a slow breath that stops the moment the star is hovered or open, so the
-    // reticle takes over rather than fighting it.
+    // ── Dual-ring beacon with radar ping ──
     if (beaconRef.current && beaconMaterialRef.current) {
       const idle = active ? 0 : 1;
       const breath = reducedMotion ? 0 : Math.sin(clock.elapsedTime * 1.15 + star.ra) * 0.5 + 0.5;
@@ -542,14 +657,58 @@ function StarPin({
       beaconRef.current.visible = presence > 0.02;
       beaconRef.current.scale.setScalar(1 + breath * 0.12);
     }
+    // Radar ping: a second ring that periodically expands and fades
+    if (beaconPingRef.current && beaconPingMaterialRef.current && !reducedMotion) {
+      const idle = active ? 0 : 1;
+      const pingCycle = (clock.elapsedTime * 0.5 + star.ra * 0.3) % 1;
+      const pingScale = 1 + pingCycle * 0.8;
+      const pingOpacity = idle * Math.max(0, (1 - pingCycle) * 0.35);
+      beaconPingMaterialRef.current.opacity = pingOpacity;
+      beaconPingRef.current.scale.setScalar(pingScale);
+      beaconPingRef.current.visible = pingOpacity > 0.01;
+    }
+
+    // ── Three-stage reticle acquisition ──
+    if (selected && !wasSelectedRef.current) lockPhaseRef.current = 0;
+    if (!selected) lockPhaseRef.current = 0;
+    wasSelectedRef.current = selected;
+    if (selected && !reducedMotion) lockPhaseRef.current = Math.min(1, lockPhaseRef.current + delta * 1.6);
+
+    // Scan ring: rapidly spins and contracts to the target during phase 0–0.4
+    if (scanRingRef.current && scanMaterialRef.current) {
+      if (selected && lockPhaseRef.current < 0.5) {
+        const scanProgress = lockPhaseRef.current / 0.5;
+        scanRingRef.current.visible = true;
+        scanRingRef.current.scale.setScalar(THREE.MathUtils.lerp(2.2, 0.8, easeOut(scanProgress)));
+        scanRingRef.current.rotation.z += delta * 18;
+        scanMaterialRef.current.opacity = THREE.MathUtils.lerp(0.7, 0, scanProgress);
+      } else {
+        scanRingRef.current.visible = false;
+      }
+    }
+
+    // Confirmation pulse: a bright disc flash on lock at phase 0.45–0.7
+    if (confirmPulseRef.current && confirmMaterialRef.current) {
+      if (selected && lockPhaseRef.current > 0.4 && lockPhaseRef.current < 0.75) {
+        const confirmProgress = (lockPhaseRef.current - 0.4) / 0.35;
+        confirmPulseRef.current.visible = true;
+        confirmPulseRef.current.scale.setScalar(THREE.MathUtils.lerp(0.3, 1.8, easeOut(confirmProgress)));
+        confirmMaterialRef.current.opacity = Math.max(0, (1 - confirmProgress) * 0.55);
+      } else {
+        confirmPulseRef.current.visible = false;
+      }
+    }
 
     if (reticleRef.current) {
       const target = selected ? 1.35 : hovered ? 1 : 0.001;
       const speed = selected ? 0.22 : 0.16;
       const next = THREE.MathUtils.lerp(reticleRef.current.scale.x, target, speed);
       reticleRef.current.scale.setScalar(next);
-      reticleRef.current.rotation.z += delta * (selected ? 2.5 : active ? 0.9 : 0);
-      // Skip it entirely when collapsed — an invisible reticle still costs draw calls.
+      // When locked, the reticle settles to a slow dignified rotation instead of spinning
+      const lockSpin = selected && lockPhaseRef.current > 0.6
+        ? THREE.MathUtils.lerp(8, 1.2, Math.min(1, (lockPhaseRef.current - 0.6) / 0.4))
+        : selected ? 8 : active ? 0.9 : 0;
+      reticleRef.current.rotation.z += delta * lockSpin;
       reticleRef.current.visible = next > 0.01;
     }
   });
@@ -563,8 +722,22 @@ function StarPin({
       </group>
       <FlatPart geometry={kit.core} color={palette.starCore} outline={0.022} position={[0, 0, 0.23]} scale={size * 0.92} />
 
+      {/* Primary beacon ring */}
       <mesh ref={beaconRef} geometry={kit.beacon} position={[0, 0, 0.24]}>
         <meshBasicMaterial ref={beaconMaterialRef} color={palette.starGold} transparent opacity={0} depthWrite={false} />
+      </mesh>
+      {/* Radar-ping second ring */}
+      <mesh ref={beaconPingRef} geometry={kit.beaconPing} position={[0, 0, 0.24]} visible={false}>
+        <meshBasicMaterial ref={beaconPingMaterialRef} color={palette.starGold} transparent opacity={0} depthWrite={false} />
+      </mesh>
+
+      {/* Scan ring for acquisition phase */}
+      <mesh ref={scanRingRef} geometry={kit.scanRing} position={[0, 0, 0.26]} visible={false}>
+        <meshBasicMaterial ref={scanMaterialRef} color={palette.starCore} transparent opacity={0} depthWrite={false} />
+      </mesh>
+      {/* Confirmation flash pulse */}
+      <mesh ref={confirmPulseRef} geometry={kit.confirmPulse} position={[0, 0, 0.24]} visible={false}>
+        <meshBasicMaterial ref={confirmMaterialRef} color={palette.starGold} transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
 
       <group ref={reticleRef} position={[0, 0, 0.25]} scale={0.001}>
@@ -578,14 +751,13 @@ function StarPin({
         )}
       </group>
 
-      {/* Keep the control on the chart coordinate at the foot of the pin. The raised
-          brass/core geometry remains an honest extrusion; attaching the HTML to its
-          tip displaced the button sideways whenever the globe was viewed obliquely. */}
+      <SelectionBurst position={position} active={selected} reducedMotion={reducedMotion} />
+
       <Html position={[0, 0, 0]} center sprite transform distanceFactor={7.5} zIndexRange={[70, 20]}>
         <button
           ref={labelRef}
           type="button"
-          className={`orrery-star orrery-star-3d${hovered ? " is-hovered" : ""}`}
+          className={`orrery-star orrery-star-3d${hovered ? " is-hovered" : ""}${selected ? " is-selected" : ""}`}
           onClick={() => onOpen(star)}
           onPointerDown={(event) => event.stopPropagation()}
           onPointerEnter={() => onHover(star.id)}
@@ -648,12 +820,14 @@ function ConstellationFigure({
   opacity,
   reducedMotion,
   spotlight,
+  hoveredStarKey,
 }: {
   constellation: Constellation;
   color: string;
   opacity: number;
   reducedMotion: boolean;
   spotlight: "aries" | "pisces" | null;
+  hoveredStarKey: string | null;
 }) {
   const figureRef = useRef<THREE.Group>(null);
   const nodesRef = useRef<THREE.InstancedMesh>(null);
@@ -694,6 +868,38 @@ function ConstellationFigure({
     figure.spark.dispose();
   }, [figure]);
 
+  // Track which segments connect to the hovered star for glow-through
+  const hoveredSegmentIndices = useMemo(() => {
+    if (!hoveredStarKey) return new Set<number>();
+    const indices = new Set<number>();
+    constellation.segments.forEach(([fromKey, toKey], index) => {
+      if (fromKey === hoveredStarKey || toKey === hoveredStarKey) indices.add(index);
+    });
+    return indices;
+  }, [hoveredStarKey, constellation.segments]);
+
+  // Glow tube for hovered segments
+  const glowLine = useMemo(() => {
+    if (hoveredSegmentIndices.size === 0) return null;
+    const byKey = new Map(constellation.stars.map((s) => [s.key, s]));
+    const glowCurves = constellation.segments
+      .filter((_, index) => hoveredSegmentIndices.has(index))
+      .map(([fromKey, toKey]) => {
+        const from = byKey.get(fromKey);
+        const to = byKey.get(toKey);
+        if (!from || !to) return null;
+        return new THREE.TubeGeometry(
+          buildConstellationArc(from, to, GLOBE_RADIUS + 0.05),
+          28, 0.04, 8, false
+        );
+      })
+      .filter(Boolean) as THREE.TubeGeometry[];
+    if (glowCurves.length === 0) return null;
+    return mergeParts(glowCurves.map((g) => ({ geometry: g })));
+  }, [hoveredSegmentIndices, constellation]);
+
+  const glowMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
+
   useFrame(({ clock }, delta) => {
     const time = clock.elapsedTime;
     const targetLevel = constellationTargetLevel(constellation.id, time, spotlight, reducedMotion);
@@ -703,23 +909,35 @@ function ConstellationFigure({
       figureRef.current.visible = currentLevel > 0.008;
       figureRef.current.scale.setScalar(THREE.MathUtils.lerp(0.94, 1, currentLevel));
     }
-    if (lineMaterialRef.current) lineMaterialRef.current.opacity = opacity * currentLevel;
+    // Base line opacity dims slightly when a star is hovered (to make glow lines pop)
+    const baseDim = hoveredStarKey ? 0.55 : 1;
+    if (lineMaterialRef.current) lineMaterialRef.current.opacity = opacity * currentLevel * baseDim;
     if (nodeMaterialRef.current) nodeMaterialRef.current.opacity = currentLevel;
     if (coreMaterialRef.current) coreMaterialRef.current.opacity = currentLevel;
+
+    // Glow lines pulse
+    if (glowMaterialRef.current) {
+      const pulse = reducedMotion ? 0.9 : 0.75 + Math.sin(time * 3.2) * 0.15;
+      glowMaterialRef.current.opacity = currentLevel * pulse;
+    }
+
     constellation.stars.forEach((star, index) => {
-      const position = starPosition(star, GLOBE_RADIUS + 0.065);
+      const starPos = starPosition(star, GLOBE_RADIUS + 0.065);
       const magnitudeScale = THREE.MathUtils.clamp(0.13 - star.magnitude * 0.014, 0.052, 0.096);
       const mapScale = constellation.id === "pisces" ? 1.28 : 1;
+      // Stars connected to the hovered star brighten
+      const isConnected = hoveredStarKey === star.key;
+      const brightBoost = isConnected ? 1.35 : 1;
       const twinkle = reducedMotion ? 1 : 1 + Math.sin(time * 1.4 + index * 1.73) * 0.075;
-      radialQuaternion.setFromUnitVectors(outward, position.clone().normalize());
+      radialQuaternion.setFromUnitVectors(outward, starPos.clone().normalize());
 
-      dummy.position.copy(position);
+      dummy.position.copy(starPos);
       dummy.quaternion.copy(radialQuaternion);
-      dummy.scale.setScalar(magnitudeScale * mapScale * twinkle * THREE.MathUtils.lerp(0.76, 1, currentLevel));
+      dummy.scale.setScalar(magnitudeScale * mapScale * twinkle * brightBoost * THREE.MathUtils.lerp(0.76, 1, currentLevel));
       dummy.updateMatrix();
       nodesRef.current?.setMatrixAt(index, dummy.matrix);
 
-      dummy.scale.setScalar(magnitudeScale * mapScale * 0.46 * twinkle * THREE.MathUtils.lerp(0.76, 1, currentLevel));
+      dummy.scale.setScalar(magnitudeScale * mapScale * 0.46 * twinkle * brightBoost * THREE.MathUtils.lerp(0.76, 1, currentLevel));
       dummy.updateMatrix();
       coresRef.current?.setMatrixAt(index, dummy.matrix);
     });
@@ -746,6 +964,12 @@ function ConstellationFigure({
       <mesh geometry={figure.line}>
         <meshBasicMaterial ref={lineMaterialRef} color={color} transparent opacity={opacity} />
       </mesh>
+      {/* Glow-through: brighter, thicker lines on segments connected to hovered star */}
+      {glowLine && (
+        <mesh geometry={glowLine}>
+          <meshBasicMaterial ref={glowMaterialRef} color={palette.starGold} transparent opacity={0.8} depthWrite={false} />
+        </mesh>
+      )}
       <instancedMesh ref={nodesRef} args={[figure.node, undefined, constellation.stars.length]}>
         <meshBasicMaterial ref={nodeMaterialRef} color={palette.brassLight} transparent />
       </instancedMesh>
@@ -802,9 +1026,14 @@ function Globe({
     ]),
   }));
 
+  const hoveredStar = stars.find((s) => s.id === hoveredId);
+  const hoveredStarKey = hoveredStar?.key ?? null;
+
   return (
     <group>
       <FlatPart geometry={kit.body} color={palette.void} outline={0.03} />
+
+      <GlobeAtmosphere isFocused={Boolean(selectedId)} reducedMotion={reducedMotion} />
 
       {/* The ecliptic and its twelve signs now live on the cage ring, off the map's face. */}
       <FlatPart geometry={kit.graticuleGold} color={palette.brassPale} opacity={0.7} />
@@ -812,8 +1041,8 @@ function Globe({
 
       <CelestialDust reducedMotion={reducedMotion} />
 
-      <ConstellationFigure constellation={piscesConstellation} color={palette.amethystLight} opacity={0.72} reducedMotion={reducedMotion} spotlight={spotlight} />
-      <ConstellationFigure constellation={ariesConstellation} color={palette.starCore} opacity={0.95} reducedMotion={reducedMotion} spotlight={spotlight} />
+      <ConstellationFigure constellation={piscesConstellation} color={palette.amethystLight} opacity={0.72} reducedMotion={reducedMotion} spotlight={spotlight} hoveredStarKey={hoveredStarKey} />
+      <ConstellationFigure constellation={ariesConstellation} color={palette.starCore} opacity={0.95} reducedMotion={reducedMotion} spotlight={spotlight} hoveredStarKey={hoveredStarKey} />
 
       {stars.map((star) => (
         <StarPin
@@ -865,7 +1094,6 @@ function Case({
       brassDeep: mergeParts([
         { geometry: bandGeometry(3.38, 3.43, 0.12), position: [0, 0, -0.34] },
         { geometry: radialMerge(new THREE.BoxGeometry(0.62, 0.1, 0.1), 6, 3.7), position: [0, 0, -0.34] },
-        { geometry: new THREE.BoxGeometry(0.86, 0.34, 0.42), position: [0, 3.98, -0.1] },
       ]),
       brassPale: radialMerge(new THREE.CylinderGeometry(0.052, 0.052, 0.18, 10).rotateX(Math.PI / 2), 16, 4.08, { z: 0.2 }),
       jewels: mergeParts(
@@ -910,7 +1138,7 @@ function Case({
         <FlatPart geometry={kit.indexTrack} color={palette.engrave} position={[0, 0, 0.19]} />
         <FlatPart geometry={kit.minorTicks} color={palette.brass} position={[0, 0, 0.22]} />
         <FlatPart geometry={kit.majorTicks} color={palette.brassPale} outline={0.012} position={[0, 0, 0.24]} />
-        <ToonPart geometry={kit.gearBand} color={palette.brassDeep} outline={0.018} position={[0, 0, TRAIN_PLANE_Z]} />
+        <ToonPart geometry={kit.gearBand} color={palette.brassDeep} outline={0.018} position={[0, 0, TRAIN_PLANE_Z + 0.04]} />
         <ToonPart geometry={kit.gearTeeth} color={palette.brassPale} outline={0.014} />
       </group>
     </group>
@@ -936,7 +1164,6 @@ function Alidade({
   // An index arm confined to the dial: it spans the mater only, so it never crosses the
   // sphere. The old full-diameter rule cut straight over the map and its stars.
   const kit = useGeometryKit(() => ({
-    bar: new THREE.BoxGeometry(0.86, 0.15, 0.13),
     tip: new THREE.ConeGeometry(0.2, 0.46, 4).rotateZ(-Math.PI / 2),
     tail: new THREE.BoxGeometry(0.26, 0.34, 0.17),
     vane: new THREE.BoxGeometry(0.12, 0.44, 0.17),
@@ -961,7 +1188,6 @@ function Alidade({
   return (
     <group ref={mountRef} position={[0, 0, 0.92]}>
       <group ref={ruleRef}>
-        <ToonPart geometry={kit.bar} color={palette.brassDeep} outline={0.026} position={[3.72, 0, 0]} />
         <ToonPart geometry={kit.tip} color={palette.brassPale} outline={0.024} position={[4.02, 0, 0]} />
         <ToonPart geometry={kit.tail} color={palette.brassLight} outline={0.024} position={[3.45, 0, 0]} />
         <ToonPart geometry={kit.vane} color={palette.brass} outline={0.022} position={[3.72, 0.16, 0]} />

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, RotateCcw, X } from "lucide-react";
+import { ArrowUpRight, ChevronDown, ChevronUp, RotateCcw, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { gsap } from "@/lib/gsap-config";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -69,21 +69,35 @@ function normaliseYaw(yaw: number): number {
  */
 const SPHERE_FRAME_FRACTION = 2.45 / 5.15;
 
-function OrreryMapDetail({ star, onClose }: { star: OrreryStar; onClose: () => void }) {
+function OrreryMapDetail({
+  star,
+  onClose,
+  onNext,
+  onPrev,
+  hasNext,
+  hasPrev,
+}: {
+  star: OrreryStar;
+  onClose: () => void;
+  onNext?: () => void;
+  onPrev?: () => void;
+  hasNext?: boolean;
+  hasPrev?: boolean;
+}) {
   const media = missionMedia[star.id];
 
   return (
     <section className={`orrery-detail orrery-detail--${star.id}`} aria-labelledby={`orrery-detail-${star.id}`}>
-      <button className="orrery-detail__close" type="button" onClick={onClose} aria-label="Return to the Aries map">
+      <button className="orrery-detail__close orrery-detail__stagger-1" type="button" onClick={onClose} aria-label="Return to the Aries map">
         <X aria-hidden="true" />
       </button>
-      <header className="orrery-detail__header">
+      <header className="orrery-detail__header orrery-detail__stagger-1">
         <p>Level {star.level} / {star.name} / {star.designation}</p>
         <span>{star.status}</span>
       </header>
 
       {star.id === "hero" && (
-        <div className="orrery-detail__intro">
+        <div className="orrery-detail__intro orrery-detail__stagger-2">
           <p>Origin coordinate</p>
           <h2 id="orrery-detail-hero">{profile.name}</h2>
           <strong>{profile.role}</strong>
@@ -96,7 +110,7 @@ function OrreryMapDetail({ star, onClose }: { star: OrreryStar; onClose: () => v
       )}
 
       {star.id === "about" && (
-        <div className="orrery-detail__practice">
+        <div className="orrery-detail__practice orrery-detail__stagger-2">
           <p>The Practice</p>
           <h2 id="orrery-detail-about">Making terrain legible.</h2>
           <p>{profile.bio}</p>
@@ -109,7 +123,7 @@ function OrreryMapDetail({ star, onClose }: { star: OrreryStar; onClose: () => v
       )}
 
       {star.id === "work" && (
-        <div className="orrery-detail__work">
+        <div className="orrery-detail__work orrery-detail__stagger-2">
           <p>Field Records</p>
           <h2 id="orrery-detail-work">Selected systems</h2>
           <div className="orrery-detail__projects">
@@ -126,7 +140,7 @@ function OrreryMapDetail({ star, onClose }: { star: OrreryStar; onClose: () => v
       )}
 
       {star.id === "skills" && (
-        <div className="orrery-detail__skills">
+        <div className="orrery-detail__skills orrery-detail__stagger-2">
           <p>Capabilities</p>
           <h2 id="orrery-detail-skills">Four working layers</h2>
           <div className="orrery-detail__capabilities">
@@ -142,7 +156,7 @@ function OrreryMapDetail({ star, onClose }: { star: OrreryStar; onClose: () => v
       )}
 
       {star.id === "contact" && (
-        <div className="orrery-detail__contact">
+        <div className="orrery-detail__contact orrery-detail__stagger-2">
           <p>Correspondence</p>
           <h2 id="orrery-detail-contact">Bring me the difficult map.</h2>
           <p>Available for immersive products, internal platforms, and systems that cross design and infrastructure.</p>
@@ -156,20 +170,46 @@ function OrreryMapDetail({ star, onClose }: { star: OrreryStar; onClose: () => v
       )}
 
       {star.id === "pisces" && (
-        <div className="orrery-detail__pisces">
+        <div className="orrery-detail__pisces orrery-detail__stagger-2">
           <p>The Knot</p>
           <h2 id="orrery-detail-pisces">Binding the threads.</h2>
           <p>This is a newly charted constellation mapping the connection between disparate systems, binding them into a unified whole.</p>
         </div>
       )}
 
-      <figure className="orrery-detail__media">
+      <figure className="orrery-detail__media orrery-detail__stagger-3">
         <div className="orrery-detail__image">
           <Image src={media.src} alt={media.title} fill priority sizes="(max-width: 767px) 88vw, 42vw" />
           <span className="orrery-detail__reticle" aria-hidden="true"><i /><i /></span>
         </div>
         <figcaption><span>{media.label}</span><strong>{media.title}</strong></figcaption>
       </figure>
+
+      {/* Chapter Step Controls */}
+      <div className="orrery-detail__nav-controls orrery-detail__stagger-3">
+        {hasPrev && (
+          <button
+            type="button"
+            className="orrery-detail__nav-btn"
+            onClick={onPrev}
+            aria-label="Previous Chapter"
+          >
+            <ChevronUp aria-hidden="true" />
+            <span>Prev Chapter</span>
+          </button>
+        )}
+        {hasNext && (
+          <button
+            type="button"
+            className="orrery-detail__nav-btn"
+            onClick={onNext}
+            aria-label="Next Chapter"
+          >
+            <span>Next Chapter</span>
+            <ChevronDown aria-hidden="true" />
+          </button>
+        )}
+      </div>
     </section>
   );
 }
@@ -221,6 +261,31 @@ export default function AstrolabeScene() {
   // header — one highlighted coordinate, two ways in.
   const activeHoverId = hoveredId ?? navHoveredPoint;
   const hoveredStar = stars.find((star) => star.id === activeHoverId) ?? null;
+
+  useEffect(() => {
+    updateReadout(manualRotationRef.current.x, manualRotationRef.current.y);
+
+    let animationFrameId: number;
+    const tick = () => {
+      if (!isDragging && !isDiscDragging) {
+        discRotationRef.current += hasInteractedRef.current ? 0.045 : 0.08;
+        if (sceneRef.current) {
+          sceneRef.current.style.setProperty("--spin-angle", `${discRotationRef.current.toFixed(2)}deg`);
+        }
+      }
+      document.documentElement.style.setProperty("--orbit-drift", `${(Math.sin((discRotationRef.current * 0.12 * Math.PI) / 180) * 2.5).toFixed(3)}deg`);
+      animationFrameId = requestAnimationFrame(tick);
+    };
+    if (!prefersReducedMotion) {
+      animationFrameId = requestAnimationFrame(tick);
+    }
+
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (discInertiaFrameRef.current !== null) cancelAnimationFrame(discInertiaFrameRef.current);
+      if (globeInertiaFrameRef.current !== null) cancelAnimationFrame(globeInertiaFrameRef.current);
+    };
+  }, [prefersReducedMotion, isDragging, isDiscDragging, focusedPoint]);
 
   const updateSpinCss = () => {
     if (sceneRef.current) {
@@ -643,15 +708,42 @@ export default function AstrolabeScene() {
       },
     });
 
-    targetFocusTweenRef.current.to(proxy, {
-      globeX: targetGlobeX,
-      globeY: finalGlobeY,
-      discX: targetDiscX,
-      discY: finalDiscY,
-      zoom: targetZoom,
-      duration: prefersReducedMotion ? 0.18 : 1.2,
-      ease: "power3.inOut",
-    });
+    if (prefersReducedMotion) {
+      // Skip choreography, jump directly
+      targetFocusTweenRef.current.to(proxy, {
+        globeX: targetGlobeX,
+        globeY: finalGlobeY,
+        discX: targetDiscX,
+        discY: finalDiscY,
+        zoom: targetZoom,
+        duration: 0.18,
+        ease: "power2.out",
+      });
+    } else {
+      // Fancy mechanical ring gear spin impulse on each section transition
+      discRotationRef.current += finalGlobeY > proxy.globeY ? 75 : -75;
+
+      // Phase 1: Pull-back anticipation — slight zoom out + gentle yaw drift
+      const anticipationZoom = Math.max(0.82, proxy.zoom * 0.9);
+      const anticipationYaw = proxy.globeY + (finalGlobeY > proxy.globeY ? -10 : 10);
+      targetFocusTweenRef.current
+        .to(proxy, {
+          zoom: anticipationZoom,
+          globeY: anticipationYaw,
+          duration: 0.38,
+          ease: "power2.out",
+        })
+        // Phase 2: Cinematic approach with overshoot settle
+        .to(proxy, {
+          globeX: targetGlobeX,
+          globeY: finalGlobeY,
+          discX: targetDiscX,
+          discY: finalDiscY,
+          zoom: targetZoom,
+          duration: 0.88,
+          ease: "back.out(1.18)",
+        });
+    }
   };
 
   const focusStar = (star: ClockStar) => {
@@ -718,19 +810,47 @@ export default function AstrolabeScene() {
     orientDisc(42, 0, true);
   };
 
-  // Long-lived listeners reach the latest handlers through refs rather than re-binding
-  // on every render.
+  // Long-lived listeners reach the latest handlers through refs
   const handleZoomRef = useRef(handleZoom);
   const focusStarRef = useRef(focusStar);
   const returnToMapRef = useRef(returnToMap);
+  const openMapPointRef = useRef(openMapPoint);
+  const closeMapPointRef = useRef(closeMapPoint);
+  const lastScrollStepTimeRef = useRef(0);
+
   useEffect(() => {
     handleZoomRef.current = handleZoom;
     focusStarRef.current = focusStar;
     returnToMapRef.current = returnToMap;
+    openMapPointRef.current = openMapPoint;
+    closeMapPointRef.current = closeMapPoint;
   });
 
-  // Header and mobile navigation write to the shared store directly. Route those
-  // requests through the same camera choreography as a physical star click.
+  const stepToNextStar = () => {
+    const currentIndex = stars.findIndex((s) => s.id === focusedPoint);
+    const nextIndex = currentIndex < 0 ? 0 : Math.min(stars.length - 1, currentIndex + 1);
+    if (nextIndex !== currentIndex || currentIndex < 0) {
+      openMapPointRef.current(stars[nextIndex]);
+    }
+  };
+
+  const stepToPrevStar = () => {
+    const currentIndex = stars.findIndex((s) => s.id === focusedPoint);
+    if (currentIndex > 0) {
+      openMapPointRef.current(stars[currentIndex - 1]);
+    } else if (currentIndex === 0) {
+      closeMapPointRef.current();
+    }
+  };
+
+  const stepToNextStarRef = useRef(stepToNextStar);
+  const stepToPrevStarRef = useRef(stepToPrevStar);
+  useEffect(() => {
+    stepToNextStarRef.current = stepToNextStar;
+    stepToPrevStarRef.current = stepToPrevStar;
+  });
+
+  // Header and mobile navigation write to the shared store directly
   useEffect(() => {
     if (focusedPoint && focusRequestRef.current !== focusedPoint) {
       const star = stars.find((candidate) => candidate.id === focusedPoint);
@@ -743,49 +863,47 @@ export default function AstrolabeScene() {
     }
   }, [focusedPoint]);
 
-  // Wheel lives on the hit surface (the canvas is inert now), non-passive so it dollies
-  // the sphere instead of nudging the page behind it.
+  // Window-level wheel listener for automatic section transitions on scroll
   useEffect(() => {
-    const surface = surfaceRef.current;
-    if (!surface) return;
-
     const onWheel = (event: WheelEvent) => {
+      // Prevent page from scrolling down into the footer
       event.preventDefault();
-      handleZoomRef.current(event.deltaY);
-    };
 
-    surface.addEventListener("wheel", onWheel, { passive: false });
-    return () => surface.removeEventListener("wheel", onWheel);
-    // The scene renders null until it is client-side, so the ref only exists after that.
-  }, [isClient, pathname]);
-
-  useEffect(() => {
-    updateReadout(manualRotationRef.current.x, manualRotationRef.current.y);
-
-    let animationFrameId: number;
-    const tick = () => {
-      if (!isDragging && !isDiscDragging) {
-        discRotationRef.current += hasInteractedRef.current ? 0.045 : 0.08;
-        if (sceneRef.current) {
-          sceneRef.current.style.setProperty("--spin-angle", `${discRotationRef.current.toFixed(2)}deg`);
+      // 650ms throttle prevents rapid multi-skipping during smooth trackpad inertia
+      const now = Date.now();
+      if (now - lastScrollStepTimeRef.current < 650) {
+        return;
+      }
+      if (Math.abs(event.deltaY) > 14) {
+        lastScrollStepTimeRef.current = now;
+        if (event.deltaY > 0) {
+          stepToNextStarRef.current();
+        } else {
+          stepToPrevStarRef.current();
         }
       }
-      animationFrameId = requestAnimationFrame(tick);
     };
-    if (!prefersReducedMotion) {
-      animationFrameId = requestAnimationFrame(tick);
-    }
 
-    return () => {
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      if (discInertiaFrameRef.current !== null) cancelAnimationFrame(discInertiaFrameRef.current);
-      if (globeInertiaFrameRef.current !== null) cancelAnimationFrame(globeInertiaFrameRef.current);
-    };
-  }, [prefersReducedMotion, isDragging, isDiscDragging, focusedPoint]);
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [isClient, pathname]);
 
+  // Keyboard navigation (ArrowDown/PageDown -> next, ArrowUp/PageUp -> prev)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && focusedPoint) closeMapPoint();
+      if (event.key === "Escape" && focusedPoint) {
+        closeMapPoint();
+      } else if (event.key === "ArrowDown" || event.key === "PageDown" || event.key === "ArrowRight") {
+        if (focusedPoint) {
+          event.preventDefault();
+          stepToNextStar();
+        }
+      } else if (event.key === "ArrowUp" || event.key === "PageUp" || event.key === "ArrowLeft") {
+        if (focusedPoint) {
+          event.preventDefault();
+          stepToPrevStar();
+        }
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -869,7 +987,14 @@ export default function AstrolabeScene() {
       </div>
 
       {selectedStar && focusPhase === "reading" && createPortal(
-        <OrreryMapDetail star={selectedStar} onClose={closeMapPoint} />,
+        <OrreryMapDetail
+          star={selectedStar}
+          onClose={closeMapPoint}
+          onNext={stepToNextStar}
+          onPrev={stepToPrevStar}
+          hasNext={stars.findIndex((s) => s.id === focusedPoint) < stars.length - 1}
+          hasPrev={stars.findIndex((s) => s.id === focusedPoint) > 0}
+        />,
         document.body,
       )}
     </div>
