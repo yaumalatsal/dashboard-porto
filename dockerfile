@@ -1,16 +1,16 @@
 # syntax=docker/dockerfile:1
 
-# Base image with Node.js 20 Alpine
+# 1. Base image with Node.js 20 Alpine & libc6-compat
 FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# 1. Install dependencies only when needed
+# 2. Dependency installation stage
 FROM base AS deps
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# 2. Rebuild the source code only when needed
+# 3. Build stage
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -21,24 +21,25 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
 
-# 3. Production image, copy all the files and run next
+# 4. Production runtime stage (minimal footprint & non-root user)
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Create non-root user for security
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Copy static public assets
 COPY --from=builder /app/public ./public
 
-# Set correct permissions for Next.js cache
+# Set permissions for Next.js cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
+# Leverage Next.js standalone output to drastically reduce image size
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
