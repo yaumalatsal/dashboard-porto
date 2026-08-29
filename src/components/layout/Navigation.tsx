@@ -9,6 +9,7 @@ const links = [
   { section: "about" as AstrolabeSection, href: "#about", label: "Practice" },
   { section: "work" as AstrolabeSection, href: "#work", label: "Field Records" },
   { section: "skills" as AstrolabeSection, href: "#skills", label: "Field Kit" },
+  { section: "experience" as AstrolabeSection, href: "#experience", label: "Experience" },
   { section: "contact" as AstrolabeSection, href: "#contact", label: "Contact" },
 ] as const;
 

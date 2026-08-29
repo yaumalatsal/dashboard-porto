@@ -201,6 +201,66 @@ export const capabilities = [
   },
 ] as const;
 
+export type ExperienceEntry = {
+  number: string;
+  title: string;
+  role: string;
+  type: "organization" | "event" | "conference" | "community";
+  year: string;
+  description: string;
+};
+
+export const experiences: ExperienceEntry[] = [
+  {
+    number: "I",
+    title: "Google Developer Group",
+    role: "Core Team Member",
+    type: "community",
+    year: "2024 — Present",
+    description: "Organising workshops, study jams, and developer meetups for the local tech community.",
+  },
+  {
+    number: "II",
+    title: "JSConf Asia",
+    role: "Speaker & Attendee",
+    type: "conference",
+    year: "2024",
+    description: "Presented on real-time WebGL data visualisation for network operations dashboards.",
+  },
+  {
+    number: "III",
+    title: "Hacktoberfest Jakarta",
+    role: "Mentor & Organiser",
+    type: "event",
+    year: "2023 — 2024",
+    description: "Guided first-time open-source contributors through their initial pull requests and code reviews.",
+  },
+  {
+    number: "IV",
+    title: "AIESEC",
+    role: "VP Technology",
+    type: "organization",
+    year: "2022 — 2023",
+    description: "Led the digital transformation of local chapter operations, migrating legacy systems to modern cloud infrastructure.",
+  },
+  {
+    number: "V",
+    title: "WordCamp Jakarta",
+    role: "Volunteer & Speaker",
+    type: "conference",
+    year: "2023",
+    description: "Spoke on headless WordPress architectures with Next.js and contributed to event logistics.",
+  },
+  {
+    number: "VI",
+    title: "Code for Indonesia",
+    role: "Civic Tech Contributor",
+    type: "community",
+    year: "2023 — Present",
+    description: "Building open-source tools for public data transparency and civic engagement platforms.",
+  },
+] as const;
+
 export const socialLinks = [
   { label: "GitHub", href: "https://github.com" },
   { label: "LinkedIn", href: "https://linkedin.com" },

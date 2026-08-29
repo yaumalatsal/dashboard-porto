@@ -21,7 +21,7 @@ export default function ContactSection() {
         <i />
       </div>
       <div className="section-shell">
-        <SectionLabel number="04" label="Correspondence" light />
+        <SectionLabel number="05" label="Correspondence" light />
         <div className="contact-grid">
           <div>
             <p className="contact-section__eyebrow">Accepting selected commissions</p>

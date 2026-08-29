@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 import { gsap } from "@/lib/gsap-config";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useUiStore, type AstrolabeSection } from "@/stores/uiStore";
-import { capabilities, profile, projects, socialLinks } from "@/data/portfolio";
+import { capabilities, experiences, profile, projects, socialLinks } from "@/data/portfolio";
 import {
   celestialMapCoordinates,
   celestialStar,
@@ -35,11 +35,12 @@ const portfolioStar = (key: string, content: PortfolioStarContent): OrreryStar =
 
 const stars: OrreryStar[] = [
   portfolioStar("bharani", { id: "hero", chapter: "Orientation", title: "Aether Field Office", story: "A creative practice where interface, motion, software, and infrastructure are treated as one connected sky.", level: "00", status: "Origin charted" }),
-  portfolioStar("botein", { id: "contact", chapter: "Correspondence", title: "Bring the difficult map", story: "Selected commissions for digital products, interactive stories, service platforms, and systems that cross disciplines.", level: "04", status: "Signal open" }),
+  portfolioStar("botein", { id: "contact", chapter: "Correspondence", title: "Bring the difficult map", story: "Selected commissions for digital products, interactive stories, service platforms, and systems that cross disciplines.", level: "05", status: "Signal open" }),
   portfolioStar("hamal", { id: "about", chapter: "The Practice", title: "Making terrain legible", story: "I turn complex product and infrastructure problems into clear, expressive systems people can understand and use.", level: "01", status: "Primary route" }),
   portfolioStar("sheratan", { id: "work", chapter: "Field Records", title: "Systems in context", story: "Selected work spanning observability, immersive storytelling, service operations, and design systems.", level: "02", status: "Four records" }),
   portfolioStar("mesarthim", { id: "skills", chapter: "Capabilities", title: "Four working layers", story: "Direction, product engineering, infrastructure, and operations form a single practical toolkit.", level: "03", status: "Kit calibrated" }),
-  portfolioStar("alrescha", { id: "pisces", chapter: "The Knot", title: "Binding the threads", story: "Connecting disparate systems into a unified whole, just as Alrescha binds the two fishes.", level: "05", status: "New signal" }),
+  portfolioStar("eta-psc", { id: "experience", chapter: "Field Journal", title: "Beyond the workbench", story: "Conferences spoken at, communities built, and organisations shaped outside the daily practice.", level: "04", status: "Signal active" }),
+  portfolioStar("alrescha", { id: "pisces", chapter: "The Knot", title: "Binding the threads", story: "Connecting disparate systems into a unified whole, just as Alrescha binds the two fishes.", level: "06", status: "New signal" }),
 ];
 
 const rimGripPositions = ["north", "east", "south", "west"] as const;
@@ -49,6 +50,7 @@ const missionMedia: Record<AstrolabeSection, { src: string; label: string; title
   about: { src: "/images/projects/chronoscape.png", label: "Practice survey", title: "Interfaces as navigable terrain" },
   work: { src: "/images/projects/nexus-control.png", label: "Selected record", title: "Nexus Control" },
   skills: { src: "/images/projects/embervault.png", label: "Capability scan", title: "Embervault design system" },
+  experience: { src: "/images/projects/chronoscape-field-guide.png", label: "Field journal", title: "Community and conferences" },
   contact: { src: "/images/projects/ironclad.png", label: "Signal channel", title: "Open correspondence" },
   pisces: { src: "/images/projects/chronoscape-field-guide.png", label: "Constellation survey", title: "The Pisces knot" },
 };
@@ -165,6 +167,24 @@ function OrreryMapDetail({
           </a>
           <div className="orrery-detail__socials">
             {socialLinks.map((social) => <a key={social.label} href={social.href} target="_blank" rel="noreferrer">{social.label}</a>)}
+          </div>
+        </div>
+      )}
+
+      {star.id === "experience" && (
+        <div className="orrery-detail__experience orrery-detail__stagger-2">
+          <p>Field Journal</p>
+          <h2 id="orrery-detail-experience">Beyond the workbench.</h2>
+          <p>Organisations joined, conferences spoken at, and communities shaped outside the daily practice.</p>
+          <div className="orrery-detail__experiences">
+            {experiences.map((entry) => (
+              <article key={entry.title}>
+                <span>{entry.number}</span>
+                <strong>{entry.title}</strong>
+                <em>{entry.role}</em>
+                <small>{entry.type} · {entry.year}</small>
+              </article>
+            ))}
           </div>
         </div>
       )}
@@ -863,30 +883,45 @@ export default function AstrolabeScene() {
     }
   }, [focusedPoint]);
 
-  // Window-level wheel listener for automatic section transitions on scroll
+  // Smoothly align celestial globe with the section currently in scroll view
+  const activeSection = useUiStore((state) => state.activeSection);
   useEffect(() => {
-    const onWheel = (event: WheelEvent) => {
-      // Prevent page from scrolling down into the footer
-      event.preventDefault();
+    if (focusedPoint || isDragging || isDiscDragging) return;
+    const star = stars.find((candidate) => candidate.id === activeSection);
+    if (!star) return;
 
-      // 650ms throttle prevents rapid multi-skipping during smooth trackpad inertia
-      const now = Date.now();
-      if (now - lastScrollStepTimeRef.current < 650) {
-        return;
-      }
-      if (Math.abs(event.deltaY) > 14) {
-        lastScrollStepTimeRef.current = now;
-        if (event.deltaY > 0) {
-          stepToNextStarRef.current();
-        } else {
-          stepToPrevStarRef.current();
-        }
-      }
+    setActiveConstellation(constellationIdForStar(star));
+    const coords = celestialMapCoordinates(star);
+    const targetY = -coords.longitude;
+    const targetX = coords.latitude;
+
+    if (!prefersReducedMotion) {
+      gsap.to(manualRotationRef.current, {
+        x: targetX,
+        y: targetY,
+        duration: 1.4,
+        ease: "power2.out",
+        onUpdate: () => {
+          rotateGlobe(manualRotationRef.current.x, manualRotationRef.current.y);
+        },
+      });
+    }
+  }, [activeSection, focusedPoint, isDragging, isDiscDragging, prefersReducedMotion]);
+
+  // Handle zoom when user wheels directly over the 3D instrument surface
+  useEffect(() => {
+    const surface = surfaceRef.current;
+    if (!surface) return;
+
+    const onSurfaceWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      handleZoomRef.current(event.deltaY);
     };
 
-    window.addEventListener("wheel", onWheel, { passive: false });
-    return () => window.removeEventListener("wheel", onWheel);
-  }, [isClient, pathname]);
+    surface.addEventListener("wheel", onSurfaceWheel, { passive: false });
+    return () => surface.removeEventListener("wheel", onSurfaceWheel);
+  }, [isClient]);
 
   // Keyboard navigation (ArrowDown/PageDown -> next, ArrowUp/PageUp -> prev)
   useEffect(() => {

@@ -1003,7 +1003,8 @@ function Globe({
   onOpenStar: (star: ClockStar) => void;
   onHoverStar: (id: AstrolabeSection | null) => void;
 }) {
-  const spotlight = selectedId === "pisces" || hoveredId === "pisces"
+  const piscesIds: Set<AstrolabeSection> = new Set(["pisces", "experience"]);
+  const spotlight = piscesIds.has(selectedId!) || piscesIds.has(hoveredId!)
     ? "pisces"
     : selectedId || hoveredId
       ? "aries"
@@ -1089,7 +1090,6 @@ function Case({
         { geometry: bandGeometry(3.28, 3.4, 0.18), position: [0, 0, 0.08] },
         { geometry: bandGeometry(4.04, 4.13, 0.18), position: [0, 0, 0.08] },
         ...bearingSeats.map((position) => ({ geometry: discGeometry(0.2, 0.2, 20), position: [position[0], position[1], 0.14] as [number, number, number] })),
-        { geometry: new THREE.TorusGeometry(0.44, 0.14, 8, 32), position: [0, 4.42, -0.1] },
       ]),
       brassDeep: mergeParts([
         { geometry: bandGeometry(3.38, 3.43, 0.12), position: [0, 0, -0.34] },
@@ -1421,7 +1421,8 @@ export default function CelestialClock3D({
   hoverZone,
   ...props
 }: CelestialClock3DProps) {
-  const constellationSpotlight = props.selectedId === "pisces" || props.hoveredId === "pisces"
+  const piscesIds: Set<AstrolabeSection> = new Set(["pisces", "experience"]);
+  const constellationSpotlight = piscesIds.has(props.selectedId!) || piscesIds.has(props.hoveredId!)
     ? "pisces"
     : props.selectedId || props.hoveredId
       ? "aries"
