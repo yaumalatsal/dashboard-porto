@@ -1,17 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useLenis } from "lenis/react";
 import { useUiStore, type AstrolabeSection } from "@/stores/uiStore";
+import { experiences, profile } from "@/data/portfolio";
 
-const links = [
+const allLinks = [
   { section: "about" as AstrolabeSection, href: "#about", label: "Practice" },
   { section: "work" as AstrolabeSection, href: "#work", label: "Field Records" },
   { section: "skills" as AstrolabeSection, href: "#skills", label: "Field Kit" },
+  { section: "operations" as AstrolabeSection, href: "#operations", label: "Live Systems" },
   { section: "experience" as AstrolabeSection, href: "#experience", label: "Experience" },
   { section: "contact" as AstrolabeSection, href: "#contact", label: "Contact" },
 ] as const;
+
+/**
+ * The Experience section removes itself while it has no real entries, so the
+ * link has to go with it — otherwise the header advertises a destination that
+ * does not exist and clicking it does nothing.
+ */
+const links = allLinks.filter(
+  (link) => link.section !== "experience" || experiences.length > 0,
+);
 
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -54,12 +66,32 @@ export default function Navigation() {
     };
   }, [isMenuOpen, lenis, setMenuOpen]);
 
+  /**
+   * Scrolls to the section.
+   *
+   * This used to only swing the instrument and open its overlay, which meant
+   * the header did nothing for a reader who just wanted to see the work. Lenis
+   * drives the scroll when it is available so the motion matches the rest of
+   * the page; `scrollIntoView` is the fallback.
+   */
   const navigate = (event: React.MouseEvent<HTMLAnchorElement>, section: AstrolabeSection) => {
     event.preventDefault();
     setMenuOpen(false);
     setHoveredPoint(null);
     setActiveSection(section);
-    setFocusedPoint(section === "hero" ? null : section);
+    setFocusedPoint(null);
+
+    if (section === "hero") {
+      if (lenis) lenis.scrollTo(0);
+      else window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const target = document.getElementById(section);
+    if (!target) return;
+
+    if (lenis) lenis.scrollTo(target, { offset: -72 });
+    else target.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   // Each header entry is a star on the instrument. Pointing at one lights its coordinate
@@ -72,7 +104,7 @@ export default function Navigation() {
         <div className="site-nav__inner">
           <a className="site-nav__brand" href="#hero" onClick={(event) => navigate(event, "hero")} data-cursor="link">
             <span className="site-nav__sigil" aria-hidden="true" />
-            <span className="site-nav__wordmark">Aether <small>Field Office</small></span>
+            <span className="site-nav__wordmark">{profile.name} <small>Field Office</small></span>
           </a>
 
           <div className="site-nav__links">
@@ -93,6 +125,10 @@ export default function Navigation() {
               </a>
             ))}
           </div>
+
+          <Link href="/console" className="site-nav__console" data-cursor="link">
+            Console <span aria-hidden="true">↗</span>
+          </Link>
 
           <button
             ref={menuButtonRef}
@@ -118,7 +154,10 @@ export default function Navigation() {
             </a>
           ))}
         </div>
-        <p className="mobile-nav__footer">Independent practice / Jakarta</p>
+        <Link href="/console" className="mobile-nav__console" tabIndex={isMenuOpen ? 0 : -1}>
+          Live Console <span aria-hidden="true">↗</span>
+        </Link>
+        <p className="mobile-nav__footer">{profile.role} / {profile.location}</p>
       </div>
     </>
   );

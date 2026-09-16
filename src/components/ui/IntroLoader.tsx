@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap-config";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useUiStore } from "@/stores/uiStore";
+import { profile } from "@/data/portfolio";
 
 const SESSION_KEY = "aether-intro-seen";
 
@@ -59,11 +60,11 @@ export default function IntroLoader() {
   }
 
   return (
-    <div className="intro-loader" ref={overlayRef} role="status" aria-label="Opening Aether portfolio">
+    <div className="intro-loader" ref={overlayRef} role="status" aria-label="Opening portfolio">
       <div className="intro-loader__mark" data-loader-mark aria-hidden="true">
         <span /><span /><span />
       </div>
-      <p data-loader-name>Aether</p>
+      <p data-loader-name>{profile.name}</p>
       <span className="intro-loader__caption">Preparing the field guide</span>
     </div>
   );

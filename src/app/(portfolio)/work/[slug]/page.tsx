@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!project) return { title: "Project Not Found" };
 
   return {
-    title: `${project.title} - Field Record | Aether`,
+    title: `${project.title} - Field Record`,
     description: project.description,
   };
 }

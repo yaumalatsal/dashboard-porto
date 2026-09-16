@@ -990,8 +990,28 @@ button.astrolabe-scene__core:hover {
 }
 
 html { background: #0e0818; }
-.astrolabe-navigator { width: 100%; height: 100svh; overflow: hidden; }
-body:has(.astrolabe-navigator) { height: 100svh; overflow: hidden; }
+/* The page scrolls.
+   These two rules previously pinned the site to a single viewport with the
+   body's scroll disabled, so About / Work / Skills / Experience / Contact were
+   all rendered and then clipped away — the instrument was the only way to reach
+   any of them. The instrument keeps the first screen; the portfolio follows
+   underneath it. */
+.astrolabe-navigator { width: 100%; }
+
+/* The instrument is fixed, so without this it floats over every section below
+   the hero and lands on top of the footer. It fades out once the hero is past
+   and stops taking pointer events with it. */
+.astrolabe-scene {
+  transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s;
+}
+.astrolabe-scene.is-past-hero {
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -50%) scale(0.94);
+}
+.astrolabe-scene.is-past-hero .astrolabe-scene__instrument.orrery {
+  pointer-events: none;
+}
 
 .hero-stage::after {
   content: "";
@@ -1723,4 +1743,233 @@ body:has(.astrolabe-scene.is-reading)::after {
   .orrery-star-3d .orrery-star__name::after { transition: none !important; }
   body:has(.astrolabe-scene.is-targeting)::after,
   body:has(.astrolabe-scene.is-reading)::after { animation: none !important; opacity: 1 !important; }
+}
+
+/* ── Live Systems ──────────────────────────────────────────────────────────
+   The operations readout on the portfolio. Built from the same tokens as the
+   rest of the page so it reads as a chapter of the site, not an embedded
+   widget; the status colours are the only imports from the console, because
+   green/amber/red mean the same thing in both places and must not drift. */
+.operations-section {
+  position: relative;
+  padding-block: var(--section-pad);
+  background: rgba(12, 7, 22, 0.9);
+  color: var(--ink);
+  scroll-margin-top: 5rem;
+}
+.operations-section .section-label { color: rgba(253, 248, 225, 0.6); }
+
+.operations-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 5vw, 5rem);
+  align-items: end;
+  margin-bottom: 3.5rem;
+}
+.operations-intro h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+.operations-intro h2 em {
+  font-style: italic;
+  color: var(--ember);
+}
+.operations-intro p {
+  margin: 0;
+  max-width: 46ch;
+  color: rgba(253, 248, 225, 0.62);
+  font-size: 0.95rem;
+}
+
+.operations-panel {
+  border: 1px solid rgba(216, 155, 78, 0.18);
+  border-radius: 14px;
+  background: rgba(5, 7, 10, 0.55);
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+}
+
+.operations-figure {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(253, 248, 225, 0.08);
+}
+/* Sans, not the display serif: a measured number is data, and setting it in the
+   editorial face makes it read as decoration. */
+.operations-figure__value {
+  font-family: var(--font-body);
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.operations-figure__label {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(253, 248, 225, 0.45);
+}
+
+.operations-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.operations-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 2rem);
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(253, 248, 225, 0.07);
+}
+.operations-row:last-child { border-bottom: none; }
+
+.operations-row__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+.operations-row__dot--operational { background: #0ca30c; }
+.operations-row__dot--degraded { background: #fab219; }
+/* A ring rather than a disc, so "down" is separable from "up" without colour. */
+.operations-row__dot--down {
+  background: transparent;
+  border: 2.5px solid #d03b3b;
+}
+.operations-row__dot--unknown {
+  background: transparent;
+  border: 1.5px dashed #6f6b61;
+}
+
+.operations-row__name {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.operations-row__name em {
+  font-style: normal;
+  font-size: 0.78rem;
+  color: rgba(253, 248, 225, 0.4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operations-row__state {
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(253, 248, 225, 0.55);
+  white-space: nowrap;
+}
+
+.operations-row__metric {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.92rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.operations-row__metric em {
+  font-style: normal;
+  font-family: var(--font-label);
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(253, 248, 225, 0.35);
+}
+
+.operations-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.75rem;
+  padding: 0.7rem 1.3rem;
+  border: 1px solid rgba(216, 155, 78, 0.4);
+  border-radius: 999px;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ember);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.operations-cta:hover {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: var(--paper);
+}
+
+@media (max-width: 860px) {
+  .operations-intro { grid-template-columns: 1fr; gap: 1.5rem; }
+  .operations-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    row-gap: 0.4rem;
+  }
+  /* The verbose state label is the first thing to go when space is tight; the
+     dot plus the two figures still carry the row. */
+  .operations-row__state { display: none; }
+}
+
+/* ── Console link in the site header ───────────────────────────────────────
+   Mirrors the console's "Return to the field office ←". Styled as an action
+   rather than another section link, because it is the one entry that leaves
+   the page. */
+.site-nav__console {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: 1.75rem;
+  padding: 0.42rem 0.9rem;
+  border: 1px solid rgba(216, 155, 78, 0.38);
+  border-radius: 999px;
+  font-family: var(--font-label);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ember);
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.site-nav__console:hover {
+  background: var(--ember);
+  border-color: var(--ember);
+  color: var(--paper);
+}
+
+.mobile-nav__console {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.7rem 1.4rem;
+  border: 1px solid rgba(216, 155, 78, 0.4);
+  border-radius: 999px;
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+
+/* The header runs out of room before the burger appears; the console is
+   reachable from the mobile menu and the Live Systems section instead. */
+@media (max-width: 1100px) {
+  .site-nav__console { display: none; }
 }

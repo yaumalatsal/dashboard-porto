@@ -14,7 +14,7 @@ export default function ConsoleNav() {
 
   return (
     <nav className="console__nav" aria-label="Console sections">
-      {links.map((link) => {
+      {links.map((link, index) => {
         // Only "/console" needs the exact test; the others are leaf routes.
         const isActive =
           link.href === "/console"
@@ -27,6 +27,7 @@ export default function ConsoleNav() {
             href={link.href}
             aria-current={isActive ? "page" : undefined}
           >
+            <span aria-hidden="true">0{index + 1}</span>
             {link.label}
           </Link>
         );

@@ -5,6 +5,7 @@ import { useUiStore } from "@/stores/uiStore";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-config";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { profile } from "@/data/portfolio";
 
 export default function HeroContent() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,14 +74,14 @@ export default function HeroContent() {
               Celestial systems atelier <span>/</span> Jakarta
             </p>
             <h1 id="hero-title" className="hero-title">
-              <span data-hero-line>Aether</span>
+              <span data-hero-line>{profile.name}</span>
             </h1>
           </div>
         </div>
 
         <div className="hero-satellite hero-satellite--manifesto">
           <div className="hero-satellite__content hero-copy__manifesto">
-            <p className="hero-copy__statement" data-hero-line>Charting systems by starlight.</p>
+            <p className="hero-copy__statement" data-hero-line>{profile.tagline}</p>
             <p className="hero-copy__subhead" data-hero-detail>
               A creative developer and systems architect building expressive interfaces, useful infrastructure, and digital worlds with a visible point of view.
             </p>

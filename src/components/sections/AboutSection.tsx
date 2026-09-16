@@ -32,7 +32,7 @@ export default function AboutSection() {
   );
 
   return (
-    <div className="about-section" tabIndex={-1} aria-labelledby="about-title">
+    <div id="about" className="about-section" tabIndex={-1} aria-labelledby="about-title">
       <div className="section-shell">
         <SectionLabel number="01" label="The Practice" />
         <div className="about-grid">

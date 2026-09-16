@@ -48,7 +48,7 @@ const portfolioStar = (key: string, content: PortfolioStarContent): OrreryStar =
 };
 
 const stars: OrreryStar[] = [
-  portfolioStar("bharani", { id: "hero", chapter: "Orientation", title: "Aether Field Office", story: "A creative practice where interface, motion, software, and infrastructure are treated as one connected sky.", level: "00", status: "Origin charted" }),
+  portfolioStar("bharani", { id: "hero", chapter: "Orientation", title: profile.name, story: "A creative practice where interface, motion, software, and infrastructure are treated as one connected sky.", level: "00", status: "Origin charted" }),
   portfolioStar("botein", { id: "contact", chapter: "Correspondence", title: "Bring the difficult map", story: "Selected commissions for digital products, interactive stories, service platforms, and systems that cross disciplines.", level: "05", status: "Signal open" }),
   portfolioStar("hamal", { id: "about", chapter: "The Practice", title: "Making terrain legible", story: "I turn complex product and infrastructure problems into clear, expressive systems people can understand and use.", level: "01", status: "Primary route" }),
   portfolioStar("sheratan", { id: "work", chapter: "Field Records", title: "Systems in context", story: "Selected work spanning observability, immersive storytelling, service operations, and design systems.", level: "02", status: "Four records" }),
@@ -60,10 +60,11 @@ const stars: OrreryStar[] = [
 const rimGripPositions = ["north", "east", "south", "west"] as const;
 
 const missionMedia: Record<AstrolabeSection, { src: string; label: string; title: string }> = {
-  hero: { src: "/images/projects/nexus-control.png", label: "Origin survey", title: "Aether field system" },
+  hero: { src: "/images/projects/nexus-control.png", label: "Origin survey", title: "Field system" },
   about: { src: "/images/projects/chronoscape.png", label: "Practice survey", title: "Interfaces as navigable terrain" },
-  work: { src: "/images/projects/nexus-control.png", label: "Selected record", title: "Nexus Control" },
-  skills: { src: "/images/projects/embervault.png", label: "Capability scan", title: "Embervault design system" },
+  work: { src: "/images/projects/field-console.png", label: "Selected record", title: "Field Console" },
+  skills: { src: "/images/projects/astrolabe.png", label: "Capability scan", title: "Build, direct, operate, connect" },
+  operations: { src: "/images/projects/field-console.png", label: "Live systems", title: "Production status, measured" },
   experience: { src: "/images/projects/chronoscape-field-guide.png", label: "Field journal", title: "Community and conferences" },
   contact: { src: "/images/projects/ironclad.png", label: "Signal channel", title: "Open correspondence" },
   pisces: { src: "/images/projects/chronoscape-field-guide.png", label: "Constellation survey", title: "The Pisces knot" },
@@ -283,6 +284,17 @@ export default function AstrolabeScene() {
   /** The "select a star" cue has done its job once a chapter has actually been opened. */
   const [hasOpenedChapter, setHasOpenedChapter] = useState(false);
   const pathname = usePathname();
+  const [isPastHero, setIsPastHero] = useState(false);
+
+  // The hero is 136svh with a sticky stage, so the instrument has served its
+  // purpose by the time the reader is ~70% of a viewport down.
+  useEffect(() => {
+    const update = () => setIsPastHero(window.scrollY > window.innerHeight * 0.7);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
+
   const prefersReducedMotion = useReducedMotion();
   const isLoaderComplete = useUiStore((state) => state.isLoaderComplete);
   const focusedPoint = useUiStore((state) => state.focusedPoint);
@@ -795,15 +807,29 @@ export default function AstrolabeScene() {
     animateTargetFocus(targetGlobeX, targetGlobeY, 8, 0, 1.12, () => setFocusPhase("reading"));
   };
 
+  /**
+   * Clicking a star scrolls to that section.
+   *
+   * The instrument is now the opening statement above a real portfolio rather
+   * than the only way in, so a star is a shortcut to the same content everyone
+   * else reaches by scrolling. Two different presentations of one project would
+   * be two things to keep in sync and two places for a reader to get lost.
+   */
   const openMapPoint = (star: ClockStar) => {
     markInteracted();
     setHasOpenedChapter(true);
     setHoveredId(null);
     setHoveredPoint(null);
-    focusRequestRef.current = star.id;
     setActiveSection(star.id);
-    setFocusedPoint(star.id);
-    focusStar(star);
+
+    if (star.id === "hero") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    document
+      .getElementById(star.id)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleStarHover = (id: AstrolabeSection | null) => {
@@ -962,7 +988,7 @@ export default function AstrolabeScene() {
   if (!isClient || pathname !== "/") return null;
 
   return (
-    <div ref={sceneRef} className={`astrolabe-scene has-full-3d${selectedStar ? " has-focus" : ""}${focusPhase === "targeting" ? " is-targeting" : ""}${focusPhase === "reading" ? " is-reading" : ""}${focusPhase === "returning" ? " is-returning" : ""}${isDiscSpinning ? " is-clock-spinning" : ""}${isGlobeSpinning ? " is-map-spinning" : ""}`} data-focus-phase={focusPhase} data-hero-instrument>
+    <div ref={sceneRef} className={`astrolabe-scene has-full-3d${isPastHero ? " is-past-hero" : ""}${selectedStar ? " has-focus" : ""}${focusPhase === "targeting" ? " is-targeting" : ""}${focusPhase === "reading" ? " is-reading" : ""}${focusPhase === "returning" ? " is-returning" : ""}${isDiscSpinning ? " is-clock-spinning" : ""}${isGlobeSpinning ? " is-map-spinning" : ""}`} data-focus-phase={focusPhase} data-hero-instrument>
       <div className="astrolabe-scene__instrument orrery" onPointerEnter={() => setIsPointerInside(true)} onPointerLeave={() => setIsPointerInside(false)}>
         {/* The whole instrument — case, gear train, armillary cage, celestial globe — is one
             WebGL model so every part turns together through a full 360. */}

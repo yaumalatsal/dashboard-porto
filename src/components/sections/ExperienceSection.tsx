@@ -6,18 +6,30 @@ import { experiences } from "@/data/portfolio";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-config";
-import { Calendar, Globe2, Mic2, Users, Award } from "lucide-react";
+import { Calendar, Globe2, Mic2, Users, Award, Briefcase } from "lucide-react";
 
-const typeIcons = {
+import type { ExperienceEntry } from "@/data/portfolio";
+
+const typeIcons: Record<ExperienceEntry["type"], typeof Globe2> = {
   conference: Mic2,
   community: Users,
   organization: Award,
   event: Globe2,
+  work: Briefcase,
 };
 
 export default function ExperienceSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
+
+  /**
+   * Renders nothing until there is real history to show.
+   *
+   * An empty "Beyond the workbench" heading over a blank grid reads as broken;
+   * omitting the section entirely reads as a deliberate choice. See the note on
+   * `experiences` in src/data/portfolio.ts.
+   */
+  const hasExperience = experiences.length > 0;
 
   useGSAP(
     () => {
@@ -42,6 +54,8 @@ export default function ExperienceSection() {
     },
     { scope: containerRef, dependencies: [prefersReducedMotion] }
   );
+
+  if (!hasExperience) return null;
 
   return (
     <section

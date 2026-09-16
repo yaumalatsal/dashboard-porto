@@ -26,7 +26,7 @@ export default function SkillsSection() {
   );
 
   return (
-    <div className="skills-section" tabIndex={-1} aria-labelledby="skills-title">
+    <div id="skills" className="skills-section" tabIndex={-1} aria-labelledby="skills-title">
       <div className="section-shell">
         <SectionLabel number="03" label="Field Kit" />
         <div className="skills-heading">

@@ -6,7 +6,7 @@ import { projects } from "@/data/portfolio";
 
 export default function ProjectsSection() {
   return (
-    <div className="projects-section" tabIndex={-1} aria-labelledby="work-title">
+    <div id="work" className="projects-section" tabIndex={-1} aria-labelledby="work-title">
       <div className="section-shell">
         <SectionLabel number="02" label="Field Records" />
         <div className="projects-intro">

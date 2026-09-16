@@ -39,16 +39,34 @@ export default function Footer() {
       <div className="site-footer__seal" aria-hidden="true">Field Office</div>
       <div className="site-footer__inner">
         <div>
-          <p className="site-footer__brand">Aether Field Office</p>
-          <p>Creative development / systems architecture</p>
+          <p className="site-footer__brand">{profile.name}</p>
+          <p>{profile.role}</p>
         </div>
+        {/* Driven by the data rather than fixed positions: `socialLinks[1]`
+            threw the moment the placeholder LinkedIn entry was removed. */}
         <div className="site-footer__links" aria-label="Social links">
-          <a href={`mailto:${profile.email}`} aria-label="Email Aether" data-cursor="link"><Mail size={17} /></a>
-          <a href={socialLinks[0].href} target="_blank" rel="noreferrer" aria-label="GitHub" data-cursor="link"><Code2 size={17} /></a>
-          <a href={socialLinks[1].href} target="_blank" rel="noreferrer" aria-label="LinkedIn" data-cursor="link"><Network size={17} /></a>
+          {profile.email && (
+            <a href={`mailto:${profile.email}`} aria-label="Email" data-cursor="link">
+              <Mail size={17} />
+            </a>
+          )}
+          {socialLinks.map((social) => (
+            <a
+              key={social.label}
+              href={social.href}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={social.label}
+              data-cursor="link"
+            >
+              {social.label === "GitHub" ? <Code2 size={17} /> : <Network size={17} />}
+            </a>
+          ))}
           <a href="#hero" aria-label="Back to top" data-cursor="link"><ArrowUp size={17} /></a>
         </div>
-        <p className="site-footer__copyright">{new Date().getFullYear()} / Designed and built in Jakarta</p>
+        <p className="site-footer__copyright">
+          {new Date().getFullYear()} / Built and operated in {profile.location}
+        </p>
       </div>
     </footer>
   );

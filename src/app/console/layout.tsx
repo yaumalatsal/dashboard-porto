@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import ConsoleNav from "@/components/console/ConsoleNav";
+import { profile } from "@/data/portfolio";
 import "./console.css";
 
 export const metadata: Metadata = {
@@ -26,7 +27,9 @@ export default function ConsoleLayout({
       <header className="console__bar">
         <Link href="/console" className="console__brand">
           <span className="console__sigil" aria-hidden="true" />
-          <span className="console__brand-text">Field Console</span>
+          <span className="console__brand-text">
+            {profile.name} <small>Console</small>
+          </span>
         </Link>
         <ConsoleNav />
         <Link href="/" className="console__back">
@@ -34,6 +37,15 @@ export default function ConsoleLayout({
         </Link>
       </header>
       <main className="console__main">{children}</main>
+
+      {/* Closes the loop back to the portfolio, mirroring the "Console ↗"
+          entry in the site header. */}
+      <footer className="console__footer">
+        <span>
+          {profile.name} — {profile.role}
+        </span>
+        <Link href="/">Return to the field office ←</Link>
+      </footer>
     </div>
   );
 }

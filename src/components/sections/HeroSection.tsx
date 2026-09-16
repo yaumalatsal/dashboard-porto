@@ -6,6 +6,7 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-config";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useUiStore } from "@/stores/uiStore";
+import { profile } from "@/data/portfolio";
 
 export default function HeroSection() {
   const shellRef = useRef<HTMLElement>(null);
@@ -71,14 +72,14 @@ export default function HeroSection() {
         <div className="hero-transition-line" data-hero-divider aria-hidden="true" />
 
         <div className="hero-copy" data-hero-copy>
-          <p className="hero-copy__eyebrow" data-hero-detail>Celestial systems atelier <span>/</span> Jakarta</p>
+          {/* The eyebrow carries the role, not a mood: it is the first line a
+              recruiter reads and it should answer "what is this person". */}
+          <p className="hero-copy__eyebrow" data-hero-detail>{profile.role} <span>/</span> {profile.location}</p>
           <h1 id="hero-title" className="hero-title">
-            <span data-hero-line>Aether</span>
+            <span data-hero-line>{profile.name}</span>
           </h1>
-          <p className="hero-copy__statement" data-hero-line>Charting systems by starlight.</p>
-          <p className="hero-copy__subhead" data-hero-detail>
-            A creative developer and systems architect building expressive interfaces, useful infrastructure, and digital worlds with a visible point of view.
-          </p>
+          <p className="hero-copy__statement" data-hero-line>{profile.tagline}</p>
+          <p className="hero-copy__subhead" data-hero-detail>{profile.bio}</p>
         </div>
 
         <div className="hero-coordinates" data-hero-detail aria-hidden="true">

@@ -10,35 +10,38 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { instrumentSerif, inter, jetbrainsMono } from "@/lib/fonts";
+import { profile } from "@/data/portfolio";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://aether.dev"),
+  // TODO(you): set NEXT_PUBLIC_SITE_URL to your real domain — this drives the
+  // absolute URLs in the OpenGraph/Twitter share cards.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: {
-    default: "Aether Field Office | Creative Developer & IT Architect",
-    template: "%s | Aether",
+    default: `${profile.name} | ${profile.role}`,
+    template: `%s | ${profile.name}`,
   },
-  description:
-    "An independent field office mapping expressive interfaces, resilient software, and digital infrastructure.",
+  description: profile.bio,
   keywords: [
-    "creative developer",
-    "IT architect",
-    "WebGL",
-    "Laravel",
+    "full-stack developer",
+    "infrastructure engineer",
+    "Next.js",
+    "Docker",
+    "MikroTik",
     "network infrastructure",
   ],
-  authors: [{ name: "Aether" }],
+  authors: [{ name: profile.name }],
   openGraph: {
-    title: "Aether Field Office | Creative Developer & IT Architect",
-    description: "Mapping digital terrain, from interface to infrastructure.",
+    title: `${profile.name} | ${profile.role}`,
+    description: profile.tagline,
     type: "website",
     locale: "en_US",
     images: ["/images/hero-field-guide.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Aether Field Office | Creative Developer & IT Architect",
-    description: "Mapping digital terrain, from interface to infrastructure.",
+    title: `${profile.name} | ${profile.role}`,
+    description: profile.tagline,
     images: ["/images/hero-field-guide.png"],
   },
 };

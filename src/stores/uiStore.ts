@@ -2,7 +2,15 @@
 
 import { create } from "zustand";
 
-export type AstrolabeSection = "hero" | "about" | "work" | "skills" | "experience" | "contact" | "pisces";
+export type AstrolabeSection =
+  | "hero"
+  | "about"
+  | "work"
+  | "skills"
+  | "operations"
+  | "experience"
+  | "contact"
+  | "pisces";
 
 type PointerPosition = { x: number; y: number };
 
