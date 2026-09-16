@@ -118,7 +118,10 @@ jobs:
           ssh -o StrictHostKeyChecking=yes \
               "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" 'bash -seuo pipefail' <<EOF
           set -e
-          cd "${{ secrets.VPS_PATH || '/home/ubuntu/dashboard-porto' }}"
+          cd "${{ secrets.VPS_PATH || '/home/ubuntu/dashboard-porto' }}" 2>/dev/null || {
+              mkdir -p "${{ secrets.VPS_PATH || '/home/ubuntu/dashboard-porto' }}"
+              cd "${{ secrets.VPS_PATH || '/home/ubuntu/dashboard-porto' }}"
+          }
 
           # Initialise the checkout if this is a first deploy.
           if [ ! -d .git ]; then
