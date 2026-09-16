@@ -1,0 +1,12 @@
+{
+  "sites": [
+    {
+      "name": "yourday.duckdns.org",
+      "label": "YourDay LMS",
+      "health_url": "https://yourday.duckdns.org/api/health",
+      "services_url": "https://yourday.duckdns.org/api/monitor/services",
+      "metrics_url": "https://yourday.duckdns.org/api/monitor/metrics",
+      "token": ""
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+# Production override: pull the image CI published instead of building locally.
+services:
+  dashboard:
+    image: ghcr.io/yaumalatsal/dashboard-porto:${IMAGE_TAG:-latest}
+    build: null
+    pull_policy: always

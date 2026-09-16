@@ -1,0 +1,13 @@
+{
+  "name": "mdzakiyau-dashboard",
+  "version": "1.0.0",
+  "description": "Multi-site monitoring dashboard (zero runtime npm dependencies)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npx nodemon server.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

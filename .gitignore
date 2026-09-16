@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Runtime config (generated at container boot from sites.json.example)
+sites.json
+.env.docker.local
+
+# Docker
+.env.docker
+
+# Environment
+.env*.local
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
