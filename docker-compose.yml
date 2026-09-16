@@ -10,6 +10,8 @@ services:
       context: .
       dockerfile: dockerfile
       target: runner
+      args:
+        SITE_URL: ${SITE_URL:-http://localhost:3000}
     container_name: astrolabe-porto
     restart: unless-stopped
     ports:
@@ -18,6 +20,7 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - HOSTNAME=0.0.0.0
+      - SITE_URL=${SITE_URL:-http://localhost:3000}
       - CONSOLE_DATA_DIR=/app/data
       - CONSOLE_SITES_PATH=/app/data/sites.json
       # Tokens for monitored apps are referenced by name from sites.json

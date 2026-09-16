@@ -24,6 +24,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # production endpoints from the build machine and write a throwaway database.
 ENV CONSOLE_DISABLE_POLLER=1
 
+# Statically prerendered pages bake their metadata at build time, so the
+# canonical origin has to be known here — not only at runtime — or every share
+# card on /work/* and /orrery-lab points at localhost.
+ARG SITE_URL=http://localhost:3000
+ENV SITE_URL=${SITE_URL}
+
 RUN npm run build
 
 # 4. Production runtime stage (minimal footprint & non-root user)
@@ -64,5 +70,10 @@ ENV CONSOLE_DATA_DIR=/app/data
 # The registry lives beside the database on the volume, so apps added through
 # the console are not lost on the next deploy.
 ENV CONSOLE_SITES_PATH=/app/data/sites.json
+
+# Re-declared for the runtime stage: the ISR homepage re-reads this on each
+# revalidation, so it can be changed without rebuilding the image.
+ARG SITE_URL=http://localhost:3000
+ENV SITE_URL=${SITE_URL}
 
 CMD ["node", "server.js"]

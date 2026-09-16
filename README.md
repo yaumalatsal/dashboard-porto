@@ -106,9 +106,23 @@ reads stay public either way.
 
 ## CI/CD
 
-Pushes to `main` run typecheck → lint → build, then publish
-`ghcr.io/yaumalatsal/astrolobe-porto:latest` and deploy over SSH. Lint is
-currently reported but not enforced — `AstrolabeScene.tsx` has pre-existing
-react-hooks errors that deserve their own pass.
+Pushes to `main` run typecheck → lint → build, publish
+`ghcr.io/yaumalatsal/astrolobe-porto`, deploy over SSH, and then poll
+`/api/monitor/status` until the app answers — so a container that starts and
+dies fails the pipeline instead of reporting green. Pull requests run the verify
+job only. Every image is tagged with its commit sha, so rollback is one command.
 
-Required secrets: `VPS_HOST`, `VPS_USERNAME`, `VPS_SSH_KEY`, `VPS_PORT`.
+First-time setup is one script on the VPS plus six secrets and one variable:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/yaumalatsal/astrolobe-porto/main/scripts/bootstrap-vps.sh | bash
+```
+
+Full reference, rollback and troubleshooting: **[docs/deploy.md](docs/deploy.md)**.
+
+> Set the `SITE_URL` repository **variable** before your first deploy. Static
+> pages bake their share-card URLs at build time, so without it every link you
+> share previews `http://localhost:3000`.
+
+Lint is reported but not enforced — `AstrolabeScene.tsx` has pre-existing
+react-hooks errors that deserve their own pass.

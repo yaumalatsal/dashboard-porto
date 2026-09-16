@@ -2,27 +2,34 @@ name: CI/CD Pipeline
 
 'on':
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
+  # Lets you re-run a deploy without an empty commit.
+  workflow_dispatch:
+
+# One deploy at a time. `cancel-in-progress` is deliberately false: cancelling a
+# job that is midway through `docker compose up` leaves the VPS in a state
+# nobody chose.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Gate the image build on the code actually compiling. Previously main pushed
-  # straight to the registry and the VPS, so a type error shipped to production.
+  # ─────────────────────────────────────────────────────────────────────────
+  # Gate everything on the code compiling. Before this existed, a push to main
+  # went straight to the registry and the VPS, so a type error shipped.
+  # ─────────────────────────────────────────────────────────────────────────
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
@@ -33,56 +40,55 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      # Reported, not enforced. `AstrolabeScene.tsx` carries three pre-existing
+      # Reported, not enforced. AstrolabeScene.tsx carries pre-existing
       # react-hooks errors (a setState inside an effect, an immutability
-      # violation, an unused ref) that predate the console work. They are real
-      # and worth fixing, but they live in the instrument's interaction logic
-      # where a careless change breaks the drag behaviour — so they get their
-      # own pass rather than blocking every deploy. Flip to a hard gate once
-      # that file is clean.
+      # violation) that live in the instrument's drag logic, where a careless
+      # change breaks the interaction. Make this a hard gate once that file is
+      # clean.
       - name: Lint
         run: npm run lint
         continue-on-error: true
 
       - name: Build
-        # The poller must stay off in CI: it would poll production endpoints
-        # from a GitHub runner on every push.
         env:
+          # The poller would otherwise start polling production endpoints from
+          # a GitHub runner on every push.
           CONSOLE_DISABLE_POLLER: '1'
         run: npm run build
 
+  # ─────────────────────────────────────────────────────────────────────────
   build-and-push:
     needs: verify
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
+    outputs:
+      image: ${{ steps.meta.outputs.tags }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Log in to Container Registry
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels)
+      - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # `latest` is what the VPS pulls; the sha tag makes rollback possible.
           tags: |
             type=raw,value=latest
             type=sha,format=short
 
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push Docker image
+      - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -90,25 +96,75 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            SITE_URL=${{ vars.SITE_URL || 'http://localhost:3000' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  # ─────────────────────────────────────────────────────────────────────────
   deploy:
     needs: build-and-push
-    if: github.event_name == 'push'
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-
+    environment: production
     steps:
-      - name: Deploy via SSH to VPS
+      - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'http://localhost:3000' }}
+          MONITOR_API_TOKEN: ${{ secrets.MONITOR_API_TOKEN }}
+          CONSOLE_ADMIN_TOKEN: ${{ secrets.CONSOLE_ADMIN_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/var/www/astrolobe-porto' }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
+          envs: SITE_URL,MONITOR_API_TOKEN,CONSOLE_ADMIN_TOKEN,GHCR_USER,GHCR_TOKEN,DEPLOY_PATH
+          script_stop: true
           script: |
-            cd /var/www/astrolobe-porto
-            git pull origin main
+            set -euo pipefail
+            cd "$DEPLOY_PATH"
+
+            # The compose file, not just the image, comes from the repo.
+            git fetch --quiet origin main
+            git reset --hard --quiet origin/main
+
+            # GHCR packages are private by default, so the VPS has to
+            # authenticate or `docker compose pull` returns 401 with a message
+            # that reads like the image does not exist.
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+            # Runtime configuration. compose reads this file from the project
+            # directory; 600 because it carries tokens.
+            umask 077
+            cat > .env <<ENVFILE
+            SITE_URL=${SITE_URL}
+            MONITOR_API_TOKEN=${MONITOR_API_TOKEN}
+            CONSOLE_ADMIN_TOKEN=${CONSOLE_ADMIN_TOKEN}
+            ENVFILE
+
             docker compose pull
             docker compose up -d --remove-orphans
-            docker image prune -f
+
+            # A container that starts and then dies still counts as a
+            # successful `up`, so the deploy is not finished until the app
+            # answers. Without this the pipeline reports green over an outage.
+            echo "Waiting for the app to answer..."
+            for i in $(seq 1 30); do
+              if curl -fsS -o /dev/null http://localhost:3000/api/monitor/status; then
+                echo "Healthy after ${i}s"
+                docker logout ghcr.io || true
+                docker image prune -f
+                exit 0
+              fi
+              sleep 2
+            done
+
+            echo "::error::App did not become healthy within 60s"
+            docker compose ps
+            docker compose logs --tail=80 web
+            docker logout ghcr.io || true
+            exit 1

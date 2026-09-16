@@ -14,9 +14,16 @@ import { profile } from "@/data/portfolio";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  // TODO(you): set NEXT_PUBLIC_SITE_URL to your real domain — this drives the
-  // absolute URLs in the OpenGraph/Twitter share cards.
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  /**
+   * Drives the absolute URLs in the OpenGraph/Twitter share cards.
+   *
+   * Deliberately not `NEXT_PUBLIC_` — this is only ever read on the server, and
+   * a `NEXT_PUBLIC_` value is inlined into the client bundle for no reason.
+   * It is supplied both as a Docker build argument and as a runtime variable:
+   * fully static pages bake their metadata at build time, while the ISR
+   * homepage re-reads it on revalidation.
+   */
+  metadataBase: new URL(process.env.SITE_URL || "http://localhost:3000"),
   title: {
     default: `${profile.name} | ${profile.role}`,
     template: `%s | ${profile.name}`,
