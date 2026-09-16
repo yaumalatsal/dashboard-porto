@@ -124,16 +124,20 @@ jobs:
           }
 
           # Initialise the checkout if this is a first deploy.
+          # git init creates a repo with no 'origin' remote, so we need
+          # 'git remote add' (not 'set-url') when it doesn't exist yet.
           if [ ! -d .git ]; then
               git init
+              # git init creates 'master'; the repo's default is 'main'.
+              git branch -m main 2>/dev/null || true
           fi
 
-          # Reset the remote URL to a credential-free HTTPS form before
-          # fetching. The checkout used to carry an embedded credential in
-          # its remote URL (https://<token>@github.com/...). That token
-          # expires, so git fetch dies with "could not read Password".
+          # (Re)set the remote to a credential-free HTTPS URL.
+          # A fresh git init has no origin → use 'add'; an existing
+          # checkout may have a stale embedded-token URL → use 'set-url'.
           # This repo is public, so a credential-free URL fetches fine.
-          git remote set-url origin https://github.com/${{ github.repository }}.git
+          git remote add origin https://github.com/${{ github.repository }}.git 2>/dev/null || \
+              git remote set-url origin https://github.com/${{ github.repository }}.git
           git fetch --prune origin main
           git reset --hard origin/main
 
