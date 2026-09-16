@@ -1,71 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Astrolabe — portfolio & field console
 
-## Getting Started
+A Next.js application that is two things at once:
 
-First, run the development server:
+- **`/`** — the portfolio. A WebGL astrolabe you can drag, with each chapter of
+  the work mapped to a star.
+- **`/console`** — the field console. Live health, uptime and analytics for
+  every application running in production.
+
+They share a codebase, a design language and a deployment, but almost nothing at
+runtime: the console loads no WebGL, no GSAP and no smooth-scroll library.
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+On first run the site registry is seeded from `sites.json.example`. Edit
+`sites.json` to point at your own applications — see
+**[docs/console.md](docs/console.md)**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## 🐳 Docker Setup
-
-### 1. Using Docker Compose (Recommended)
-
-**Run Production Server:**
 ```bash
-docker compose up --build
+npm run build        # production build
+npm start            # serve the build
+npm run lint
+npx tsc --noEmit     # typecheck
+npm run test:e2e     # Playwright
 ```
-Access the application at [http://localhost:3000](http://localhost:3000).
 
-To stop the container:
+> When building outside Docker, set `CONSOLE_DISABLE_POLLER=1` so the build does
+> not start polling your production endpoints from your laptop.
+
+## Docker
+
 ```bash
-docker compose down
+docker compose up -d --build     # http://localhost:3000
+docker compose --profile dev up dev
 ```
 
-**Run Development Server with Hot-Reloading:**
+The `console-data` volume holds the SQLite time-series **and** the live site
+registry. Keep it across deploys or uptime history resets to zero.
+
 ```bash
-docker compose --profile dev up --build dev
+# back it up
+docker run --rm -v console-data:/data -v "$PWD:/backup" alpine \
+  tar czf /backup/console-data.tgz -C /data .
 ```
 
----
+## Stack
 
-### 2. Using Docker CLI Directly
+| | |
+|---|---|
+| Framework | Next.js 16 (App Router), React 19, TypeScript |
+| 3D / motion | three.js, @react-three/fiber, drei, GSAP, Lenis — **portfolio only** |
+| Console storage | `node:sqlite` (Node 24 built-in — no npm dependency) |
+| Charts | hand-rolled inline SVG — no charting library |
+| Deploy | GHCR image → VPS over SSH, via GitHub Actions |
 
-**Build the image:**
+## Layout
+
+```
+src/
+  app/
+    layout.tsx           minimal root: fonts + metadata only
+    (portfolio)/         heavy providers scoped here
+      layout.tsx         Lenis, cursor, WebGL astrolabe, starfield
+      page.tsx  work/  orrery-lab/
+    console/             lean: no WebGL, no animation stack
+      page.tsx           status wall
+      analytics/  incidents/  [site]/
+      console.css        scoped styles
+    api/monitor/         status · series · incidents · sites
+  lib/monitor/
+    types.ts             the vocabulary every app is normalized into
+    adapters.ts          per-app normalizers (add an app without code)
+    poller.ts            the polling loop
+    store.ts             SQLite: samples, incidents, rollups
+    probe.ts  config.ts  guard.ts  format.ts
+  instrumentation.ts     boots the poller once per server instance
+```
+
+## Adding a production app
+
+The console is built so that onboarding another API is configuration, not code:
+
 ```bash
-docker build -t fable5-portfolio .
+curl -X POST http://localhost:3000/api/monitor/sites \
+  -H 'Content-Type: application/json' \
+  -d '{"id":"ironclad","label":"Ironclad","baseUrl":"https://ironclad.example"}'
 ```
 
-**Run the container:**
-```bash
-docker run -p 3000:3000 fable5-portfolio
-```
+The `generic` adapter infers health, services and metrics from whatever JSON the
+app returns, so a new service is useful immediately. Full reference, including
+custom adapters, auth headers and non-standard probes:
+**[docs/console.md](docs/console.md)**.
 
-## Learn More
+## Security note
 
-To learn more about Next.js, take a look at the following resources:
+Console **reads are public by design** — the status wall is portfolio evidence.
+Console **writes are open by default too**: without `CONSOLE_ADMIN_TOKEN` set,
+anyone can add or delete monitored apps and point the poller at arbitrary URLs.
+Set that one environment variable to require `X-Console-Token` on mutations;
+reads stay public either way.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## CI/CD
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Pushes to `main` run typecheck → lint → build, then publish
+`ghcr.io/yaumalatsal/astrolobe-porto:latest` and deploy over SSH. Lint is
+currently reported but not enforced — `AstrolabeScene.tsx` has pre-existing
+react-hooks errors that deserve their own pass.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
+Required secrets: `VPS_HOST`, `VPS_USERNAME`, `VPS_SSH_KEY`, `VPS_PORT`.

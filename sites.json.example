@@ -1,0 +1,30 @@
+{
+  "sites": [
+    {
+      "id": "yourday",
+      "label": "YourDay LMS",
+      "url": "https://yourday.duckdns.org",
+      "blurb": "Learning management system — courses, submissions, grading",
+      "adapter": "monitor-api",
+      "tags": ["production", "lms"],
+      "auth": { "header": "X-Monitor-Token", "env": "MONITOR_API_TOKEN" },
+      "probes": [
+        {
+          "name": "health",
+          "url": "https://yourday.duckdns.org/api/health",
+          "intervalSeconds": 30
+        },
+        {
+          "name": "services",
+          "url": "https://yourday.duckdns.org/api/monitor/services",
+          "intervalSeconds": 60
+        },
+        {
+          "name": "metrics",
+          "url": "https://yourday.duckdns.org/api/monitor/metrics",
+          "intervalSeconds": 300
+        }
+      ]
+    }
+  ]
+}

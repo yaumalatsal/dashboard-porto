@@ -17,7 +17,21 @@ import {
   starScale,
   type ConstellationId,
 } from "@/data/constellations";
-import CelestialClock3D, { type ClockStar } from "@/components/three/CelestialClock3D";
+import dynamic from "next/dynamic";
+import type { ClockStar } from "@/components/three/CelestialClock3D";
+
+/**
+ * Loaded on demand rather than imported statically.
+ *
+ * As a static import this pulled three.js, @react-three/fiber and drei into the
+ * shared client chunk, so every route — including /console and the 404 — paid
+ * to download and parse the whole WebGL stack even though the guard below only
+ * ever renders the instrument on "/".
+ */
+const CelestialClock3D = dynamic(
+  () => import("@/components/three/CelestialClock3D"),
+  { ssr: false },
+);
 
 type OrreryStar = ClockStar & {
   title: string;

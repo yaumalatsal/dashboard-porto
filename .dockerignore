@@ -36,3 +36,10 @@ docker-compose*
 README.md
 AGENTS.md
 CLAUDE.md
+docs
+
+# Console runtime state — must never be baked into an image
+data
+.shots
+shoot*.mjs
+diag.mjs

@@ -46,3 +46,11 @@ next-env.d.ts
 /artifacts
 /test-results
 /playwright-report
+
+# Console runtime state — SQLite time-series, never committed
+/data
+/.shots
+
+# Live site registry. `sites.json.example` is committed; this copy may carry
+# environment-specific URLs and is generated on first boot if absent.
+/sites.json

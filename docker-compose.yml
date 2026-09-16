@@ -1,11 +1,16 @@
 services:
-  # Production service
+  # Portfolio + operations console in one Next.js app.
+  #   /         portfolio (WebGL astrolabe, GSAP, Lenis)
+  #   /console  operations console (no WebGL, no animation stack)
   web:
+    # Both keys on purpose: CI pushes this tag and the VPS `docker compose pull`s
+    # it, while a local `docker compose up --build` still builds from source.
+    image: ghcr.io/yaumalatsal/astrolobe-porto:latest
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
       target: runner
-    container_name: fable5-portfolio
+    container_name: astrolabe-porto
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -13,21 +18,37 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - HOSTNAME=0.0.0.0
+      - CONSOLE_DATA_DIR=/app/data
+      - CONSOLE_SITES_PATH=/app/data/sites.json
+      # Tokens for monitored apps are referenced by name from sites.json
+      # (`auth.env`), so the config file itself never contains a secret.
+      - MONITOR_API_TOKEN=${MONITOR_API_TOKEN:-}
+      # Unset by default: the console's write endpoints are open. Set it to
+      # require X-Console-Token on POST /api/monitor/sites and DELETE.
+      - CONSOLE_ADMIN_TOKEN=${CONSOLE_ADMIN_TOKEN:-}
+      - CONSOLE_RETENTION_DAYS=${CONSOLE_RETENTION_DAYS:-90}
+    volumes:
+      # Time-series history AND the live site registry. Without this, every
+      # redeploy resets uptime to zero and forgets apps added via the console.
+      # Deliberately not a bind-mount of ./sites.json: Docker silently creates a
+      # directory where the file should be when the host path does not exist.
+      - console-data:/app/data
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1"]
+      test:
+        ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/monitor/status || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 20s
 
-  # Development service (run with: docker compose --profile dev up dev)
+  # Development server with hot reload: docker compose --profile dev up dev
   dev:
     profiles: ["dev"]
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
       target: deps
-    container_name: fable5-portfolio-dev
+    container_name: astrolabe-porto-dev
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -39,4 +60,8 @@ services:
       - NODE_ENV=development
       - PORT=3000
       - HOSTNAME=0.0.0.0
+      - MONITOR_API_TOKEN=${MONITOR_API_TOKEN:-}
     command: npm run dev
+
+volumes:
+  console-data:

@@ -1,0 +1,39 @@
+/**
+ * Console shell.
+ *
+ * A server component with no providers: no Lenis, no GSAP, no WebGL, no custom
+ * cursor. The only client JavaScript on these pages is the handful of small
+ * interactive pieces (range picker, chart tooltips, auto-refresh).
+ */
+
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import Link from "next/link";
+import ConsoleNav from "@/components/console/ConsoleNav";
+import "./console.css";
+
+export const metadata: Metadata = {
+  title: "Console",
+  description:
+    "Live operational status for the applications I run in production.",
+};
+
+export default function ConsoleLayout({
+  children,
+}: Readonly<{ children: ReactNode }>) {
+  return (
+    <div className="console">
+      <header className="console__bar">
+        <Link href="/console" className="console__brand">
+          <span className="console__sigil" aria-hidden="true" />
+          <span className="console__brand-text">Field Console</span>
+        </Link>
+        <ConsoleNav />
+        <Link href="/" className="console__back">
+          ← Field Office
+        </Link>
+      </header>
+      <main className="console__main">{children}</main>
+    </div>
+  );
+}

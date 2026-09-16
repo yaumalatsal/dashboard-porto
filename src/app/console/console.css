@@ -1,0 +1,843 @@
+/**
+ * Console styling.
+ *
+ * Scoped under `.console` so none of the portfolio's 1,700-line cascade
+ * (instrument transforms, scroll choreography, zodiac overlays) applies here.
+ *
+ * Colour discipline, which the whole board depends on:
+ *   - CHROME  wears the brand — copper rules, ember labels, parchment ink.
+ *   - DATA    wears the validated viz palette below and nothing else.
+ * The brand's moss (#6f795e) and thread (#668c89) measure chroma 0.042 against
+ * a 0.1 floor: as series colours they render as two indistinguishable grays.
+ * They stay in the chrome for that reason.
+ */
+
+.console {
+  /* ---- surfaces ---- */
+  --c-page: #05070a;
+  --c-surface: #0b0e14;
+  --c-surface-2: #10141c;
+  --c-raised: #151a24;
+
+  /* ---- ink ---- */
+  --c-ink: #f2ede0;
+  --c-ink-2: #a8a394;
+  --c-muted: #6f6b61;
+
+  /* ---- brand chrome ---- */
+  --c-copper: #d89b4e;
+  --c-ember: #f0bd72;
+  --c-rule: rgba(216, 155, 78, 0.16);
+  --c-rule-soft: rgba(242, 237, 224, 0.08);
+
+  /* ---- status: reserved, never reused as a series colour ---- */
+  --s-good: #0ca30c;
+  --s-warning: #fab219;
+  --s-serious: #ec835a;
+  --s-critical: #d03b3b;
+  --s-unknown: #6f6b61;
+
+  /* ---- data series: validated against --c-surface (#0b0e14, dark mode) ----
+     worst adjacent CVD ΔE 8.4, worst normal-vision ΔE 19.3, all ≥3:1 contrast.
+     Assigned in this fixed order, never cycled. */
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+
+  /* Slot 4 is a deep gold that clears every gate on this surface, so the
+     default single-series accent is on-brand and validated at once. */
+  --series-accent: var(--series-4);
+  --grid: #1c212b;
+  --axis: #2a313d;
+
+  color: var(--c-ink);
+  background: var(--c-page);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  min-height: 100dvh;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.console *,
+.console *::before,
+.console *::after {
+  box-sizing: border-box;
+}
+
+/* ============================================================== shell ==== */
+
+.console__bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0 clamp(1rem, 4vw, 2.5rem);
+  height: 60px;
+  background: rgba(5, 7, 10, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--c-rule);
+}
+
+.console__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+  white-space: nowrap;
+}
+
+/* The astrolabe reduced to a 14px mark — the one piece of instrument iconography
+   the console borrows, so it reads as the same practice without the WebGL. */
+.console__sigil {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--c-copper);
+  border-radius: 50%;
+  flex: none;
+}
+.console__sigil::before,
+.console__sigil::after {
+  content: "";
+  position: absolute;
+  background: var(--c-copper);
+}
+.console__sigil::before {
+  inset: 50% 1px auto 1px;
+  height: 1px;
+}
+.console__sigil::after {
+  inset: 1px auto 1px 50%;
+  width: 1px;
+}
+
+.console__nav {
+  display: flex;
+  gap: 0.25rem;
+  margin-right: auto;
+}
+
+.console__nav a {
+  padding: 0.4rem 0.75rem;
+  border-radius: 5px;
+  font-size: 0.82rem;
+  color: var(--c-ink-2);
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s;
+}
+.console__nav a:hover {
+  color: var(--c-ink);
+  background: var(--c-surface-2);
+}
+.console__nav a[aria-current="page"] {
+  color: var(--c-ember);
+  background: rgba(216, 155, 78, 0.1);
+}
+
+.console__back {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.console__back:hover {
+  color: var(--c-ember);
+}
+
+.console__main {
+  padding: clamp(1.5rem, 4vw, 2.75rem) clamp(1rem, 4vw, 2.5rem) 5rem;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* ============================================================ headings === */
+
+.console__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  margin: 0 0 0.6rem;
+}
+.console__eyebrow::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--c-rule);
+}
+
+.console h1 {
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  font-weight: 400;
+  line-height: 1.1;
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.01em;
+}
+
+.console__lede {
+  color: var(--c-ink-2);
+  max-width: 62ch;
+  margin: 0 0 2rem;
+  font-size: 0.95rem;
+}
+
+.console__section {
+  margin-top: 2.75rem;
+}
+.console__section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.console__section-head h2 {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ink-2);
+  margin: 0;
+}
+
+/* ============================================================ hero row === */
+
+.hero-figure {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: clamp(1.25rem, 4vw, 3rem);
+  padding: clamp(1.25rem, 3vw, 2rem);
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+/* One hero number per view, in the UI sans — never the display serif, which
+   reads as decoration rather than data. */
+.hero-figure__value {
+  font-size: clamp(2.8rem, 7vw, 4rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--c-ink);
+}
+.hero-figure__label {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  margin-top: 0.5rem;
+}
+.hero-figure__aside {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: flex-end;
+}
+
+/* ========================================================== stat tiles === */
+
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+}
+
+.tile {
+  padding: 1rem 1.1rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 10px;
+  min-width: 0;
+}
+.tile__label {
+  font-size: 0.72rem;
+  color: var(--c-muted);
+  margin-bottom: 0.4rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tile__value {
+  font-size: 1.55rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.tile__delta {
+  font-size: 0.74rem;
+  margin-top: 0.3rem;
+  font-variant-numeric: tabular-nums;
+}
+.tile__delta--up {
+  color: var(--s-good);
+}
+.tile__delta--down {
+  color: var(--s-critical);
+}
+.tile__delta--flat {
+  color: var(--c-muted);
+}
+.tile__spark {
+  margin-top: 0.6rem;
+  display: block;
+}
+
+/* ========================================================= status wall === */
+
+.wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 0.75rem;
+}
+
+.app-card {
+  display: block;
+  padding: 1.1rem 1.2rem 1.2rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.16s, background 0.16s, transform 0.16s;
+}
+.app-card:hover {
+  border-color: var(--c-rule);
+  background: var(--c-surface-2);
+  transform: translateY(-1px);
+}
+.app-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.15rem;
+}
+.app-card__name {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.app-card__blurb {
+  font-size: 0.8rem;
+  color: var(--c-muted);
+  margin-bottom: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.app-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--c-rule-soft);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.66rem;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+}
+.app-card__foot b {
+  color: var(--c-ink-2);
+  font-weight: 500;
+}
+
+/* ============================================================== status === */
+
+/* A status is always colour + icon + word. The reserved palette is distinct
+   from the series slots, but a swatch alone is never allowed to carry state. */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.status__icon {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+.status--operational {
+  color: var(--s-good);
+}
+.status--degraded {
+  color: var(--s-warning);
+}
+/* Down is a ring, not a disc — the shape differs from "operational" so the two
+   are separable in grayscale, in print, and under full CVD. */
+.status--down {
+  color: var(--s-critical);
+}
+.status--down .status__icon {
+  background: transparent;
+  border: 2.5px solid currentColor;
+}
+.status--unknown {
+  color: var(--s-unknown);
+}
+.status--unknown .status__icon {
+  background: transparent;
+  border: 1.5px dashed currentColor;
+}
+
+/* ========================================================= uptime strip == */
+
+.uptime-strip {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  height: 26px;
+}
+.uptime-strip__day {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 1px;
+  background: var(--s-good);
+  height: 100%;
+}
+.uptime-strip__day--partial {
+  background: var(--s-warning);
+}
+.uptime-strip__day--bad {
+  background: var(--s-critical);
+}
+/* Unobserved days are a recessive hairline, not a bar.
+   At full height in the grid colour, 89 un-monitored days out of 90 read as a
+   dense striped texture that competes with the one day that actually carries
+   data. Dropping them to a 2px rule keeps "no data" legible as absence. */
+.uptime-strip__day--empty {
+  background: var(--grid);
+  height: 2px;
+  border-radius: 0;
+  align-self: center;
+}
+
+/* ============================================================== charts === */
+
+.chart {
+  padding: 1.1rem 1.2rem 0.9rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 10px;
+}
+.chart__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.2rem;
+}
+.chart__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0;
+}
+.chart__sub {
+  font-size: 0.72rem;
+  color: var(--c-muted);
+  margin: 0 0 0.9rem;
+}
+.chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.chart__grid line {
+  stroke: var(--grid);
+  stroke-width: 1;
+}
+.chart__axis line {
+  stroke: var(--axis);
+  stroke-width: 1;
+}
+.chart__tick {
+  fill: var(--c-muted);
+  font-size: 10px;
+  font-family: var(--font-jetbrains), monospace;
+  font-variant-numeric: tabular-nums;
+}
+.chart__empty {
+  display: grid;
+  place-items: center;
+  height: 150px;
+  color: var(--c-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 0.75rem;
+}
+
+/* Crosshair + tooltip layer */
+.chart__hover {
+  position: relative;
+}
+.chart__cursor {
+  stroke: var(--c-copper);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.7;
+}
+.chart__tip {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  padding: 0.5rem 0.65rem;
+  background: var(--c-raised);
+  border: 1px solid var(--c-rule);
+  border-radius: 6px;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, calc(-100% - 10px));
+}
+.chart__tip-time {
+  color: var(--c-muted);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.66rem;
+  display: block;
+  margin-bottom: 0.15rem;
+}
+.chart__tip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+.chart__tip-key {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex: none;
+}
+
+/* Legend — always present for two or more series. */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 0.7rem;
+  font-size: 0.72rem;
+  color: var(--c-ink-2);
+}
+.legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+.legend__key {
+  width: 10px;
+  height: 3px;
+  border-radius: 1.5px;
+  flex: none;
+}
+
+/* =============================================================== table === */
+
+.ctable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.ctable th {
+  text-align: left;
+  padding: 0.5rem 0.7rem;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--c-rule);
+  white-space: nowrap;
+}
+.ctable td {
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid var(--c-rule-soft);
+  vertical-align: middle;
+}
+.ctable tbody tr:hover {
+  background: var(--c-surface-2);
+}
+.ctable__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-jetbrains), monospace;
+}
+.ctable__wrap {
+  overflow-x: auto;
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 10px;
+  padding: 0.3rem 0.4rem;
+}
+
+/* ======================================================= metric groups === */
+
+.metric-group {
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+.metric-group h3 {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--c-copper);
+  margin: 0 0 0.7rem;
+  font-weight: 500;
+}
+.metric-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.32rem 0;
+  border-bottom: 1px solid var(--c-rule-soft);
+  font-size: 0.82rem;
+}
+.metric-row:last-child {
+  border-bottom: none;
+}
+.metric-row__label {
+  color: var(--c-ink-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.metric-row__value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* =========================================================== incidents === */
+
+.incident {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 0.85rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--c-rule-soft);
+  font-size: 0.83rem;
+}
+.incident:last-child {
+  border-bottom: none;
+}
+.incident__site {
+  font-weight: 600;
+}
+.incident__meta {
+  color: var(--c-muted);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ============================================================== states === */
+
+.console__empty {
+  padding: 3.5rem 2rem;
+  text-align: center;
+  background: var(--c-surface);
+  border: 1px dashed var(--c-rule);
+  border-radius: 12px;
+}
+.console__empty h2 {
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-size: 1.4rem;
+  font-weight: 400;
+  margin: 0 0 0.5rem;
+}
+.console__empty p {
+  color: var(--c-ink-2);
+  max-width: 48ch;
+  margin: 0 auto 1.25rem;
+  font-size: 0.88rem;
+}
+.console__empty pre {
+  text-align: left;
+  display: inline-block;
+  background: var(--c-page);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  font-size: 0.74rem;
+  color: var(--c-ink-2);
+  overflow-x: auto;
+  max-width: 100%;
+  font-family: var(--font-jetbrains), monospace;
+}
+
+/* ============================================================ controls === */
+
+.range-row {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+.range-btn {
+  padding: 0.3rem 0.7rem;
+  background: transparent;
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 5px;
+  color: var(--c-ink-2);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color 0.14s, border-color 0.14s, background 0.14s;
+}
+.range-btn:hover {
+  color: var(--c-ink);
+  border-color: var(--c-rule);
+}
+.range-btn[aria-pressed="true"] {
+  color: var(--c-page);
+  background: var(--c-ember);
+  border-color: var(--c-ember);
+}
+
+.console__note {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--c-rule-soft);
+  font-size: 0.74rem;
+  color: var(--c-muted);
+}
+
+/* A monitoring misconfiguration, not an application fault — warning-coloured
+   and worded so the two are never confused. */
+.console__note--warn {
+  color: var(--s-warning);
+  border-top-color: rgba(250, 178, 25, 0.25);
+}
+
+/* ============================================================ a11y/rm ==== */
+
+@media (prefers-reduced-motion: reduce) {
+  .console *,
+  .console *::before,
+  .console *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+  .app-card:hover {
+    transform: none;
+  }
+}
+
+/* Forced colours: lean on shape and text, since hue is discarded entirely. */
+@media (forced-colors: active) {
+  .app-card,
+  .tile,
+  .chart,
+  .metric-group {
+    border: 1px solid CanvasText;
+  }
+  .status__icon {
+    forced-color-adjust: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .console__bar {
+    gap: 0.75rem;
+  }
+  .console__nav {
+    /* The bar cannot wrap (it is a fixed-height sticky), so on a narrow screen
+       the links scroll within it. Without `min-width: 0` the flex item refuses
+       to shrink below its content and pushes the whole page sideways. */
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .console__nav::-webkit-scrollbar {
+    display: none;
+  }
+  .console__nav a {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+  .hero-figure {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  .hero-figure__aside {
+    justify-content: flex-start;
+    gap: 1.5rem;
+  }
+  .console__back {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  /* 90 bars at 2px plus 89 2px gaps needs 358px and a phone has ~342px of
+     content width. Halving both keeps all 90 days on screen rather than
+     cropping history or silently showing a shorter window than the label says. */
+  .uptime-strip {
+    gap: 1px;
+  }
+  .uptime-strip__day {
+    min-width: 1px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Below this the wordmark and the links cannot both fit; the sigil alone
+     still carries the brand, and the links are what people came for. */
+  .console__brand-text {
+    display: none;
+  }
+  .console__main {
+    padding-top: 1.25rem;
+  }
+  .tile__value {
+    font-size: 1.4rem;
+  }
+}

@@ -4,13 +4,56 @@ name: CI/CD Pipeline
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # Gate the image build on the code actually compiling. Previously main pushed
+  # straight to the registry and the VPS, so a type error shipped to production.
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # Reported, not enforced. `AstrolabeScene.tsx` carries three pre-existing
+      # react-hooks errors (a setState inside an effect, an immutability
+      # violation, an unused ref) that predate the console work. They are real
+      # and worth fixing, but they live in the instrument's interaction logic
+      # where a careless change breaks the drag behaviour — so they get their
+      # own pass rather than blocking every deploy. Flip to a hard gate once
+      # that file is clean.
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Build
+        # The poller must stay off in CI: it would poll production endpoints
+        # from a GitHub runner on every push.
+        env:
+          CONSOLE_DISABLE_POLLER: '1'
+        run: npm run build
+
   build-and-push:
+    needs: verify
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -32,18 +75,27 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: type=raw,value=latest
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     needs: build-and-push
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
