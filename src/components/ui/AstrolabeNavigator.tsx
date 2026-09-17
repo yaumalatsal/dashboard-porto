@@ -10,6 +10,7 @@ const sectionToHash: Record<AstrolabeSection, string> = {
   skills: "#skills",
   operations: "#operations",
   experience: "#experience",
+  credentials: "#credentials",
   contact: "#contact",
   pisces: "#pisces",
 };
@@ -22,6 +23,7 @@ const hashToSection: Record<string, AstrolabeSection> = {
   "#skills": "skills",
   "#operations": "operations",
   "#experience": "experience",
+  "#credentials": "credentials",
   "#contact": "contact",
   "#pisces": "pisces",
 };

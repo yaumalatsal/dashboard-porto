@@ -48,7 +48,7 @@ const portfolioStar = (key: string, content: PortfolioStarContent): OrreryStar =
 };
 
 const stars: OrreryStar[] = [
-  portfolioStar("bharani", { id: "hero", chapter: "Orientation", title: profile.name, story: "A creative practice where interface, motion, software, and infrastructure are treated as one connected sky.", level: "00", status: "Origin charted" }),
+  portfolioStar("bharani", { id: "hero", chapter: "Orientation", title: profile.shortName, story: "Web systems and network engineering, treated as one connected sky.", level: "00", status: "Origin charted" }),
   portfolioStar("botein", { id: "contact", chapter: "Correspondence", title: "Bring the difficult map", story: "Selected commissions for digital products, interactive stories, service platforms, and systems that cross disciplines.", level: "05", status: "Signal open" }),
   portfolioStar("hamal", { id: "about", chapter: "The Practice", title: "Making terrain legible", story: "I turn complex product and infrastructure problems into clear, expressive systems people can understand and use.", level: "01", status: "Primary route" }),
   portfolioStar("sheratan", { id: "work", chapter: "Field Records", title: "Systems in context", story: "Selected work spanning observability, immersive storytelling, service operations, and design systems.", level: "02", status: "Four records" }),
@@ -65,7 +65,8 @@ const missionMedia: Record<AstrolabeSection, { src: string; label: string; title
   work: { src: "/images/projects/field-console.png", label: "Selected record", title: "Field Console" },
   skills: { src: "/images/projects/astrolabe.png", label: "Capability scan", title: "Build, direct, operate, connect" },
   operations: { src: "/images/projects/field-console.png", label: "Live systems", title: "Production status, measured" },
-  experience: { src: "/images/projects/chronoscape-field-guide.png", label: "Field journal", title: "Community and conferences" },
+  experience: { src: "/images/projects/chronoscape-field-guide.png", label: "Field journal", title: "Where the work was done" },
+  credentials: { src: "/images/projects/embervault-field-guide.png", label: "Record", title: "Education and certification" },
   contact: { src: "/images/projects/ironclad.png", label: "Signal channel", title: "Open correspondence" },
   pisces: { src: "/images/projects/chronoscape-field-guide.png", label: "Constellation survey", title: "The Pisces knot" },
 };
@@ -1046,19 +1047,16 @@ export default function AstrolabeScene() {
       {/* Live attitude of the star sphere — the instrument reads out what you have turned it to. */}
       <p ref={readoutRef} className="orrery__readout" aria-hidden="true">RA 00h 00m / DEC +00°</p>
 
-      {/* One instruction cluster under the instrument instead of two competing captions in
-          opposite corners. The primary line names the payoff — six lit coordinates open six
-          chapters — and steps back to a gesture legend once you have opened one. */}
+      {/* One line, not four.
+          The instrument used to carry a headline plus a three-gesture legend,
+          which is an interface admitting it is not self-evident — and it is now
+          the secondary way into the work anyway, since the page scrolls. The
+          single remaining hint retires itself once a star has been used. */}
       <div className={`orrery__guide${hasOpenedChapter ? " is-learned" : ""}`}>
         <p className="orrery__instruction">
           <span className="orrery__instruction-mark" aria-hidden="true" />
-          Select a lit star <span>to open its chapter</span>
+          Drag the instrument <span>· select a star to jump to its chapter</span>
         </p>
-        <div className="orrery__legend" aria-hidden="true">
-          <span><b>Drag the sphere</b> sweep the sky</span>
-          <span><b>Drag the frame</b> orbit the instrument</span>
-          <span><b>Scroll</b> close in</span>
-        </div>
       </div>
 
       {selectedStar && focusPhase === "reading" && createPortal(

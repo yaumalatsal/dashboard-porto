@@ -74,7 +74,9 @@ export default function HeroContent() {
               Celestial systems atelier <span>/</span> Jakarta
             </p>
             <h1 id="hero-title" className="hero-title">
-              <span data-hero-line>{profile.name}</span>
+              {profile.nameLines.map((line) => (
+              <span key={line} data-hero-line>{line}</span>
+            ))}
             </h1>
           </div>
         </div>

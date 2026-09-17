@@ -5,6 +5,7 @@ import ProjectsSection from "@/components/sections/ProjectsSection";
 import SkillsSection from "@/components/sections/SkillsSection";
 import OperationsSection from "@/components/sections/OperationsSection";
 import ExperienceSection from "@/components/sections/ExperienceSection";
+import CredentialsSection from "@/components/sections/CredentialsSection";
 import ContactSection from "@/components/sections/ContactSection";
 import ScrollSectionTracker from "@/components/ui/ScrollSectionTracker";
 
@@ -27,6 +28,7 @@ export default function Home() {
       <SkillsSection />
       <OperationsSection />
       <ExperienceSection />
+      <CredentialsSection />
       <ContactSection />
     </AstrolabeNavigator>
   );

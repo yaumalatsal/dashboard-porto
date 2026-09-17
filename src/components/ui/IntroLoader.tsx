@@ -64,7 +64,7 @@ export default function IntroLoader() {
       <div className="intro-loader__mark" data-loader-mark aria-hidden="true">
         <span /><span /><span />
       </div>
-      <p data-loader-name>{profile.name}</p>
+      <p data-loader-name>{profile.shortName}</p>
       <span className="intro-loader__caption">Preparing the field guide</span>
     </div>
   );

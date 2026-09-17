@@ -13,6 +13,7 @@ const allLinks = [
   { section: "skills" as AstrolabeSection, href: "#skills", label: "Field Kit" },
   { section: "operations" as AstrolabeSection, href: "#operations", label: "Live Systems" },
   { section: "experience" as AstrolabeSection, href: "#experience", label: "Experience" },
+  { section: "credentials" as AstrolabeSection, href: "#credentials", label: "Record" },
   { section: "contact" as AstrolabeSection, href: "#contact", label: "Contact" },
 ] as const;
 
@@ -104,7 +105,7 @@ export default function Navigation() {
         <div className="site-nav__inner">
           <a className="site-nav__brand" href="#hero" onClick={(event) => navigate(event, "hero")} data-cursor="link">
             <span className="site-nav__sigil" aria-hidden="true" />
-            <span className="site-nav__wordmark">{profile.name} <small>Field Office</small></span>
+            <span className="site-nav__wordmark">{profile.shortName} <small>Field Office</small></span>
           </a>
 
           <div className="site-nav__links">

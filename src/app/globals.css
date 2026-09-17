@@ -1024,7 +1024,10 @@ html { background: #0e0818; }
   pointer-events: none;
 }
 .hero-copy { top: 7.5rem; width: min(23rem, 28vw); }
-.hero-title { font-size: clamp(4.3rem, 6vw, 6.5rem); }
+/* Sized so the longer of the two name lines fits the copy column without
+   wrapping again into a third line. */
+.hero-title { font-size: clamp(1.9rem, 3.2vw, 3.4rem); line-height: 1; letter-spacing: -0.012em; white-space: nowrap; }
+@media (max-width: 520px) { .hero-title { white-space: normal; font-size: clamp(1.8rem, 8vw, 2.4rem); } }
 .hero-copy__statement { color: var(--ember); }
 .hero-copy__subhead { max-width: 22rem; font-size: 0.78rem; line-height: 1.55; }
 .hero-coordinates { top: auto; right: auto; left: var(--page-pad); bottom: 5.5rem; justify-items: start; }
@@ -1972,4 +1975,112 @@ body:has(.astrolabe-scene.is-reading)::after {
    reachable from the mobile menu and the Live Systems section instead. */
 @media (max-width: 1100px) {
   .site-nav__console { display: none; }
+}
+
+/* ── Credentials: education and certifications ────────────────────────────
+   Two plain columns of rules, no cards. For a recent graduate this is the
+   block that gets checked, so it is set as a record to be read rather than
+   decorated. */
+.credentials-section {
+  position: relative;
+  padding-block: var(--section-pad);
+  background: rgba(16, 9, 28, 0.9);
+  color: var(--ink);
+  scroll-margin-top: 5rem;
+}
+.credentials-section .section-label { color: rgba(253, 248, 225, 0.6); }
+
+.credentials-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 5vw, 5rem);
+  align-items: end;
+  margin-bottom: 4rem;
+}
+.credentials-intro h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+.credentials-intro h2 em { font-style: italic; color: var(--ember); }
+.credentials-intro p {
+  margin: 0;
+  max-width: 46ch;
+  color: rgba(253, 248, 225, 0.62);
+  font-size: 0.95rem;
+}
+
+.credentials-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 6rem);
+}
+
+.credentials-heading {
+  margin: 0 0 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(216, 155, 78, 0.24);
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+
+.credentials-list { list-style: none; margin: 0; padding: 0; }
+
+.credential {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 1.25rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(253, 248, 225, 0.07);
+}
+.credential:last-child { border-bottom: none; }
+.credential__years {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  color: rgba(253, 248, 225, 0.4);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.credential__body { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+.credential__body strong { font-size: 1rem; font-weight: 500; }
+.credential__body em {
+  font-style: normal;
+  font-size: 0.85rem;
+  color: rgba(253, 248, 225, 0.5);
+  line-height: 1.5;
+}
+
+.credentials-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 3.5rem 0 0;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(253, 248, 225, 0.45);
+}
+.credentials-note span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0ca30c;
+  flex: none;
+}
+
+@media (max-width: 860px) {
+  .credentials-intro,
+  .credentials-grid { grid-template-columns: 1fr; }
+  .credentials-intro { gap: 1.5rem; margin-bottom: 2.5rem; }
+  .credentials-grid { gap: 3rem; }
+  .credential { grid-template-columns: 5.5rem minmax(0, 1fr); gap: 1rem; }
 }

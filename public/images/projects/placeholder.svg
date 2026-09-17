@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Image slot awaiting a screenshot">
+  <!--
+    Deliberate empty slot, not a broken image. Drawn in the site's own brass and
+    deep-violet so a project without a screenshot still reads as composed.
+    Replace by dropping a file into public/images/projects/ and pointing the
+    project's `images[0]` at it in src/data/portfolio.ts.
+  -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#140d24"/>
+      <stop offset="1" stop-color="#0a0713"/>
+    </linearGradient>
+    <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M80 0H0V80" fill="none" stroke="rgba(216,155,78,0.07)" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#g)"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+
+  <!-- Reticle, echoing the astrolabe's sighting marks. -->
+  <g stroke="rgba(216,155,78,0.42)" fill="none" stroke-width="1.5">
+    <circle cx="800" cy="430" r="120"/>
+    <circle cx="800" cy="430" r="74" stroke="rgba(216,155,78,0.24)"/>
+    <line x1="800" y1="262" x2="800" y2="346"/>
+    <line x1="800" y1="514" x2="800" y2="598"/>
+    <line x1="632" y1="430" x2="716" y2="430"/>
+    <line x1="884" y1="430" x2="968" y2="430"/>
+  </g>
+  <circle cx="800" cy="430" r="5" fill="#d89b4e"/>
+
+  <!-- Corner marks. -->
+  <g stroke="rgba(216,155,78,0.3)" fill="none" stroke-width="1.5">
+    <path d="M64 130V64h66"/>
+    <path d="M1536 130V64h-66"/>
+    <path d="M64 770v66h66"/>
+    <path d="M1536 770v66h-66"/>
+  </g>
+
+  <text x="800" y="648" text-anchor="middle"
+        font-family="ui-monospace, 'JetBrains Mono', Menlo, monospace"
+        font-size="20" letter-spacing="6" fill="rgba(253,248,225,0.42)">
+    IMAGE SLOT
+  </text>
+  <text x="800" y="684" text-anchor="middle"
+        font-family="ui-monospace, 'JetBrains Mono', Menlo, monospace"
+        font-size="14" letter-spacing="2.5" fill="rgba(253,248,225,0.22)">
+    public/images/projects/
+  </text>
+</svg>

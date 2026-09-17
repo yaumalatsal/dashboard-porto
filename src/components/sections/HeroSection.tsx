@@ -76,25 +76,18 @@ export default function HeroSection() {
               recruiter reads and it should answer "what is this person". */}
           <p className="hero-copy__eyebrow" data-hero-detail>{profile.role} <span>/</span> {profile.location}</p>
           <h1 id="hero-title" className="hero-title">
-            <span data-hero-line>{profile.name}</span>
+            {profile.nameLines.map((line) => (
+              <span key={line} data-hero-line>{line}</span>
+            ))}
           </h1>
           <p className="hero-copy__statement" data-hero-line>{profile.tagline}</p>
           <p className="hero-copy__subhead" data-hero-detail>{profile.bio}</p>
-        </div>
-
-        <div className="hero-coordinates" data-hero-detail aria-hidden="true">
-          <span>AR 02H 07M</span><span>DEC +23 27</span><span>Aries plate / Orientation</span>
         </div>
 
         <a className="hero-scroll" href="#about" data-cursor="link" data-hero-detail>
           <span>Follow the constellation</span><ArrowDown size={16} aria-hidden="true" />
         </a>
 
-        <div className="hero-next" aria-hidden="true">
-          <span>Next chapter</span><strong>01 / The Practice</strong>
-        </div>
-
-        <span className="hero-stage__index" aria-hidden="true">00</span>
       </div>
     </section>
   );

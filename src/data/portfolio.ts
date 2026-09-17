@@ -1,44 +1,35 @@
 /**
  * ALL PORTFOLIO CONTENT LIVES HERE. Nothing else needs editing to change copy.
  *
- * ─────────────────────────────────────────────────────────────────────────────
- * READ THIS FIRST
+ * Written from the CV (Mohammad Dzaki Yaumal Atsal, 2026). The Indonesian
+ * source has been carried into English because the rest of the site is English;
+ * the facts, employers, dates and scope are unchanged.
  *
- * This file was drafted from what could be evidenced during the build: your
- * GitHub handle, the LMS answering at yourday.duckdns.org, the monitoring
- * console and this site, and the MikroTik/VPS work visible in the repo. Every
- * line that is an inference rather than a fact carries a `TODO(you)` marker.
+ * Images are the one thing left open. Every project points at
+ * `/images/projects/placeholder.svg` until a real screenshot replaces it —
+ * search `placeholder.svg` to find each slot. Drop a file into
+ * `public/images/projects/` and change the path; nothing else needs touching.
  *
- * The `experiences` array is the important one: its previous contents (GDG,
- * JSConf Asia, Hacktoberfest, AIESEC, WordCamp, Code for Indonesia) were
- * template fiction. Invented history on a page aimed at employers is the one
- * kind of wrong that costs you an interview, so it has been emptied rather than
- * re-imagined. Fill it in or the section hides itself.
- *
- * Search `TODO(you)` to find everything that still needs you.
- * ─────────────────────────────────────────────────────────────────────────────
+ * Remaining gaps are marked `TODO(you)`.
  */
 
 export const profile = {
-  // TODO(you): Derived from your GitHub handle `yaumalatsal`. Set the form you
-  // actually want on a CV — full name, or a studio name if you prefer one.
-  name: "Yauma Latsal",
-
-  // Leads with both halves deliberately: building the product and running the
-  // infrastructure is an unusual pair, and it is the thing worth hiring for.
-  role: "Full-Stack Developer & Infrastructure Engineer",
+  name: "Mohammad Dzaki Yaumal Atsal",
+  /** Used where the full name is too long — the nav wordmark and the loader. */
+  shortName: "Dzaki Yaumal",
+  /**
+   * The hero name, broken on purpose. Left to wrap, four words at 9rem stack
+   * into four lines and swallow the screen; these two lines keep the display
+   * type large without it becoming the whole composition.
+   */
+  nameLines: ["Mohammad Dzaki", "Yaumal Atsal"],
+  role: "Web Systems & Network Engineer",
   tagline: "Mapping digital terrain, from interface to infrastructure.",
-
-  // TODO(you): Intentionally left blank. Your personal address was not written
-  // here for you — decide whether to publish it or use a forwarding alias.
-  // The contact section falls back to the GitHub link while this is empty.
-  email: "",
-
-  // TODO(you): Confirm. Adjust if you are open to relocation or remote-only,
-  // recruiters filter on this.
-  location: "Indonesia",
-
-  bio: "I work across the two layers most teams keep separate: the interface people use, and the infrastructure that keeps it answering. I build web applications end to end, then run them myself on hardware I maintain — which means the systems I ship are designed to be operated, not just demoed.",
+  email: "mdzakiyaumal18@gmail.com",
+  phone: "+62 812 4960 2770",
+  location: "Malang, Indonesia",
+  availability: "Open to full-time roles and freelance commissions",
+  bio: "I build web systems for organisations that need them to work on the first day and keep working after — hospitals, an industrial smelter, a government health agency. I came to software through computer networking, so I tend to design for the whole path: the interface people use, the database behind it, and the network and servers underneath.",
 } as const;
 
 export type ProjectData = {
@@ -65,192 +56,263 @@ export type ProjectData = {
   result: string;
 };
 
+const PLACEHOLDER = "/images/projects/placeholder.svg";
+
 export const projects: ProjectData[] = [
   {
     number: "01",
-    slug: "yourday-lms",
-    title: "YourDay LMS",
-    category: "Learning Platform / Full-Stack",
-    chapter: "Field Record 01 / The Teaching Machine",
+    slug: "performance-data-centre",
+    title: "Institutional Performance Data Centre",
+    category: "Government Systems / Laravel",
+    chapter: "Field Record 01 / The Central Register",
     description:
-      "A self-hosted learning management system running in production on infrastructure I build and operate myself.",
-    // TODO(you): Replace with real numbers — active users, courses, uptime.
-    // Concrete figures are what a recruiter actually reads.
-    outcome: "Self-hosted / Dockerised / monitored in production",
-    // TODO(you): Swap for a real screenshot of the LMS. The second image is
-    // decorative field-guide artwork and can stay.
-    images: [
-      "/images/projects/ironclad.png",
-      "/images/projects/ironclad-field-guide.png",
-    ],
+      "A web-based data centre consolidating performance information across every working area of the Surabaya Health Quarantine Centre.",
+    outcome: "Laravel / centralised reporting / government deployment",
+    images: [PLACEHOLDER],
     accent: "ember",
-    client: "TODO(you): personal project, client work, or employer?",
-    year: "TODO(you)",
-    role: "Sole developer and operator",
+    client: "Balai Besar Kekarantinaan Kesehatan Surabaya",
+    year: "2025",
+    role: "Web developer & network support",
     overview:
-      "YourDay is a learning management system serving courses, lessons and submissions. It runs continuously on a VPS I administer, behind Docker and a reverse proxy, and exposes its own health and metrics endpoints so its condition can be read from outside without opening a shell.",
+      "Performance figures for the agency's working areas lived in separate places and had to be gathered by hand before they could be evaluated. The system replaces that with one register: each area records against the same structure, and the centre reads the result without chasing it.",
     challenge:
-      "TODO(you): What made this hard? The honest constraint — limited hardware, a specific institution's workflow, doing it alone — is more persuasive than a generic statement.",
+      "Reporting was distributed across working areas with no shared shape, so evaluating performance meant reconciling formats before any comparison could begin.",
     solution:
-      "The application exposes /api/health, /api/monitor/services and /api/monitor/metrics, so its database, cache and queue state are observable as structured data rather than log-diving. That instrumentation is what made the console in Field Record 02 possible.",
+      "A Laravel application with a single data model for performance records, so every area submits against the same fields and evaluation becomes a query rather than an exercise in collation.",
     architecture: [
-      "Dockerised application and services, orchestrated with docker compose",
-      "Health, service and metrics endpoints designed for external monitoring",
-      "Token-authenticated monitoring API, secrets held outside the config files",
-      "Self-hosted on a VPS with reverse proxy and TLS termination",
+      "Laravel application with role-based access per working area",
+      "Normalised performance schema shared across all areas",
+      "Centralised evaluation and reporting views",
+      "Deployed alongside new on-site network infrastructure",
     ],
-    // TODO(you): Correct this list — it is inferred from the monitoring shape,
-    // not from reading the LMS source.
-    techStack: ["Docker", "Node.js", "PostgreSQL", "nginx", "Linux"],
+    techStack: ["Laravel", "PHP", "MySQL", "JavaScript", "Bootstrap"],
     metrics: [
-      { label: "Deployment", value: "Self-hosted" },
-      { label: "Monitoring", value: "Health + metrics API" },
-      { label: "Users", value: "TODO(you)" },
+      { label: "Scope", value: "Agency-wide" },
+      { label: "Year", value: "2025" },
+      { label: "Working areas covered", value: "TODO(you)" },
     ],
     observation:
-      "An application you cannot see into is an application you cannot run with confidence.",
-    response:
-      "Instrument it from the inside, and expose that state over an authenticated API.",
-    result:
-      "A production system whose health is a question with an answer, not a guess.",
+      "Performance data existed, but not in one place and not in one shape.",
+    response: "Give every area the same structure to report against.",
+    result: "Evaluation became a reading rather than a reconstruction.",
   },
   {
     number: "02",
+    slug: "hotwork-permit",
+    title: "Hotwork Permit System",
+    category: "Industrial Safety / Laravel",
+    chapter: "Field Record 02 / The Safety Ledger",
+    description:
+      "A web permit system for hot work in a smelting plant, replacing paper authorisation for one of the highest-risk activities on site.",
+    outcome: "Laravel / safety compliance / live in an industrial plant",
+    images: [PLACEHOLDER],
+    accent: "copper",
+    client: "PT Smelting Gresik",
+    year: "2024",
+    role: "Web developer (internship)",
+    overview:
+      "Hot work — welding, cutting, grinding near flammable material — requires a permit before it starts. Handling that on paper makes the current state of authorisation hard to see. The system moves the permit flow onto the web so a request, its approvals and its validity are legible while the work is happening, not afterwards.",
+    challenge:
+      "Paper permits are slow to route for approval and give no live picture of what is authorised at any moment — which is exactly what a safety control needs to provide.",
+    solution:
+      "A Laravel permit workflow: request, review, approval, and an active-permit view, so the authorisation state of the plant is something you can look at rather than reconstruct.",
+    architecture: [
+      "Laravel request-and-approval workflow with defined roles",
+      "Permit lifecycle states from request through to expiry",
+      "Active-permit view for supervisors",
+      "Record retained for post-work safety audit",
+    ],
+    techStack: ["Laravel", "PHP", "MySQL", "JavaScript"],
+    metrics: [
+      { label: "Environment", value: "Smelting plant" },
+      { label: "Engagement", value: "Internship" },
+      { label: "Permits handled", value: "TODO(you)" },
+    ],
+    observation:
+      "A safety control that lives on paper cannot be checked while it matters.",
+    response: "Put the permit lifecycle where it can be read in real time.",
+    result:
+      "Hot work authorisation became visible to the people responsible for it.",
+  },
+  {
+    number: "03",
+    slug: "equipment-room-monitoring",
+    title: "Equipment & Room Readiness Monitor",
+    category: "Healthcare Systems / Laravel",
+    chapter: "Field Record 03 / The Ward Index",
+    description:
+      "A barcode-driven system tracking medical equipment availability and room readiness across a hospital, in real time.",
+    outcome: "Laravel / barcode scanning / real-time availability",
+    images: [PLACEHOLDER],
+    accent: "moss",
+    client: "RS Petrokimia (freelance)",
+    year: "TODO(you)",
+    role: "Freelance developer",
+    overview:
+      "A hospital needs to know what equipment is free and which rooms are ready before it can place a patient. The system attaches a barcode to each item and room so state changes are recorded by scanning rather than by remembering to update a list.",
+    challenge:
+      "Availability was only as current as the last manual update, which in practice meant staff verified by walking.",
+    solution:
+      "Barcode scanning as the input method: the act of using or releasing equipment records itself, so the register stays close to the truth without anyone maintaining it.",
+    architecture: [
+      "Laravel application with barcode identity per item and room",
+      "Scan-driven state changes rather than manual entry",
+      "Real-time availability and readiness views",
+    ],
+    techStack: ["Laravel", "PHP", "MySQL", "Barcode scanning"],
+    metrics: [
+      { label: "Domain", value: "Hospital operations" },
+      { label: "Input method", value: "Barcode" },
+      { label: "Items tracked", value: "TODO(you)" },
+    ],
+    observation:
+      "A register only helps if keeping it accurate costs nobody any effort.",
+    response: "Make the everyday action — the scan — the thing that updates it.",
+    result: "Availability readable without a walk to check.",
+  },
+  {
+    number: "04",
     slug: "field-console",
     title: "Field Console",
     category: "Observability / Platform Engineering",
-    chapter: "Field Record 02 / The Signal Observatory",
+    chapter: "Field Record 04 / The Signal Observatory",
     description:
-      "A monitoring console that polls every application I run in production and keeps the history — uptime, response-time percentiles and an incident record that survives redeploys.",
+      "A monitoring console that polls every application I run in production and keeps the history — uptime, response-time percentiles, and an incident record that survives redeploys.",
     outcome: "Zero runtime dependencies / 90-day history / adapter architecture",
-    images: [
-      "/images/projects/field-console.png",
-      "/images/projects/nexus-control-field-guide.png",
-    ],
-    accent: "copper",
+    images: ["/images/projects/field-console.png"],
+    accent: "ivory",
     client: "Personal infrastructure",
     year: "2026",
     role: "Design and engineering",
     overview:
-      "The console is the operations half of this site. It polls each application on its own cadence, normalises whatever JSON that application happens to return, and records a sample every thirty seconds. From those samples it derives real uptime percentages, nearest-rank latency percentiles and an incident log — all of it kept in SQLite so a redeploy does not reset the record.",
+      "The operations half of this site. It polls each application on its own cadence, normalises whatever JSON that application returns, and records a sample every thirty seconds — deriving real uptime, latency percentiles and an incident log, kept in SQLite so a redeploy does not reset the record.",
     challenge:
       "Every application reports its health differently. Writing a bespoke integration per service is how monitoring dashboards rot: the tenth app never gets added because it is too much work.",
     solution:
-      "An adapter contract sits between the poller and the UI. The default adapter infers health, services and metrics from the shape of any JSON payload — naming conventions decide whether a number renders as milliseconds, bytes or a percentage — so a new service is useful the moment its URL is added, with no code written.",
+      "An adapter contract between the poller and the UI. The default adapter infers health, services and metrics from the shape of any JSON payload, so a new service is useful the moment its URL is added, with no code written.",
     architecture: [
-      "Per-probe polling cadences so a slow metrics endpoint cannot throttle health checks",
+      "Per-probe cadences so a slow metrics endpoint cannot throttle health checks",
       "Adapter layer normalising arbitrary JSON into one rendering contract",
-      "SQLite time-series via Node's built-in node:sqlite — no npm dependency",
+      "SQLite time-series on Node's built-in node:sqlite — no npm dependency",
       "Incidents derived as samples arrive, so the feed never needs a backfill",
-      "Server-rendered pages: the first paint is already the real data",
+      "Server-rendered: the first paint is already the real data",
     ],
-    techStack: [
-      "TypeScript",
-      "Next.js",
-      "React Server Components",
-      "SQLite",
-      "Docker",
-      "GitHub Actions",
-    ],
+    techStack: ["TypeScript", "Next.js", "React", "SQLite", "Docker", "GitHub Actions"],
     metrics: [
-      { label: "Client JavaScript", value: "178 KB gzipped" },
+      { label: "Client JavaScript", value: "179 KB gzipped" },
       { label: "Runtime npm dependencies", value: "0" },
       { label: "History retained", value: "90 days" },
     ],
     observation:
       "A monitoring tool that is tedious to extend stops being extended, and then stops being true.",
     response:
-      "Make adding an application a line of configuration, and infer the rest from the payload.",
-    result:
-      "A console that renders an app it has never seen before, correctly, on first poll.",
+      "Make adding an application a line of configuration, and infer the rest.",
+    result: "A console that renders an app it has never seen before, correctly.",
   },
   {
-    number: "03",
-    slug: "astrolabe-field-office",
-    title: "Astrolabe Field Office",
-    category: "Interactive Web / WebGL",
-    chapter: "Field Record 03 / The Instrument",
+    number: "05",
+    slug: "online-attendance",
+    title: "Online Work Attendance",
+    category: "Workforce Systems / Laravel",
+    chapter: "Field Record 05 / The Daily Record",
     description:
-      "This site. A working brass astrolabe rendered in WebGL, where each chapter of the practice sits on the star map as a coordinate you can steer to.",
-    outcome: "React Three Fiber / GSAP / no WebGL cost off the homepage",
-    images: [
-      "/images/projects/astrolabe.png",
-      "/images/projects/chronoscape-field-guide.png",
-    ],
-    accent: "moss",
-    client: "Self-directed",
-    year: "2026",
-    role: "Design and engineering",
-    overview:
-      "A portfolio built around a single object: a gilt orrery you can drag, spin and zoom, with the constellation Aries as its index. It is deliberately one idea carried all the way through — the typography, the coordinate readouts and the navigation are all the same instrument.",
-    challenge:
-      "An expressive 3D interface usually means a heavy site. The whole WebGL stack was originally loading on every route, including pages that never render it.",
-    solution:
-      "The instrument is dynamically imported and the page is split into route groups, so the operations console shares the design language while loading none of three.js, GSAP or the smooth-scroll runtime. The starfield pauses when the tab is hidden and paints once under reduced motion instead of running a 60fps loop forever.",
-    architecture: [
-      "Route groups isolating the WebGL stack from the rest of the application",
-      "Dynamically imported 3D scene, absent from the shared chunk",
-      "Canvas starfield scaled to screen area, paused on visibilitychange",
-      "Reduced-motion path that stops the animation loop rather than muting it",
-    ],
-    techStack: [
-      "Next.js",
-      "React",
-      "TypeScript",
-      "three.js",
-      "React Three Fiber",
-      "GSAP",
-    ],
-    metrics: [
-      { label: "WebGL chunks off the homepage", value: "0" },
-      { label: "Console page weight", value: "178 KB gz" },
-      { label: "Reduced-motion frame cost", value: "single paint" },
-    ],
-    observation:
-      "Interfaces with a point of view are usually paid for in load time.",
-    response:
-      "Scope the expensive parts to the one screen that needs them.",
-    result:
-      "An interactive instrument on the front page and a fast, quiet console behind it.",
-  },
-  {
-    number: "04",
-    slug: "network-operations",
-    title: "Network Operations",
-    category: "Network Engineering / Infrastructure",
-    chapter: "Field Record 04 / The Wire",
-    // TODO(you): This entry is the thinnest. It is evidenced only by MikroTik
-    // RouterOS configuration work visible in your notes. Write it properly or
-    // delete the entry — a vague fourth project is worse than three solid ones.
-    description:
-      "TODO(you): Network design and operations on MikroTik RouterOS — routing, firewalling and throughput tuning for live sites.",
-    outcome: "TODO(you): scale — how many sites, endpoints, or users?",
-    images: [
-      "/images/projects/nexus-control.png",
-      "/images/projects/nexus-control-field-guide.png",
-    ],
-    accent: "ivory",
-    client: "TODO(you)",
+      "A digital attendance system using barcode identification to record and monitor employee presence.",
+    outcome: "Laravel / barcode identity / digital attendance record",
+    images: [PLACEHOLDER],
+    accent: "ember",
+    client: "PT. Panca Pilar Hutama (freelance)",
     year: "TODO(you)",
-    role: "TODO(you): Network engineer?",
+    role: "Freelance developer",
     overview:
-      "TODO(you): What networks do you run, and for whom? Even one concrete deployment — a site, a depot, a campus — is worth more than an abstract description.",
-    challenge: "TODO(you)",
-    solution: "TODO(you)",
+      "Attendance recorded on paper is slow to total and easy to dispute. The system gives each employee a barcode identity, so arrival and departure are captured as scans and the monthly picture is a query rather than a transcription job.",
+    challenge:
+      "Manual attendance is laborious to compile and hard to audit after the fact.",
+    solution:
+      "Barcode-based check-in writing straight to the database, with monitoring views over the resulting record.",
     architecture: [
-      "TODO(you): e.g. RouterOS firewall and NAT policy",
-      "TODO(you): e.g. VPN between sites",
-      "TODO(you): e.g. FastTrack / queue tuning for throughput",
+      "Laravel application with per-employee barcode identity",
+      "Scan-driven check-in and check-out",
+      "Attendance monitoring and reporting views",
     ],
-    techStack: ["MikroTik RouterOS", "Networking", "VPN", "Firewall", "Linux"],
+    techStack: ["Laravel", "PHP", "MySQL", "Barcode scanning"],
     metrics: [
-      { label: "Sites", value: "TODO(you)" },
-      { label: "Endpoints", value: "TODO(you)" },
-      { label: "Uptime", value: "TODO(you)" },
+      { label: "Input method", value: "Barcode" },
+      { label: "Engagement", value: "Freelance" },
+      { label: "Employees covered", value: "TODO(you)" },
     ],
-    observation: "TODO(you)",
-    response: "TODO(you)",
-    result: "TODO(you)",
+    observation: "Paper attendance is only cheap until someone has to total it.",
+    response: "Capture it at the door, in a form that can be queried.",
+    result: "A record that compiles itself.",
+  },
+  {
+    number: "06",
+    slug: "business-incubation-elearning",
+    title: "Business Incubation E-Learning",
+    category: "Education Technology / Laravel",
+    chapter: "Field Record 06 / The Greenhouse",
+    description:
+      "An e-learning platform built to grow student business ideas through a structured digital incubation process.",
+    outcome: "Laravel / incubation pathway / vocational education",
+    images: [PLACEHOLDER],
+    accent: "moss",
+    client: "Academic project",
+    year: "TODO(you)",
+    role: "Developer",
+    overview:
+      "Built around incubation rather than around lessons: students bring an idea and the platform carries it through stages, so the structure of the course matches the structure of starting something.",
+    challenge:
+      "General e-learning platforms organise content, not ventures — they have no notion of an idea maturing through stages.",
+    solution:
+      "A Laravel platform modelled on the incubation pathway, with the stages themselves as first-class structure.",
+    architecture: [
+      "Laravel application modelling the incubation stages",
+      "Per-student idea progression through the pathway",
+      "Learning material bound to the stage it serves",
+    ],
+    techStack: ["Laravel", "PHP", "MySQL", "JavaScript"],
+    metrics: [
+      { label: "Domain", value: "Vocational education" },
+      { label: "Model", value: "Digital incubation" },
+      { label: "Students", value: "TODO(you)" },
+    ],
+    observation: "A business idea does not progress the way a syllabus does.",
+    response: "Model the incubation stages, not the lesson list.",
+    result: "A platform shaped like the thing it teaches.",
+  },
+  {
+    number: "07",
+    slug: "fiber-optic-game",
+    title: "Fiber Optic Educational Game",
+    category: "Game Development / Roblox",
+    chapter: "Field Record 07 / The Light Path",
+    description:
+      "A Lua-based Roblox game introducing fiber optic technology through play rather than through a diagram.",
+    outcome: "Roblox / Lua / gamified technical education",
+    images: [PLACEHOLDER],
+    accent: "copper",
+    client: "Freelance",
+    year: "TODO(you)",
+    role: "Game developer",
+    overview:
+      "Fiber optics is usually taught with cross-sections and refraction diagrams. Building it in Roblox puts the learner inside the medium instead — the concepts are things you do, on a platform its audience already uses daily.",
+    challenge:
+      "The physical principles behind fiber optics are abstract on a whiteboard and easy to disengage from.",
+    solution:
+      "An interactive Roblox environment in Lua where the behaviour of light in a fiber is something the player acts on directly.",
+    architecture: [
+      "Roblox environment scripted in Lua",
+      "Interactive demonstrations of fiber optic principles",
+      "Gamified progression through the concepts",
+    ],
+    techStack: ["Roblox Studio", "Lua", "Game design"],
+    metrics: [
+      { label: "Platform", value: "Roblox" },
+      { label: "Language", value: "Lua" },
+      { label: "Players reached", value: "TODO(you)" },
+    ],
+    observation: "A refraction diagram loses the room.",
+    response: "Put the learner inside the fiber.",
+    result: "A technical concept taught where its audience already spends time.",
   },
 ];
 
@@ -259,29 +321,29 @@ export const capabilities = [
     number: "I",
     title: "Build",
     description:
-      "Web applications end to end — interface, data layer, and the API surface between them.",
-    skills: ["TypeScript", "React", "Next.js", "Node.js", "PostgreSQL"],
+      "Web systems end to end — interface, data model, and the workflow the organisation actually runs on.",
+    skills: ["Laravel", "PHP", "JavaScript", "HTML / CSS", "MySQL"],
   },
   {
     number: "II",
-    title: "Direct",
+    title: "Connect",
     description:
-      "Interface, motion and 3D work where the product needs a point of view rather than a template.",
-    skills: ["UI/UX", "Three.js", "WebGL", "GSAP", "Art Direction"],
+      "Network installation, configuration and troubleshooting — the layer I started in and still design around.",
+    skills: ["Network Installation", "Troubleshooting", "Configuration", "Network Security"],
   },
   {
     number: "III",
     title: "Operate",
     description:
-      "Ship and run production systems: containers, pipelines, monitoring, and the machine underneath.",
-    skills: ["Docker", "Linux", "CI/CD", "nginx", "Monitoring", "SQLite"],
+      "Ship and keep things running: containers, pipelines, monitoring, and the server underneath.",
+    skills: ["Docker", "Linux", "CI/CD", "Monitoring", "VPS Administration"],
   },
   {
     number: "IV",
-    title: "Connect",
+    title: "Communicate",
     description:
-      "Network architecture for sites that have to stay reachable — routing, filtering, and throughput.",
-    skills: ["MikroTik RouterOS", "Firewall", "VPN", "VPS Administration"],
+      "Teaching, presenting and writing — from workshop sessions to an international conference paper.",
+    skills: ["Public Speaking", "Technical Writing", "Collaboration", "English (TOEIC 820)"],
   },
 ] as const;
 
@@ -294,28 +356,104 @@ export type ExperienceEntry = {
   description: string;
 };
 
-/**
- * TODO(you): EMPTY ON PURPOSE — this is the section recruiters read closest.
- *
- * What was here before was template fiction. Rather than invent a plausible
- * history for you, it has been cleared: the Experience section removes itself
- * while this array is empty, which is honest and looks deliberate. A page with
- * no experience block reads as a developer who leads with work; a page with
- * fabricated conference talks reads as a liability the moment anyone checks.
- *
- * Add real entries — jobs, freelance engagements, education, communities:
- *
- *   { number: "I", title: "Company or organisation", role: "Your title",
- *     type: "work", year: "2024 — Present",
- *     description: "What you were responsible for and what changed because of you." }
- */
-export const experiences: ExperienceEntry[] = [];
+export const experiences: ExperienceEntry[] = [
+  {
+    number: "I",
+    title: "Balai Besar Kekarantinaan Kesehatan Surabaya",
+    role: "Web Developer & Network Support",
+    type: "work",
+    year: "2025",
+    description:
+      "Built a web-based data centre consolidating performance information across the agency's working areas, and supported the installation of new network infrastructure on site.",
+  },
+  {
+    number: "II",
+    title: "PT. Smelting Gresik",
+    role: "IT & Web Development",
+    type: "work",
+    year: "2024",
+    description:
+      "Developed the Hotwork Permit system for work authorisation, maintained IT equipment and installed new hardware, and helped keep the plant's network stable and secure.",
+  },
+  {
+    number: "III",
+    title: "CLEAN Research Group — State University of Malang",
+    role: "Member",
+    type: "community",
+    year: "2024 — 2026",
+    description:
+      "Co-authored three papers in educational technology, covering a Virtual Entrepreneurship Laboratory and objective-based learning websites, plus a Scrum case study on the SISINTA final-project management system.",
+  },
+  {
+    number: "IV",
+    title: "Workshop Elektro UM (WSE)",
+    role: "Secretary, Products & Services Division",
+    type: "organization",
+    year: "2022 — 2024",
+    description:
+      "Ran administration, documentation and coordination for the division. Delivered the IoT Smart Garden session at Workshop at School 2023 and organised the Line Tracer Design Contest and the PESC UM scientific writing competition.",
+  },
+  {
+    number: "V",
+    title: "PT. Weiss Tech Sidoarjo",
+    role: "IT Support",
+    type: "work",
+    year: "2018",
+    description:
+      "Supported the IT team with computer hardware maintenance and the company's network infrastructure.",
+  },
+];
+
+export type EducationEntry = {
+  years: string;
+  institution: string;
+  field: string;
+};
+
+export const education: EducationEntry[] = [
+  {
+    years: "2021 — 2025",
+    institution: "State University of Malang",
+    field: "Informatics Engineering Education (Pendidikan Teknik Informatika)",
+  },
+  {
+    years: "2018 — 2021",
+    institution: "SMKN 3 Buduran",
+    field: "Computer & Network Engineering (Teknik Komputer dan Jaringan)",
+  },
+];
+
+export type Credential = {
+  label: string;
+  detail: string;
+  year: string;
+};
+
+export const credentials: Credential[] = [
+  {
+    label: "8th ICEEIE 2024",
+    detail:
+      "Presenter, International Conference on Electrical, Electronics and Information Engineering",
+    year: "2024",
+  },
+  {
+    label: "International Trade Competition",
+    detail: "Runner-up — Junior Achievement & FedEx",
+    year: "2021",
+  },
+  {
+    label: "TOEFL 577",
+    detail: "English proficiency · TOEIC 820 (2020)",
+    year: "2026",
+  },
+  {
+    label: "Computer & Network Engineering",
+    detail: "Competency certification — langit.net",
+    year: "—",
+  },
+];
 
 export const socialLinks = [
-  // Verified — this is your account.
   { label: "GitHub", href: "https://github.com/yaumalatsal" },
-  // TODO(you): Add your real profiles, or delete the entries you do not use.
-  // Placeholder links to a site's homepage read worse than no link at all.
-  // { label: "LinkedIn", href: "https://linkedin.com/in/…" },
-  // { label: "Email", href: "mailto:…" },
+  // TODO(you): add LinkedIn, or delete this comment if you would rather not.
 ] as const;

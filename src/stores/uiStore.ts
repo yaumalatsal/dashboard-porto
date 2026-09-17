@@ -9,6 +9,7 @@ export type AstrolabeSection =
   | "skills"
   | "operations"
   | "experience"
+  | "credentials"
   | "contact"
   | "pisces";
 

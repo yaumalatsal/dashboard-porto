@@ -9,6 +9,15 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { gsap } from "@/lib/gsap-config";
 import type { ProjectData } from "@/data/portfolio";
 
+/**
+ * Next's image optimizer rejects SVG with a 400 unless `dangerouslyAllowSVG` is
+ * set globally — which would also wave through any SVG added later, and SVG can
+ * carry script. The placeholder slots are SVG and gain nothing from optimisation
+ * anyway, so they bypass it individually and the security default stays intact.
+ * A real screenshot dropped in as PNG or JPG is optimised as normal.
+ */
+const isVector = (src: string) => src.toLowerCase().endsWith(".svg");
+
 export default function ProjectCard({ project, index }: { project: ProjectData; index: number }) {
   const chapterRef = useRef<HTMLElement>(null);
   const [isRecordOpen, setRecordOpen] = useState(false);
@@ -117,19 +126,22 @@ export default function ProjectCard({ project, index }: { project: ProjectData; 
             <span className="project-chapter__image-base" data-project-base>
               <Image
                 src={project.images[0]}
-                alt={`Concept artwork for ${project.title}`}
+                alt={`Screenshot of ${project.title}`}
                 fill
                 sizes="(max-width: 767px) 100vw, 76vw"
+                unoptimized={isVector(project.images[0])}
+                priority={index === 0}
               />
             </span>
             
             {project.images[1] && (
               <span className="project-chapter__image-float" data-project-float aria-hidden="true">
-                <Image 
-                  src={project.images[1]} 
-                  alt="" 
-                  fill 
-                  sizes="(max-width: 767px) 80vw, 40vw" 
+                <Image
+                  src={project.images[1]}
+                  alt=""
+                  fill
+                  sizes="(max-width: 767px) 80vw, 40vw"
+                  unoptimized={isVector(project.images[1])}
                 />
               </span>
             )}
