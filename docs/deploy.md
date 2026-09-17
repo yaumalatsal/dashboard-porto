@@ -144,6 +144,10 @@ docker pull ghcr.io/yaumalatsal/dashboard-porto:latest
 A frequent cause is the data directory not being writable — the app runs as
 uid 1001, and the volume must be owned by it.
 
+If the container is plainly up but the check still fails, confirm the probe uses
+`127.0.0.1` rather than `localhost`: on a dual-stack host `localhost` resolves
+to `::1` while the container publishes on IPv4, so the request never arrives.
+
 **`git reset --hard` conflicts.** The deploy force-resets to `origin/main`, so
 uncommitted edits on the VPS are discarded by design. `.env` survives because it
 is untracked and gitignored.

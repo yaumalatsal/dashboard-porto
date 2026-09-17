@@ -154,7 +154,11 @@ jobs:
             # answers. Without this the pipeline reports green over an outage.
             echo "Waiting for the app to answer..."
             for i in $(seq 1 30); do
-              if curl -fsS -o /dev/null http://localhost:3000/api/monitor/status; then
+              # 127.0.0.1, not localhost: on a dual-stack host localhost
+              # resolves to ::1 while the container publishes on IPv4, so the
+              # check fails against a perfectly healthy deploy. Same reason the
+              # compose healthcheck was changed in 5a12fc2.
+              if curl -fsS -o /dev/null http://127.0.0.1:3000/api/monitor/status; then
                 echo "Healthy after ${i}s"
                 docker logout ghcr.io || true
                 docker image prune -f
