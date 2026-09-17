@@ -11,11 +11,11 @@ container logs attached rather than reporting green over an outage.
 ### 1. On the VPS
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yaumalatsal/astrolobe-porto/main/scripts/bootstrap-vps.sh | bash
+curl -fsSL https://raw.githubusercontent.com/yaumalatsal/dashboard-porto/main/scripts/bootstrap-vps.sh | bash
 ```
 
 It checks Docker and the Compose plugin, warns if something else already holds
-port 3000, clones the repo to `/var/www/astrolobe-porto`, creates the
+port 3000, clones the repo to `/var/www/dashboard-porto`, creates the
 `console-data` volume, and writes a placeholder `.env`. Re-running is safe.
 
 The CI user must be able to run `docker` **without sudo** — the pipeline does
@@ -45,7 +45,7 @@ Same page → **Variables** tab. These are not secret and are visible in logs.
 | Variable | What it is |
 |---|---|
 | `SITE_URL` | `https://your-domain` — **set this before your first deploy**, see below |
-| `DEPLOY_PATH` | only if you did not use `/var/www/astrolobe-porto` |
+| `DEPLOY_PATH` | only if you did not use `/var/www/dashboard-porto` |
 
 > **`SITE_URL` is baked at build time, not just read at runtime.**
 > Statically prerendered pages (`/work/*`, `/orrery-lab`) generate their
@@ -60,7 +60,7 @@ Same page → **Variables** tab. These are not secret and are visible in logs.
 GHCR packages are **private by default**. The pipeline logs the VPS into GHCR
 with the workflow token, so this works out of the box — but if you would rather
 not authenticate on every deploy, mark the package public once at
-`github.com/users/yaumalatsal/packages/container/astrolobe-porto/settings`.
+`github.com/users/yaumalatsal/packages/container/dashboard-porto/settings`.
 
 ---
 
@@ -86,16 +86,16 @@ Every build is tagged with its commit sha.
 
 ```bash
 ssh you@vps
-cd /var/www/astrolobe-porto
+cd /var/www/dashboard-porto
 
-docker pull ghcr.io/yaumalatsal/astrolobe-porto:sha-1a2b3c4
-docker tag  ghcr.io/yaumalatsal/astrolobe-porto:sha-1a2b3c4 \
-            ghcr.io/yaumalatsal/astrolobe-porto:latest
+docker pull ghcr.io/yaumalatsal/dashboard-porto:sha-1a2b3c4
+docker tag  ghcr.io/yaumalatsal/dashboard-porto:sha-1a2b3c4 \
+            ghcr.io/yaumalatsal/dashboard-porto:latest
 docker compose up -d
 ```
 
 Find the sha in the Actions run, or list what is on the machine with
-`docker images ghcr.io/yaumalatsal/astrolobe-porto`.
+`docker images ghcr.io/yaumalatsal/dashboard-porto`.
 
 ---
 
@@ -137,7 +137,7 @@ package is private and the token lacks `read:packages`. Test by hand:
 
 ```bash
 echo "$GITHUB_TOKEN" | docker login ghcr.io -u yaumalatsal --password-stdin
-docker pull ghcr.io/yaumalatsal/astrolobe-porto:latest
+docker pull ghcr.io/yaumalatsal/dashboard-porto:latest
 ```
 
 **Healthy check times out.** The container started and died. `docker compose logs web`.

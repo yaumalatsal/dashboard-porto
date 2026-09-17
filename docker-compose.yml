@@ -5,14 +5,14 @@ services:
   web:
     # Both keys on purpose: CI pushes this tag and the VPS `docker compose pull`s
     # it, while a local `docker compose up --build` still builds from source.
-    image: ghcr.io/yaumalatsal/astrolobe-porto:latest
+    image: ghcr.io/yaumalatsal/dashboard-porto:latest
     build:
       context: .
       dockerfile: dockerfile
       target: runner
       args:
         SITE_URL: ${SITE_URL:-http://localhost:3000}
-    container_name: astrolabe-porto
+    container_name: dashboard-porto
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -51,7 +51,7 @@ services:
       context: .
       dockerfile: dockerfile
       target: deps
-    container_name: astrolabe-porto-dev
+    container_name: dashboard-porto-dev
     restart: unless-stopped
     ports:
       - "3000:3000"

@@ -107,7 +107,7 @@ reads stay public either way.
 ## CI/CD
 
 Pushes to `main` run typecheck → lint → build, publish
-`ghcr.io/yaumalatsal/astrolobe-porto`, deploy over SSH, and then poll
+`ghcr.io/yaumalatsal/dashboard-porto`, deploy over SSH, and then poll
 `/api/monitor/status` until the app answers — so a container that starts and
 dies fails the pipeline instead of reporting green. Pull requests run the verify
 job only. Every image is tagged with its commit sha, so rollback is one command.
@@ -115,7 +115,7 @@ job only. Every image is tagged with its commit sha, so rollback is one command.
 First-time setup is one script on the VPS plus six secrets and one variable:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yaumalatsal/astrolobe-porto/main/scripts/bootstrap-vps.sh | bash
+curl -fsSL https://raw.githubusercontent.com/yaumalatsal/dashboard-porto/main/scripts/bootstrap-vps.sh | bash
 ```
 
 Full reference, rollback and troubleshooting: **[docs/deploy.md](docs/deploy.md)**.

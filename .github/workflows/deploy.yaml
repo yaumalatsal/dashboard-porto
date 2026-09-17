@@ -116,7 +116,7 @@ jobs:
           CONSOLE_ADMIN_TOKEN: ${{ secrets.CONSOLE_ADMIN_TOKEN }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/var/www/astrolobe-porto' }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/var/www/dashboard-porto' }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}

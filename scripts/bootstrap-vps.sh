@@ -3,14 +3,14 @@
 # One-time VPS preparation. Run this once, as the user the CI pipeline will SSH
 # in as, before the first deploy. It is idempotent — re-running is safe.
 #
-#   curl -fsSL https://raw.githubusercontent.com/yaumalatsal/astrolobe-porto/main/scripts/bootstrap-vps.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/yaumalatsal/dashboard-porto/main/scripts/bootstrap-vps.sh | bash
 #
 # or, having cloned already:  bash scripts/bootstrap-vps.sh
 
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-https://github.com/yaumalatsal/astrolobe-porto.git}"
-DEPLOY_PATH="${DEPLOY_PATH:-/var/www/astrolobe-porto}"
+REPO_URL="${REPO_URL:-https://github.com/yaumalatsal/dashboard-porto.git}"
+DEPLOY_PATH="${DEPLOY_PATH:-/var/www/dashboard-porto}"
 APP_PORT="${APP_PORT:-3000}"
 
 say()  { printf '\n\033[1;33m==>\033[0m %s\n' "$1"; }
@@ -48,7 +48,7 @@ CONFLICT="$(docker ps --format '{{.Names}} {{.Ports}}' | grep ":${APP_PORT}->" |
 if [ -n "$CONFLICT" ]; then
   echo "    Port ${APP_PORT} is currently bound by:"
   echo "      $CONFLICT"
-  if echo "$CONFLICT" | grep -q 'astrolabe-porto'; then
+  if echo "$CONFLICT" | grep -q 'dashboard-porto'; then
     echo "    That is this stack — compose will replace it. Fine."
   else
     warn "A different container holds the port. Stop it before deploying:"
@@ -118,7 +118,7 @@ Remaining steps, all in GitHub → Settings:
 
   Variables (same page → Variables tab)
     SITE_URL              https://your-domain   — share-card URLs are built from this
-    DEPLOY_PATH           only if not /var/www/astrolobe-porto
+    DEPLOY_PATH           only if not /var/www/dashboard-porto
 
 Then push to main, or run the workflow manually from the Actions tab.
 NEXT
