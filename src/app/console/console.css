@@ -894,3 +894,178 @@
   text-decoration: none;
 }
 .console__footer a:hover { color: var(--c-ink); }
+
+/* ── Event log ─────────────────────────────────────────────────────────────
+   A log, not a data grid: fixed columns, monospace timestamps, and a severity
+   that reads as shape + word so it survives grayscale and full CVD. */
+
+.log-summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1rem;
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: var(--c-ink-2);
+}
+.log-summary__item b {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--c-ink);
+  margin-right: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+.log-summary__note {
+  margin-left: auto;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.log-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.log-table {
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.log-row {
+  display: grid;
+  grid-template-columns: 6.5rem 7rem 10rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.7rem 1.1rem;
+  border-bottom: 1px solid var(--c-rule-soft);
+  font-size: 0.84rem;
+}
+.log-row:last-child { border-bottom: none; }
+
+.log-row--head {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  background: var(--c-page);
+  border-bottom-color: var(--c-rule);
+}
+
+/* A left edge in the severity colour: scannable down the page without
+   colouring the text itself, which would hurt legibility. */
+.log-row--warn { box-shadow: inset 2px 0 0 var(--s-warning); }
+.log-row--error { box-shadow: inset 2px 0 0 var(--s-critical); }
+
+.log-row__time {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink-2);
+}
+.log-row__time em {
+  font-style: normal;
+  font-size: 0.6rem;
+  color: var(--c-muted);
+}
+
+.log-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.log-level i {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+.log-level--info { color: var(--c-muted); }
+.log-level--warn { color: var(--s-warning); }
+/* A ring, so error and warning differ by shape as well as hue. */
+.log-level--error { color: var(--s-critical); }
+.log-level--error i {
+  background: transparent;
+  border: 2.5px solid currentColor;
+}
+
+.log-row__site {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.log-row__site a {
+  color: var(--c-ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.log-row__site a:hover { border-bottom-color: var(--c-ember); }
+
+.log-row__message {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  color: var(--c-ink);
+}
+.log-row__message em {
+  font-style: normal;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.68rem;
+  color: var(--c-muted);
+}
+
+@media (max-width: 760px) {
+  /* Four fixed columns cannot fit a phone; stack into two rows per entry with
+     the meta line above the message. */
+  .log-row {
+    grid-template-columns: auto 1fr;
+    row-gap: 0.35rem;
+    padding: 0.8rem 0.9rem;
+  }
+  .log-row--head { display: none; }
+  .log-row__site { grid-column: 2; font-size: 0.78rem; }
+  .log-row__message { grid-column: 1 / -1; }
+}
+
+/* Data freshness. Without it a stopped poller and a healthy app look identical:
+   both show the last numbers we happen to have. */
+.console__freshness {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+.console__freshness span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--s-good);
+  flex: none;
+}

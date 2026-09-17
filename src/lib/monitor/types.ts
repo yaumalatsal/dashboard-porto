@@ -182,6 +182,28 @@ export type Incident = {
   note?: string;
 };
 
+/** Severity of a log line. Mirrors the status palette, never colour-only. */
+export type EventLevel = "info" | "warn" | "error";
+
+export type EventKind =
+  | "status_change"
+  | "probe_error"
+  | "probe_recovered"
+  | "incident_opened"
+  | "incident_closed"
+  | "registry"
+  | "system";
+
+export type MonitorEvent = {
+  id: number;
+  ts: number;
+  siteId: string | null;
+  level: EventLevel;
+  kind: EventKind;
+  message: string;
+  detail?: string;
+};
+
 export type SeriesPoint = {
   ts: number;
   latencyP50: number | null;

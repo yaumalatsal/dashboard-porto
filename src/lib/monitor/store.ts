@@ -15,8 +15,11 @@ import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
 import type {
+  EventKind,
+  EventLevel,
   Health,
   Incident,
+  MonitorEvent,
   Sample,
   SeriesPoint,
   UptimeSummary,
@@ -81,6 +84,30 @@ function connect(): DatabaseSync {
       payload    TEXT    NOT NULL
     );
   `);
+
+  /**
+   * The event log — what happened, rather than what the numbers were.
+   *
+   * Deliberately separate from `samples`: samples are written every poll and
+   * exist to be aggregated, while events are written only when something
+   * changes and exist to be read one line at a time. Mixing them would mean
+   * either a log full of "still fine" or a series full of gaps.
+   */
+  handle.exec(`
+    CREATE TABLE IF NOT EXISTS events (
+      id      INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts      INTEGER NOT NULL,
+      site_id TEXT,
+      level   TEXT    NOT NULL,
+      kind    TEXT    NOT NULL,
+      message TEXT    NOT NULL,
+      detail  TEXT
+    );
+  `);
+  handle.exec("CREATE INDEX IF NOT EXISTS idx_events_ts ON events (ts DESC)");
+  handle.exec(
+    "CREATE INDEX IF NOT EXISTS idx_events_site_ts ON events (site_id, ts DESC)",
+  );
 
   db = handle;
   return handle;
@@ -186,23 +213,131 @@ export function readSnapshots(): Record<string, { ts: number; payload: unknown }
   return out;
 }
 
+/* ------------------------------------------------------------------ events */
+
+export function recordEvent(event: {
+  siteId?: string | null;
+  level: EventLevel;
+  kind: EventKind;
+  message: string;
+  detail?: string;
+  ts?: number;
+}): void {
+  const handle = connect();
+  handle
+    .prepare(
+      "INSERT INTO events (ts, site_id, level, kind, message, detail) VALUES (?, ?, ?, ?, ?, ?)",
+    )
+    .run(
+      event.ts ?? Date.now(),
+      event.siteId ?? null,
+      event.level,
+      event.kind,
+      event.message,
+      event.detail ?? null,
+    );
+}
+
+export type EventQuery = {
+  limit?: number;
+  siteId?: string;
+  level?: EventLevel;
+  /** Only events at or above this severity — the common "show me trouble" case. */
+  minLevel?: EventLevel;
+  before?: number;
+};
+
+const LEVEL_RANK: Record<EventLevel, number> = { info: 0, warn: 1, error: 2 };
+
+export function recentEvents(query: EventQuery = {}): MonitorEvent[] {
+  const handle = connect();
+  const limit = Math.min(Math.max(query.limit ?? 100, 1), 500);
+
+  // Built as fragments rather than string-interpolated, so every value stays a
+  // bound parameter.
+  const where: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (query.siteId) {
+    where.push("site_id = ?");
+    params.push(query.siteId);
+  }
+  if (query.level) {
+    where.push("level = ?");
+    params.push(query.level);
+  }
+  if (query.minLevel) {
+    const allowed = (Object.keys(LEVEL_RANK) as EventLevel[]).filter(
+      (l) => LEVEL_RANK[l] >= LEVEL_RANK[query.minLevel!],
+    );
+    where.push(`level IN (${allowed.map(() => "?").join(", ")})`);
+    params.push(...allowed);
+  }
+  if (query.before) {
+    where.push("ts < ?");
+    params.push(query.before);
+  }
+
+  const sql = `SELECT * FROM events${
+    where.length ? ` WHERE ${where.join(" AND ")}` : ""
+  } ORDER BY ts DESC, id DESC LIMIT ?`;
+
+  const rows = handle.prepare(sql).all(...params, limit) as Record<
+    string,
+    unknown
+  >[];
+
+  return rows.map((r) => ({
+    id: r.id as number,
+    ts: r.ts as number,
+    siteId: (r.site_id as string | null) ?? null,
+    level: r.level as EventLevel,
+    kind: r.kind as EventKind,
+    message: r.message as string,
+    detail: (r.detail as string | undefined) ?? undefined,
+  }));
+}
+
+/** Counts per level over a window — drives the log page's summary row. */
+export function eventCounts(windowSeconds = 86_400): Record<EventLevel, number> {
+  const handle = connect();
+  const since = Date.now() - windowSeconds * 1000;
+  const rows = handle
+    .prepare(
+      "SELECT level, COUNT(*) AS n FROM events WHERE ts >= ? GROUP BY level",
+    )
+    .all(since) as { level: EventLevel; n: number }[];
+
+  const out: Record<EventLevel, number> = { info: 0, warn: 0, error: 0 };
+  for (const row of rows) out[row.level] = row.n;
+  return out;
+}
+
 /* ------------------------------------------------------------------- reads */
 
 export function uptimeSummary(
   siteId: string,
   windowSeconds: number,
+  /**
+   * Shifts the window back by this many seconds. `offsetSeconds = windowSeconds`
+   * gives the immediately preceding period, which is what the stat tiles compare
+   * against — "142 ms" says little; "142 ms, 31 ms faster than yesterday" says
+   * whether anything needs attention.
+   */
+  offsetSeconds = 0,
 ): UptimeSummary {
   const handle = connect();
-  const since = Date.now() - windowSeconds * 1000;
+  const until = Date.now() - offsetSeconds * 1000;
+  const since = until - windowSeconds * 1000;
 
   const row = handle
     .prepare(
       `SELECT
          COUNT(*)                                                  AS samples,
          SUM(CASE WHEN health = 'operational' THEN 1 ELSE 0 END)   AS up
-       FROM samples WHERE site_id = ? AND ts >= ?`,
+       FROM samples WHERE site_id = ? AND ts >= ? AND ts < ?`,
     )
-    .get(siteId, since) as { samples: number; up: number | null };
+    .get(siteId, since, until) as { samples: number; up: number | null };
 
   const samples = row?.samples ?? 0;
 
@@ -211,9 +346,9 @@ export function uptimeSummary(
     windowSeconds,
     samples,
     upRatio: samples > 0 ? (row.up ?? 0) / samples : 0,
-    latencyP50: percentile(siteId, since, 0.5),
-    latencyP95: percentile(siteId, since, 0.95),
-    latencyP99: percentile(siteId, since, 0.99),
+    latencyP50: percentile(siteId, since, 0.5, until),
+    latencyP95: percentile(siteId, since, 0.95, until),
+    latencyP99: percentile(siteId, since, 0.99, until),
   };
 }
 
@@ -221,13 +356,18 @@ export function uptimeSummary(
  * Nearest-rank percentile. SQLite has no PERCENTILE_CONT, and an OFFSET on the
  * indexed column is cheaper here than pulling the window into JS.
  */
-function percentile(siteId: string, since: number, p: number): number | null {
+function percentile(
+  siteId: string,
+  since: number,
+  p: number,
+  until: number = Number.MAX_SAFE_INTEGER,
+): number | null {
   const handle = connect();
   const count = handle
     .prepare(
-      "SELECT COUNT(*) AS n FROM samples WHERE site_id = ? AND ts >= ? AND latency_ms IS NOT NULL",
+      "SELECT COUNT(*) AS n FROM samples WHERE site_id = ? AND ts >= ? AND ts < ? AND latency_ms IS NOT NULL",
     )
-    .get(siteId, since) as { n: number };
+    .get(siteId, since, until) as { n: number };
 
   if (!count || count.n === 0) return null;
 
@@ -235,10 +375,10 @@ function percentile(siteId: string, since: number, p: number): number | null {
   const row = handle
     .prepare(
       `SELECT latency_ms FROM samples
-       WHERE site_id = ? AND ts >= ? AND latency_ms IS NOT NULL
+       WHERE site_id = ? AND ts >= ? AND ts < ? AND latency_ms IS NOT NULL
        ORDER BY latency_ms LIMIT 1 OFFSET ?`,
     )
-    .get(siteId, since, offset) as { latency_ms: number } | undefined;
+    .get(siteId, since, until, offset) as { latency_ms: number } | undefined;
 
   return row?.latency_ms ?? null;
 }
@@ -400,6 +540,7 @@ export function prune(): number {
   handle
     .prepare("DELETE FROM incidents WHERE ended_at IS NOT NULL AND ended_at < ?")
     .run(cutoff);
+  handle.prepare("DELETE FROM events WHERE ts < ?").run(cutoff);
   return Number(result.changes ?? 0);
 }
 

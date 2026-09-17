@@ -44,6 +44,12 @@ export default async function SitePage({
   const snapshot = currentSnapshot(siteId);
   const day = uptimeSummary(siteId, 86_400);
   const month = uptimeSummary(siteId, 30 * 86_400);
+  // The preceding 24 hours, so today's figures can be read as better or worse
+  // rather than just as numbers.
+  const previousDay = uptimeSummary(siteId, 86_400, 86_400);
+
+  const delta = (now: number | null, before: number | null) =>
+    now !== null && before !== null && before > 0 ? now - before : null;
   const points = series(siteId, 86_400, 72);
   const daily = dailyUptime(siteId, 90);
   const incidents = recentIncidents(10, siteId);
@@ -84,6 +90,14 @@ export default async function SitePage({
         <Status health={snapshot?.health ?? "unknown"} />
       </div>
 
+      {snapshot?.checkedAt && (
+        <p className="console__freshness">
+          <span aria-hidden="true" />
+          Last checked {formatRelative(new Date(snapshot.checkedAt).getTime())}
+          {day.samples > 0 && ` · ${day.samples.toLocaleString("en-US")} checks in 24h`}
+        </p>
+      )}
+
       <p className="console__lede" style={{ marginTop: "0.6rem" }}>
         {config.blurb ?? "Monitored production service."}
         {config.url && (
@@ -105,6 +119,13 @@ export default async function SitePage({
         <StatTile
           label="Uptime / 24h"
           value={day.samples > 0 ? formatUptime(day.upRatio) : "—"}
+          delta={
+            day.samples > 0 && previousDay.samples > 0
+              ? (day.upRatio - previousDay.upRatio) * 100
+              : null
+          }
+          deltaLabel="pts vs. yesterday"
+          goodDirection="up"
         />
         <StatTile
           label="Uptime / 30d"
@@ -118,10 +139,16 @@ export default async function SitePage({
         <StatTile
           label="p95 / 24h"
           value={day.latencyP95 !== null ? `${day.latencyP95} ms` : "—"}
+          delta={delta(day.latencyP95, previousDay.latencyP95)}
+          deltaLabel="ms vs. yesterday"
+          goodDirection="down"
         />
         <StatTile
           label="p99 / 24h"
           value={day.latencyP99 !== null ? `${day.latencyP99} ms` : "—"}
+          delta={delta(day.latencyP99, previousDay.latencyP99)}
+          deltaLabel="ms vs. yesterday"
+          goodDirection="down"
         />
         {snapshot?.uptimeSeconds !== undefined && (
           <StatTile
