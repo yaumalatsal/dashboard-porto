@@ -28,7 +28,7 @@ export default function ConsoleLayout({
         <Link href="/console" className="console__brand">
           <span className="console__sigil" aria-hidden="true" />
           <span className="console__brand-text">
-            {profile.name} <small>Console</small>
+            {profile.shortName} <small>Console</small>
           </span>
         </Link>
         <ConsoleNav />

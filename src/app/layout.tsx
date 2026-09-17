@@ -11,6 +11,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { instrumentSerif, inter, jetbrainsMono } from "@/lib/fonts";
 import { profile } from "@/data/portfolio";
+import PageViewBeacon from "@/components/PageViewBeacon";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -69,7 +70,10 @@ export default function RootLayout({
       className={`${instrumentSerif.variable} ${inter.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <PageViewBeacon />
+      </body>
     </html>
   );
 }

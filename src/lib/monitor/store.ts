@@ -130,6 +130,49 @@ function connect(): DatabaseSync {
     "CREATE INDEX IF NOT EXISTS idx_events_site_ts ON events (site_id, ts DESC)",
   );
 
+  /**
+   * Metric history.
+   *
+   * Snapshots hold only the latest reading, so nothing an application reports
+   * — request counts, active users, memory — could be trended or compared
+   * against another app. One row per numeric metric per poll makes every
+   * adapter-normalised number a time series without the poller knowing what
+   * any of them mean.
+   */
+  handle.exec(`
+    CREATE TABLE IF NOT EXISTS metric_samples (
+      site_id TEXT    NOT NULL,
+      ts      INTEGER NOT NULL,
+      key     TEXT    NOT NULL,
+      value   REAL    NOT NULL
+    );
+  `);
+  handle.exec(
+    "CREATE INDEX IF NOT EXISTS idx_metric_site_key_ts ON metric_samples (site_id, key, ts)",
+  );
+
+  /**
+   * Traffic on this site.
+   *
+   * Deliberately holds no IP address, no cookie and no durable identifier. The
+   * visitor column is a hash of address and user-agent salted with a value that
+   * is generated in memory and rotates daily, so it can count distinct people
+   * within a day and cannot follow anyone between days or be reversed.
+   */
+  handle.exec(`
+    CREATE TABLE IF NOT EXISTS page_views (
+      id       INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts       INTEGER NOT NULL,
+      path     TEXT    NOT NULL,
+      referrer TEXT,
+      visitor  TEXT    NOT NULL
+    );
+  `);
+  handle.exec("CREATE INDEX IF NOT EXISTS idx_views_ts ON page_views (ts DESC)");
+  handle.exec(
+    "CREATE INDEX IF NOT EXISTS idx_views_path_ts ON page_views (path, ts)",
+  );
+
   db = handle;
   return handle;
 }
@@ -486,10 +529,21 @@ export function series(
   const byBucket = new Map(rows.map((r) => [r.bucket, r]));
   const out: SeriesPoint[] = [];
 
-  // Emit every bucket, including empty ones — a gap in monitoring is itself
-  // information, and a chart that silently closes the gap tells a lie.
-  for (let i = 0; i < buckets; i++) {
-    const bucketStart = Math.floor((since + i * bucketMs) / bucketMs) * bucketMs;
+  /**
+   * Walk the aligned grid from the bucket holding `since` to the one holding
+   * `now`, inclusive.
+   *
+   * Counting `buckets` steps from `since` stops one short: the bucket
+   * containing the present moment sits at index `buckets`, outside the loop, so
+   * the newest data — the only data a fresh install has — was silently dropped.
+   *
+   * Empty buckets are still emitted. A gap in monitoring is itself information,
+   * and a chart that closes the gap tells a lie.
+   */
+  const firstBucket = Math.floor(since / bucketMs) * bucketMs;
+  const lastBucket = Math.floor(now / bucketMs) * bucketMs;
+
+  for (let bucketStart = firstBucket; bucketStart <= lastBucket; bucketStart += bucketMs) {
     const row = byBucket.get(bucketStart);
     out.push({
       ts: bucketStart,
@@ -563,6 +617,8 @@ export function prune(): number {
   sql("DELETE FROM incidents WHERE ended_at IS NOT NULL AND ended_at < ?")
     .run(cutoff);
   sql("DELETE FROM events WHERE ts < ?").run(cutoff);
+  sql("DELETE FROM metric_samples WHERE ts < ?").run(cutoff);
+  sql("DELETE FROM page_views WHERE ts < ?").run(cutoff);
   return Number(result.changes ?? 0);
 }
 
@@ -570,4 +626,215 @@ export function closeDb(): void {
   statements.clear();
   db?.close();
   db = null;
+}
+
+/* --------------------------------------------------------------- metrics */
+
+/**
+ * Record every numeric metric an adapter produced for this poll.
+ *
+ * Text metrics (a version string, a node version) are skipped — they are not
+ * series and storing them per poll would be pure noise.
+ */
+export function recordMetrics(
+  siteId: string,
+  metrics: { key: string; value: number | string }[],
+  ts = Date.now(),
+): void {
+  const stmt = sql(
+    "INSERT INTO metric_samples (site_id, ts, key, value) VALUES (?, ?, ?, ?)",
+  );
+  for (const metric of metrics) {
+    const value =
+      typeof metric.value === "number" ? metric.value : Number(metric.value);
+    if (!Number.isFinite(value)) continue;
+    stmt.run(siteId, ts, metric.key, value);
+  }
+}
+
+/** Metric keys a site has actually reported, for populating a picker. */
+export function metricKeys(siteId?: string): string[] {
+  const rows = siteId
+    ? (sql(
+        "SELECT DISTINCT key FROM metric_samples WHERE site_id = ? ORDER BY key",
+      ).all(siteId) as { key: string }[])
+    : (sql(
+        "SELECT DISTINCT key FROM metric_samples ORDER BY key",
+      ).all() as { key: string }[]);
+  return rows.map((r) => r.key);
+}
+
+/** Metric keys reported by more than one site — the comparable ones. */
+export function sharedMetricKeys(): string[] {
+  const rows = sql(
+    `SELECT key FROM metric_samples
+     GROUP BY key HAVING COUNT(DISTINCT site_id) > 1
+     ORDER BY key`,
+  ).all() as { key: string }[];
+  return rows.map((r) => r.key);
+}
+
+export type MetricPoint = { ts: number; value: number };
+
+/**
+ * One metric, bucketed over a window. Averaged within the bucket, because a
+ * gauge sampled several times in a bucket has no single "right" reading and the
+ * mean is the honest summary.
+ */
+export function metricSeries(
+  siteId: string,
+  key: string,
+  windowSeconds: number,
+  buckets = 48,
+): MetricPoint[] {
+  const now = Date.now();
+  const since = now - windowSeconds * 1000;
+  const bucketMs = Math.max(1, Math.floor((windowSeconds * 1000) / buckets));
+
+  const rows = sql(
+    `SELECT CAST(ts / ? AS INTEGER) * ? AS bucket, AVG(value) AS value
+     FROM metric_samples
+     WHERE site_id = ? AND key = ? AND ts >= ?
+     GROUP BY bucket ORDER BY bucket`,
+  ).all(bucketMs, bucketMs, siteId, key, since) as {
+    bucket: number;
+    value: number;
+  }[];
+
+  return rows.map((r) => ({ ts: r.bucket, value: r.value }));
+}
+
+/** Latest value and the change since the start of the window. */
+export function metricSummary(
+  siteId: string,
+  key: string,
+  windowSeconds: number,
+): { latest: number | null; first: number | null; samples: number } {
+  const since = Date.now() - windowSeconds * 1000;
+  const row = sql(
+    `SELECT
+       (SELECT value FROM metric_samples
+         WHERE site_id = ? AND key = ? AND ts >= ? ORDER BY ts DESC LIMIT 1) AS latest,
+       (SELECT value FROM metric_samples
+         WHERE site_id = ? AND key = ? AND ts >= ? ORDER BY ts ASC LIMIT 1) AS first,
+       (SELECT COUNT(*) FROM metric_samples
+         WHERE site_id = ? AND key = ? AND ts >= ?) AS samples`,
+  ).get(siteId, key, since, siteId, key, since, siteId, key, since) as {
+    latest: number | null;
+    first: number | null;
+    samples: number;
+  };
+
+  return {
+    latest: row?.latest ?? null,
+    first: row?.first ?? null,
+    samples: row?.samples ?? 0,
+  };
+}
+
+/* --------------------------------------------------------------- traffic */
+
+export function recordPageView(view: {
+  path: string;
+  referrer?: string | null;
+  visitor: string;
+  ts?: number;
+}): void {
+  sql(
+    "INSERT INTO page_views (ts, path, referrer, visitor) VALUES (?, ?, ?, ?)",
+  ).run(
+    view.ts ?? Date.now(),
+    view.path.slice(0, 512),
+    view.referrer?.slice(0, 255) ?? null,
+    view.visitor,
+  );
+}
+
+export type TrafficSummary = {
+  views: number;
+  visitors: number;
+  windowSeconds: number;
+};
+
+export function trafficSummary(
+  windowSeconds: number,
+  offsetSeconds = 0,
+): TrafficSummary {
+  const until = Date.now() - offsetSeconds * 1000;
+  const since = until - windowSeconds * 1000;
+
+  const row = sql(
+    `SELECT COUNT(*) AS views, COUNT(DISTINCT visitor) AS visitors
+     FROM page_views WHERE ts >= ? AND ts < ?`,
+  ).get(since, until) as { views: number; visitors: number };
+
+  return {
+    views: row?.views ?? 0,
+    visitors: row?.visitors ?? 0,
+    windowSeconds,
+  };
+}
+
+export type TrafficPoint = { ts: number; views: number; visitors: number };
+
+export function trafficSeries(
+  windowSeconds: number,
+  buckets = 48,
+): TrafficPoint[] {
+  const now = Date.now();
+  const since = now - windowSeconds * 1000;
+  const bucketMs = Math.max(1, Math.floor((windowSeconds * 1000) / buckets));
+
+  const rows = sql(
+    `SELECT CAST(ts / ? AS INTEGER) * ? AS bucket,
+            COUNT(*) AS views,
+            COUNT(DISTINCT visitor) AS visitors
+     FROM page_views WHERE ts >= ?
+     GROUP BY bucket ORDER BY bucket`,
+  ).all(bucketMs, bucketMs, since) as {
+    bucket: number;
+    views: number;
+    visitors: number;
+  }[];
+
+  const byBucket = new Map(rows.map((r) => [r.bucket, r]));
+  const out: TrafficPoint[] = [];
+
+  // Inclusive of the bucket holding the present moment — see the note in
+  // series(). Empty buckets are emitted too: a quiet hour is a real reading,
+  // and omitting it would compress the axis and imply traffic that was not
+  // there.
+  const firstBucket = Math.floor(since / bucketMs) * bucketMs;
+  const lastBucket = Math.floor(now / bucketMs) * bucketMs;
+
+  for (let bucket = firstBucket; bucket <= lastBucket; bucket += bucketMs) {
+    const row = byBucket.get(bucket);
+    out.push({
+      ts: bucket,
+      views: row?.views ?? 0,
+      visitors: row?.visitors ?? 0,
+    });
+  }
+  return out;
+}
+
+export type TrafficRow = { label: string; views: number; visitors: number };
+
+export function topPaths(windowSeconds: number, limit = 10): TrafficRow[] {
+  const since = Date.now() - windowSeconds * 1000;
+  return sql(
+    `SELECT path AS label, COUNT(*) AS views, COUNT(DISTINCT visitor) AS visitors
+     FROM page_views WHERE ts >= ?
+     GROUP BY path ORDER BY views DESC LIMIT ?`,
+  ).all(since, limit) as TrafficRow[];
+}
+
+export function topReferrers(windowSeconds: number, limit = 10): TrafficRow[] {
+  const since = Date.now() - windowSeconds * 1000;
+  return sql(
+    `SELECT COALESCE(NULLIF(referrer, ''), 'Direct') AS label,
+            COUNT(*) AS views, COUNT(DISTINCT visitor) AS visitors
+     FROM page_views WHERE ts >= ?
+     GROUP BY label ORDER BY views DESC LIMIT ?`,
+  ).all(since, limit) as TrafficRow[];
 }

@@ -17,6 +17,7 @@ import Sparkline from "@/components/console/Sparkline";
 import AutoRefresh from "@/components/console/AutoRefresh";
 import EmptyState from "@/components/console/EmptyState";
 import RangePicker from "@/components/console/RangePicker";
+import MetricCompare from "@/components/console/MetricCompare";
 
 export const dynamic = "force-dynamic";
 
@@ -172,6 +173,20 @@ export default async function AnalyticsPage({
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section className="console__section">
+        <div className="console__section-head">
+          <h2>Reported metrics, compared</h2>
+          <span style={{ fontSize: "0.72rem", color: "var(--c-muted)" }}>
+            keys published by more than one application
+          </span>
+        </div>
+        <MetricCompare
+          sites={sites.map((s) => ({ id: s.id, label: s.label }))}
+          windowSeconds={range.seconds}
+          rangeLabel={range.label}
+        />
       </section>
 
       <section className="console__section">

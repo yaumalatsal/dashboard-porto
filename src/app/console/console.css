@@ -1416,3 +1416,79 @@
 /* Panels size to their content instead of stretching to match the tallest in
    the row, which left a block of dead space under the shorter one. */
 .board-grid { align-items: start; }
+
+/* ── Ranked breakdown ─────────────────────────────────────────────────────
+   The proportion is drawn behind the row rather than in a column beside it,
+   so the share reads without the eye travelling and without a second box. */
+.breakdown { list-style: none; margin: 0; padding: 0; }
+.breakdown__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-1) var(--s-1);
+  border-bottom: 1px solid var(--c-rule-soft);
+  font-size: 0.84rem;
+  overflow: hidden;
+}
+.breakdown__row:last-child { border-bottom: none; }
+.breakdown__bar {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  background: var(--series-accent);
+  opacity: 0.14;
+  border-radius: 3px;
+  pointer-events: none;
+}
+.breakdown__label {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.78rem;
+  color: var(--c-ink);
+}
+.breakdown__share {
+  position: relative;
+  font-size: 0.72rem;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+}
+.breakdown__count {
+  position: relative;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 3ch;
+  text-align: right;
+}
+
+/* ── Cross-application metric comparison ──────────────────────────────────
+   One container per metric key with a plain table inside; the key name is a
+   heading rather than another bordered card. */
+.metric-compare {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.metric-compare__group {
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 12px;
+  padding: var(--s-3);
+  overflow-x: auto;
+}
+.metric-compare__key {
+  margin: 0 0 var(--s-2);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-copper);
+}
+.metric-compare .ctable { width: 100%; min-width: 420px; }

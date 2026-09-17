@@ -20,6 +20,7 @@ import {
   prune,
   readSnapshot,
   recordEvent,
+  recordMetrics,
 } from "./store";
 import type { Health, ProbeResult, SiteConfig, SiteSnapshot } from "./types";
 
@@ -129,6 +130,26 @@ async function pollOnce(site: SiteConfig, probeName: string): Promise<void> {
   try {
     saveSnapshot(site.id, Date.now(), snapshot);
     logTransitions(site, probeName, result, snapshot);
+
+    /**
+     * Whatever the adapter produced becomes history, so any number an
+     * application reports can be trended and compared later without the poller
+     * needing to know what it means.
+     *
+     * Written only on the poll that actually refreshed them. The snapshot is
+     * rebuilt on every probe, so recording on the 30-second health check would
+     * re-insert the same five-minute-old readings ten times over — inflating
+     * the table and weighting the averages toward stale values. Health is
+     * excluded unless it is the only probe, in which case it is the source.
+     */
+    const healthIsOnlySource = site.probes.every((p) => p.name === "health");
+    const refreshedMetrics = healthIsOnlySource
+      ? probeName === "health"
+      : probeName !== "health";
+
+    if (refreshedMetrics && snapshot.metrics.length > 0) {
+      recordMetrics(site.id, snapshot.metrics);
+    }
 
     // Health is the heartbeat; everything else only enriches the snapshot.
     if (probeName === "health") {

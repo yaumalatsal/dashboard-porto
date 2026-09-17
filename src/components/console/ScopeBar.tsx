@@ -13,9 +13,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 export default function ScopeBar({
   current,
   options,
+  /** Where to land when the range resets to its default. */
+  basePath = "/console",
 }: {
   current: string;
   options: { key: string; label: string }[];
+  basePath?: string;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -25,7 +28,7 @@ export default function ScopeBar({
     if (key === "24h") next.delete("range");
     else next.set("range", key);
     const qs = next.toString();
-    router.push(qs ? `?${qs}` : "/console", { scroll: false });
+    router.push(qs ? `?${qs}` : basePath, { scroll: false });
   };
 
   return (
