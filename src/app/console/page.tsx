@@ -1,182 +1,314 @@
 /**
- * Console overview — the status wall.
+ * Console overview, built to the five-stage reading path:
  *
- * A server component: it reads SQLite and the poller's in-memory state directly
- * at render time, so the first paint is already the real data. No client fetch,
- * no loading spinner, no hydration cost for the numbers.
+ *   1 Context   — the range bar, so scope is established before any number
+ *   2 Summary   — four KPIs with variance against the preceding period
+ *   3 Hero      — one dominant chart carrying the core narrative
+ *   4 Drilldown — the applications table and a log preview that explain it
+ *   5 Action    — what to do about it, beside the hero rather than buried
+ *
+ * A server component: it reads SQLite at render time, so the first paint is
+ * already the real data — no spinner, no client fetch, no hydration cost for
+ * the figures.
  */
 
 import Link from "next/link";
 import { loadConfig } from "@/lib/monitor/config";
 import { currentSnapshots } from "@/lib/monitor/poller";
-import { dailyUptime, recentIncidents, uptimeSummary } from "@/lib/monitor/store";
+import { recentEvents, recentIncidents, series, uptimeSummary } from "@/lib/monitor/store";
 import { formatRelative, formatUptime, HEALTH_LABEL } from "@/lib/monitor/format";
 import { worstHealth } from "@/lib/monitor/types";
 import Status from "@/components/console/Status";
-import UptimeStrip from "@/components/console/UptimeStrip";
 import AutoRefresh from "@/components/console/AutoRefresh";
 import EmptyState from "@/components/console/EmptyState";
+import ScopeBar from "@/components/console/ScopeBar";
+import Kpi from "@/components/console/Kpi";
+import FleetChart from "@/components/console/FleetChart";
+import Sparkline from "@/components/console/Sparkline";
 
 export const dynamic = "force-dynamic";
 
-export default async function ConsolePage() {
-  const { sites } = loadConfig();
+const RANGES: Record<string, { label: string; seconds: number; buckets: number }> = {
+  "24h": { label: "24 hours", seconds: 86_400, buckets: 48 },
+  "7d": { label: "7 days", seconds: 7 * 86_400, buckets: 56 },
+  "30d": { label: "30 days", seconds: 30 * 86_400, buckets: 60 },
+};
 
+export default async function ConsolePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const { range: rangeKey = "24h" } = await searchParams;
+  const range = RANGES[rangeKey] ?? RANGES["24h"];
+
+  const { sites } = loadConfig();
   if (sites.length === 0) return <EmptyState />;
 
-  const snapshots = currentSnapshots().filter((s) => {
-    const config = sites.find((site) => site.id === s.id);
-    return !config?.hidden;
-  });
+  const snapshots = currentSnapshots().filter(
+    (s) => !sites.find((site) => site.id === s.id)?.hidden,
+  );
 
-  const cards = snapshots.map((snapshot) => ({
+  const rows = snapshots.map((snapshot) => ({
     snapshot,
     config: sites.find((site) => site.id === snapshot.id),
-    uptime30d: uptimeSummary(snapshot.id, 30 * 86_400),
-    daily: dailyUptime(snapshot.id, 90),
+    current: uptimeSummary(snapshot.id, range.seconds),
+    previous: uptimeSummary(snapshot.id, range.seconds, range.seconds),
+    points: series(snapshot.id, range.seconds, range.buckets),
   }));
+
+  const observed = rows.filter((r) => r.current.samples > 0);
+
+  // Every app weighted equally, so one chatty service cannot flatter the
+  // headline by out-sampling the others.
+  const mean = (pick: (r: (typeof rows)[number]) => number | null) => {
+    const values = observed.map(pick).filter((v): v is number => v !== null);
+    return values.length > 0
+      ? values.reduce((a, b) => a + b, 0) / values.length
+      : null;
+  };
+
+  const uptimeNow = mean((r) => r.current.upRatio);
+  const uptimeBefore = mean((r) =>
+    r.previous.samples > 0 ? r.previous.upRatio : null,
+  );
+  const p95Now = mean((r) => r.current.latencyP95);
+  const p95Before = mean((r) => r.previous.latencyP95);
 
   const overall = worstHealth(snapshots.map((s) => s.health));
   const operational = snapshots.filter((s) => s.health === "operational").length;
-
-  // The fleet figure weights every app equally rather than by sample count, so
-  // one chatty service cannot flatter the headline.
-  const observed = cards.filter((c) => c.uptime30d.samples > 0);
-  const fleetUptime =
-    observed.length > 0
-      ? observed.reduce((sum, c) => sum + c.uptime30d.upRatio, 0) / observed.length
-      : null;
-
   const openIncidents = recentIncidents(50).filter((i) => i.endedAt === null);
+  const events = recentEvents({ limit: 6, minLevel: "warn" });
+
+  const slowest = [...observed].sort(
+    (a, b) => (b.current.latencyP95 ?? 0) - (a.current.latencyP95 ?? 0),
+  )[0];
+  const worstUptime = [...observed].sort(
+    (a, b) => a.current.upRatio - b.current.upRatio,
+  )[0];
+
+  // Stage 5: the dashboard should say what to do, not only what is true.
+  const actions: { level: "good" | "warn" | "critical"; text: string }[] = [];
+  if (openIncidents.length > 0) {
+    actions.push({
+      level: "critical",
+      text: `${openIncidents.length} incident${openIncidents.length === 1 ? "" : "s"} still open — start with ${
+        sites.find((s) => s.id === openIncidents[0].siteId)?.label ?? openIncidents[0].siteId
+      }.`,
+    });
+  }
+  if (worstUptime && worstUptime.current.upRatio < 0.999) {
+    actions.push({
+      level: "warn",
+      text: `${worstUptime.config?.label} is the least available at ${formatUptime(worstUptime.current.upRatio)} over ${range.label}.`,
+    });
+  }
+  if (
+    p95Now !== null &&
+    p95Before !== null &&
+    p95Before > 0 &&
+    p95Now > p95Before * 1.25
+  ) {
+    actions.push({
+      level: "warn",
+      text: `Fleet p95 is up ${Math.round(((p95Now - p95Before) / p95Before) * 100)}% on the previous ${range.label} — check the slowest app first.`,
+    });
+  }
+  for (const row of rows) {
+    if (row.snapshot.notes?.length) {
+      actions.push({
+        level: "warn",
+        text: `${row.config?.label}: ${row.snapshot.notes[0]}`,
+      });
+    }
+  }
+  if (actions.length === 0) {
+    actions.push({
+      level: "good",
+      text: `Nothing needs attention. All ${snapshots.length} application${snapshots.length === 1 ? "" : "s"} operational across ${range.label}.`,
+    });
+  }
 
   return (
     <>
       <AutoRefresh seconds={30} />
 
-      <p className="console__eyebrow">Operations / Live</p>
-      <h1>Everything I run, in one place.</h1>
-      <p className="console__lede">
-        Health, response time and uptime for the applications currently in
-        production — polled continuously and recorded, so the history survives
-        restarts and redeploys.
-      </p>
-
-      <section className="hero-figure">
+      {/* ── Stage 1: context ─────────────────────────────────────────── */}
+      <div className="board-head">
         <div>
-          <div className="hero-figure__value">
-            {fleetUptime !== null ? formatUptime(fleetUptime) : "—"}
-          </div>
-          <div className="hero-figure__label">Fleet uptime / 30 days</div>
+          <p className="console__eyebrow">Operations / Live</p>
+          <h1>Everything I run.</h1>
         </div>
+        <ScopeBar
+          current={rangeKey}
+          options={Object.entries(RANGES).map(([key, r]) => ({ key, label: r.label }))}
+        />
+      </div>
 
-        <div className="hero-figure__aside">
-          <div>
-            <div className="tile__value">
-              {operational}/{snapshots.length}
-            </div>
-            <div className="hero-figure__label">Operational</div>
-          </div>
-          <div>
-            <div className="tile__value">
-              <Status health={overall} />
-            </div>
-            <div className="hero-figure__label">Fleet status</div>
-          </div>
-          <div>
-            <div className="tile__value">{openIncidents.length}</div>
-            <div className="hero-figure__label">Open incidents</div>
-          </div>
-        </div>
+      {/* ── Stage 2: summary ─────────────────────────────────────────── */}
+      <section className="kpi-row" aria-label="Key metrics">
+        <Kpi
+          label="Fleet uptime"
+          value={uptimeNow !== null ? formatUptime(uptimeNow) : "—"}
+          delta={
+            uptimeNow !== null && uptimeBefore !== null
+              ? (uptimeNow - uptimeBefore) * 100
+              : null
+          }
+          deltaSuffix={` pts vs. previous ${range.label}`}
+          goodDirection="up"
+        />
+        <Kpi
+          label="Response p95"
+          value={p95Now !== null ? `${Math.round(p95Now)} ms` : "—"}
+          delta={p95Now !== null && p95Before !== null ? p95Now - p95Before : null}
+          deltaSuffix=" ms"
+          goodDirection="down"
+        />
+        <Kpi
+          label="Operational"
+          value={`${operational}/${snapshots.length}`}
+          footer={<Status health={overall} />}
+        />
+        <Kpi
+          label="Open incidents"
+          value={String(openIncidents.length)}
+          footer={
+            <span className="kpi__note">
+              {openIncidents.length === 0
+                ? "none active"
+                : `since ${formatRelative(openIncidents[0].startedAt)}`}
+            </span>
+          }
+        />
       </section>
 
-      <section className="console__section">
-        <div className="console__section-head">
-          <h2>Applications</h2>
-          <span style={{ fontSize: "0.72rem", color: "var(--c-muted)" }}>
-            90-day uptime strip
-          </span>
-        </div>
-
-        <div className="wall">
-          {cards.map(({ snapshot, config, uptime30d, daily }) => (
-            <Link
-              key={snapshot.id}
-              href={`/console/${snapshot.id}`}
-              className="app-card"
-            >
-              <div className="app-card__top">
-                <span className="app-card__name">{snapshot.label}</span>
-                <Status health={snapshot.health} />
-              </div>
-
-              <div className="app-card__blurb">
-                {config?.blurb ?? config?.url ?? "Monitored service"}
-              </div>
-
-              <UptimeStrip days={daily} />
-
-              <div className="app-card__foot">
-                <span>
-                  <b>
-                    {uptime30d.samples > 0
-                      ? formatUptime(uptime30d.upRatio)
-                      : "—"}
-                  </b>{" "}
-                  30d
-                </span>
-                <span>
-                  <b>
-                    {uptime30d.latencyP95 !== null
-                      ? `${uptime30d.latencyP95} ms`
-                      : "—"}
-                  </b>{" "}
-                  p95
-                </span>
-                <span>
-                  {snapshot.latencyMs !== null ? `${snapshot.latencyMs} ms now` : "no response"}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {openIncidents.length > 0 && (
-        <section className="console__section">
-          <div className="console__section-head">
-            <h2>Open incidents</h2>
+      {/* ── Stage 3 + 5: hero beside the actions it should provoke ───── */}
+      <section className="board-hero">
+        <div className="panel panel--hero">
+          <div className="panel__head">
+            <h2>Response time</h2>
+            <span className="panel__meta">
+              {range.label} · {observed.reduce((n, r) => n + r.current.samples, 0).toLocaleString("en-US")} samples
+            </span>
           </div>
-          <div className="metric-group">
-            {openIncidents.map((incident) => (
-              <div key={incident.id} className="incident">
-                <Status health={incident.worst} showLabel={false} />
-                <span>
-                  <span className="incident__site">
-                    {sites.find((s) => s.id === incident.siteId)?.label ??
-                      incident.siteId}
-                  </span>{" "}
-                  <span style={{ color: "var(--c-muted)" }}>
-                    {HEALTH_LABEL[incident.worst].toLowerCase()} since{" "}
-                    {new Date(incident.startedAt).toLocaleString("en-GB", {
-                      day: "2-digit",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </span>
-                <span className="incident__meta">
-                  {formatRelative(incident.startedAt)}
-                </span>
-              </div>
+          <FleetChart
+            series={rows.map((r) => ({
+              id: r.snapshot.id,
+              label: r.config?.label ?? r.snapshot.id,
+              points: r.points,
+            }))}
+          />
+        </div>
+
+        <aside className="panel panel--insights" aria-label="Insights and actions">
+          <div className="panel__head">
+            <h2>What to do</h2>
+          </div>
+          <ul className="insight-list">
+            {actions.slice(0, 4).map((action) => (
+              <li key={action.text} className={`insight insight--${action.level}`}>
+                <i aria-hidden="true" />
+                {action.text}
+              </li>
             ))}
+          </ul>
+
+          {slowest && (
+            <div className="insight-stat">
+              <span className="insight-stat__label">Slowest right now</span>
+              <span className="insight-stat__value">
+                {slowest.config?.label}
+                <em>
+                  {slowest.current.latencyP95 !== null
+                    ? `${slowest.current.latencyP95} ms p95`
+                    : "no data"}
+                </em>
+              </span>
+            </div>
+          )}
+
+          <Link href="/console/logs" className="insight-link">
+            Open the full log →
+          </Link>
+        </aside>
+      </section>
+
+      {/* ── Stage 4: drilldowns ──────────────────────────────────────── */}
+      <section className="board-grid">
+        <div className="panel">
+          <div className="panel__head">
+            <h2>Applications</h2>
+            <span className="panel__meta">{range.label}</span>
           </div>
-        </section>
-      )}
+          <table className="ctable">
+            <thead>
+              <tr>
+                <th>Application</th>
+                <th>Status</th>
+                <th className="ctable__num">Uptime</th>
+                <th className="ctable__num">p95</th>
+                <th>Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(({ snapshot, config, current, points }) => (
+                <tr key={snapshot.id}>
+                  <td>
+                    <Link href={`/console/${snapshot.id}`} className="ctable__link">
+                      {config?.label ?? snapshot.id}
+                    </Link>
+                  </td>
+                  <td>
+                    <Status health={snapshot.health} />
+                  </td>
+                  <td className="ctable__num">
+                    {current.samples > 0 ? formatUptime(current.upRatio) : "—"}
+                  </td>
+                  <td className="ctable__num">
+                    {current.latencyP95 !== null ? `${current.latencyP95} ms` : "—"}
+                  </td>
+                  <td>
+                    <Sparkline values={points.map((p) => p.latencyP50)} width={88} height={20} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="panel">
+          <div className="panel__head">
+            <h2>Recent activity</h2>
+            <Link href="/console/logs" className="panel__meta panel__meta--link">
+              All events →
+            </Link>
+          </div>
+          {events.length === 0 ? (
+            <p className="panel__empty">
+              No warnings or errors recorded. Transitions appear here as they happen.
+            </p>
+          ) : (
+            <ul className="activity">
+              {events.map((event) => (
+                <li key={event.id} className={`activity__row activity__row--${event.level}`}>
+                  <span className="activity__time">{formatRelative(event.ts)}</span>
+                  <span className="activity__text">
+                    {event.message}
+                    {event.detail && <em>{event.detail}</em>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
 
       <p className="console__note">
-        Health polled every 30s · services every 60s · metrics every 5 min.
-        History retained for 90 days.
+        Health polled every 30s · services every 60s · metrics every 5 min ·
+        history retained 90 days.
+        {openIncidents.length > 0 &&
+          ` · ${HEALTH_LABEL[openIncidents[0].worst]} ongoing.`}
       </p>
     </>
   );

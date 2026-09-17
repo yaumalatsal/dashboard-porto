@@ -58,6 +58,17 @@
   --grid: #1c212b;
   --axis: #2a313d;
 
+  /* ---- 8pt spacing scale ----
+     Every gap, pad and margin in the board layout resolves to one of these.
+     Ad-hoc rem values (1.1rem = 17.6px) read as subtly misaligned even when
+     nobody can name why. */
+  --s-1: 8px;
+  --s-2: 16px;
+  --s-3: 24px;
+  --s-4: 32px;
+  --s-5: 40px;
+  --s-half: 4px;
+
   color: var(--c-ink);
   background: var(--c-page);
   font-family: var(--font-inter), system-ui, sans-serif;
@@ -187,9 +198,13 @@
 }
 
 .console__main {
-  padding: clamp(1.5rem, 4vw, 2.75rem) clamp(1rem, 4vw, 2.5rem) 5rem;
-  max-width: 1440px;
+  /* 32px canvas margin, 16px on a phone. */
+  padding: var(--s-4) var(--s-4) 80px;
+  max-width: 1480px;
   margin: 0 auto;
+}
+@media (max-width: 720px) {
+  .console__main { padding: var(--s-3) var(--s-2) var(--s-5); }
 }
 
 /* ============================================================ headings === */
@@ -1069,3 +1084,335 @@
   background: var(--s-good);
   flex: none;
 }
+
+/* ======================================================================
+   BOARD LAYOUT
+   Five stages down the page: context, summary, hero + action, drilldowns.
+   One container per zone — no card ever contains another bordered card.
+   ====================================================================== */
+
+.board-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+.board-head h1 { margin: 0; }
+
+/* Stage 1: scope */
+.scope-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+.scope-bar__label {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+/* A segmented control, not separate buttons: one outline around the set reads
+   as a single choice rather than three competing ones. */
+.scope-bar__group {
+  display: inline-flex;
+  padding: var(--s-half);
+  gap: var(--s-half);
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 999px;
+}
+.scope-btn {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--c-ink-2);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.scope-btn:hover { color: var(--c-ink); }
+.scope-btn[aria-pressed="true"] {
+  background: var(--c-ember);
+  color: var(--c-page);
+}
+.scope-bar__live {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+.scope-bar__live i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--s-good);
+}
+
+/* Stage 2: KPI row.
+   One container holding four metrics divided by rules, rather than four
+   bordered cards — the box-in-a-box the ruleset prohibits. */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 12px;
+  margin-bottom: var(--s-3);
+  overflow: hidden;
+}
+.kpi {
+  display: flex;
+  flex-direction: column;
+  /* 8px is the floor of the scale — no half-steps inside the board layout. */
+  gap: var(--s-1);
+  padding: var(--s-3);
+  border-right: 1px solid var(--c-rule-soft);
+  min-width: 0;
+}
+.kpi:last-child { border-right: none; }
+.kpi__label {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+.kpi__value {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--c-ink);
+}
+.kpi__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-half);
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+}
+.kpi__delta i { font-style: normal; }
+.kpi__delta--good { color: var(--s-good); }
+.kpi__delta--bad { color: var(--s-critical); }
+.kpi__delta--flat { color: var(--c-muted); }
+.kpi__footer { margin-top: 0; }
+.kpi__note { font-size: 0.72rem; color: var(--c-muted); }
+
+/* The single container primitive. */
+.panel {
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 12px;
+  padding: var(--s-3);
+  min-width: 0;
+}
+.panel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+}
+.panel__head h2 {
+  margin: 0;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-ink-2);
+}
+.panel__meta {
+  font-size: 0.7rem;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+}
+.panel__meta--link { color: var(--c-ember); text-decoration: none; }
+.panel__empty {
+  margin: 0;
+  padding: var(--s-3) 0;
+  font-size: 0.82rem;
+  color: var(--c-muted);
+}
+
+/* Stage 3 + 5: the hero takes ~70% of the width and 340px of height, so it is
+   unambiguously dominant rather than one of several equals. */
+.board-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 2.6fr) minmax(280px, 1fr);
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+}
+.panel--hero { padding-bottom: var(--s-2); }
+.panel--insights {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.insight-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+/* The marker carries severity; the sentence stays in readable ink. Colouring
+   the text itself would trade legibility for redundancy. */
+.insight {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s-1);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--c-ink-2);
+}
+.insight i {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+}
+.insight--good i { background: var(--s-good); }
+.insight--warn i { background: var(--s-warning); }
+.insight--critical i {
+  background: transparent;
+  border: 2.5px solid var(--s-critical);
+}
+
+.insight-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-half);
+  margin-top: auto;
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--c-rule-soft);
+}
+.insight-stat__label {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+.insight-stat__value {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.insight-stat__value em {
+  font-style: normal;
+  font-size: 0.74rem;
+  font-weight: 400;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+}
+.insight-link {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-ember);
+  text-decoration: none;
+}
+.insight-link:hover { color: var(--c-ink); }
+
+/* Stage 4: drilldowns. The table sits directly in the panel — no inner
+   wrapper, no second border. */
+.board-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--s-2);
+}
+.panel .ctable { width: 100%; }
+.ctable__link { color: var(--c-ink); font-weight: 600; text-decoration: none; }
+.ctable__link:hover { color: var(--c-ember); }
+
+.activity { list-style: none; margin: 0; padding: 0; }
+.activity__row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: var(--s-2);
+  padding: var(--s-1) 0;
+  border-bottom: 1px solid var(--c-rule-soft);
+  font-size: 0.82rem;
+}
+.activity__row:last-child { border-bottom: none; }
+.activity__row--warn {
+  box-shadow: inset 2px 0 0 var(--s-warning);
+  padding-left: var(--s-1);
+}
+.activity__row--error {
+  box-shadow: inset 2px 0 0 var(--s-critical);
+  padding-left: var(--s-1);
+}
+.activity__time {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.66rem;
+  color: var(--c-muted);
+  white-space: nowrap;
+}
+.activity__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.activity__text em {
+  font-style: normal;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.66rem;
+  color: var(--c-muted);
+}
+
+.chart__axis-title {
+  fill: var(--c-muted);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 10px;
+}
+.legend__item--muted { color: var(--c-muted); }
+
+@media (max-width: 1100px) {
+  .board-hero { grid-template-columns: minmax(0, 1fr); }
+  .board-grid { grid-template-columns: minmax(0, 1fr); }
+  .kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi:nth-child(2) { border-right: none; }
+  .kpi:nth-child(-n + 2) { border-bottom: 1px solid var(--c-rule-soft); }
+}
+
+@media (max-width: 560px) {
+  .kpi-row { grid-template-columns: minmax(0, 1fr); }
+  .kpi { border-right: none; border-bottom: 1px solid var(--c-rule-soft); }
+  .kpi:last-child { border-bottom: none; }
+  .kpi__value { font-size: 1.7rem; }
+  .board-head { align-items: flex-start; }
+  .activity__row { grid-template-columns: 1fr; gap: var(--s-half); }
+}
+
+/* A five-column table cannot fit a phone. The panel's own body scrolls rather
+   than gaining an inner bordered wrapper, which would be the nested container
+   the ruleset prohibits. */
+@media (max-width: 720px) {
+  .panel { overflow-x: auto; }
+  .panel .ctable { min-width: 460px; }
+  .panel--hero,
+  .panel--insights { overflow-x: visible; }
+}
+
+/* Panels size to their content instead of stretching to match the tallest in
+   the row, which left a block of dead space under the shorter one. */
+.board-grid { align-items: start; }
