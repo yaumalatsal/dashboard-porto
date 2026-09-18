@@ -496,6 +496,64 @@ export const projects: ProjectData[] = [
         "The game runs in Roblox. It has no web service for the console to read.",
     },
   },
+  {
+    number: "08",
+    slug: "warehouse-management-system",
+    title: "Warehouse Management System",
+    category: "Enterprise Logistics / Next.js",
+    chapter: "Project 08",
+    description:
+      "A multi-warehouse system with real-time stock counts, bin rack allocations and inbound movement records.",
+    outcome: "Multi-facility routing, live rack occupancy and order audits.",
+    images: [
+      "/images/projects/wms-qom-live.png",
+      "/images/projects/wms-qom-card.png",
+    ],
+    accent: "ember",
+    client: "Qom Logistics",
+    year: "2026",
+    role: "Full-stack engineer",
+    overview:
+      "Logistics teams must track inventory across different warehouses. This system connects multiple facilities into one web dashboard. Staff switch between locations, audit stock deliveries and check physical bin rack occupancy.",
+    challenge:
+      "Inventory across separate buildings caused blind spots. Staff had no live view of free rack slots and pending order shipments.",
+    solution:
+      "I built an enterprise warehouse dashboard in Next.js. The system tracks item movement, calculates rack capacity, and logs order dispatches.",
+    architecture: [
+      "Next.js application with multi-facility workspace routing",
+      "Dynamic bin rack location occupancy calculation",
+      "Inbound receiving and outbound order dispatch workflows",
+      "Time-series charts for movement volume and category breakdown",
+    ],
+    techStack: [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "PostgreSQL",
+      "Docker",
+    ],
+    metrics: [
+      { label: "Facilities", value: "Multiple warehouses" },
+      { label: "Audit", value: "Real-time rack count" },
+      { label: "Engine", value: "Next.js Enterprise" },
+    ],
+    observation: "Separate warehouses create slow counts and lost items.",
+    response: "Unify facility routing and rack audits in one dashboard.",
+    result: "Staff audit stock and rack space with zero delay.",
+    monitor: {
+      access: "public",
+      dashboardUrl: "https://wms-qom.my.id",
+      demo: {
+        url: "https://wms-qom.my.id/login",
+        label: "Username",
+        username: "admin",
+        password: "admin123",
+      },
+      note:
+        "I run a live instance of this enterprise platform. You can log in with the test account to inspect the warehouse operations.",
+    },
+  },
 ];
 
 export const capabilities = [
