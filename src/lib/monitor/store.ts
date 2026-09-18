@@ -957,6 +957,77 @@ export function topReferrers(
 
 /* ----------------------------------------------------------- reliability */
 
+/**
+ * Traffic for one page rather than for a whole site.
+ *
+ * Every project has a case study at `/work/<slug>`, including the projects
+ * that run inside a client network and cannot be probed. How many people read
+ * that page is therefore the one measured figure that each project dashboard
+ * can always show. The `(site_id, path, ts)` index covers this query.
+ */
+export function pathSummary(
+  path: string,
+  windowSeconds: number,
+  offsetSeconds = 0,
+  siteId: string = SELF_SITE_ID,
+): TrafficSummary {
+  const until = Date.now() - offsetSeconds * 1000;
+  const since = until - windowSeconds * 1000;
+
+  const row = sql(
+    `SELECT COUNT(*) AS views, COUNT(DISTINCT visitor) AS visitors
+     FROM page_views WHERE site_id = ? AND path = ? AND ts >= ? AND ts < ?`,
+  ).get(siteId, path, since, until) as { views: number; visitors: number };
+
+  return {
+    views: row?.views ?? 0,
+    visitors: row?.visitors ?? 0,
+    windowSeconds,
+  };
+}
+
+/** The same page over time, for the sparkline on a project dashboard. */
+export function pathSeries(
+  path: string,
+  windowSeconds: number,
+  buckets = 24,
+  siteId: string = SELF_SITE_ID,
+): TrafficPoint[] {
+  const now = Date.now();
+  const since = now - windowSeconds * 1000;
+  const bucketMs = Math.max(1, Math.floor((windowSeconds * 1000) / buckets));
+
+  // CAST keeps the division in integer space. Binding the divisor as a REAL
+  // produced float bucket keys that never matched the generated series.
+  const rows = sql(
+    `SELECT CAST(ts / ? AS INTEGER) AS bucket, COUNT(*) AS views,
+            COUNT(DISTINCT visitor) AS visitors
+     FROM page_views
+     WHERE site_id = ? AND path = ? AND ts >= ?
+     GROUP BY bucket ORDER BY bucket ASC`,
+  ).all(bucketMs, siteId, path, since) as {
+    bucket: number;
+    views: number;
+    visitors: number;
+  }[];
+
+  const found = new Map(rows.map((r) => [r.bucket, r]));
+  const firstBucket = Math.floor(since / bucketMs);
+  const lastBucket = Math.floor(now / bucketMs);
+
+  const points: TrafficPoint[] = [];
+  // Inclusive of the bucket that holds `now`, so the newest reading is drawn.
+  for (let b = firstBucket; b <= lastBucket; b++) {
+    const hit = found.get(b);
+    points.push({
+      ts: b * bucketMs,
+      views: hit?.views ?? 0,
+      visitors: hit?.visitors ?? 0,
+    });
+  }
+  return points;
+}
+
 export type SloStatus = {
   target: number;
   actual: number;

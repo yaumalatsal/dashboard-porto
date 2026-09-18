@@ -939,6 +939,10 @@ button.astrolabe-scene__core:hover {
 .metric-item::before, .metric-item::after { content: ""; position: absolute; left: 0; top: 50%; border-radius: 50%; transform: translateY(-50%); }.metric-item::before { width: 5.2rem; aspect-ratio: 1; border: 1px solid rgba(169, 84, 50, 0.38); border-top-color: transparent; transform: translateY(-50%) rotate(var(--trace-angle)); }.metric-item::after { left: 0.75rem; width: 3.7rem; aspect-ratio: 1; border: 1px solid rgba(42, 33, 26, 0.15); border-right-color: transparent; transform: translateY(-50%) rotate(calc(var(--trace-angle) * -0.6)); }
 .metric-value { position: absolute; left: 0; top: 50%; z-index: 1; width: 5.2rem; font-family: var(--font-display); font-size: 1.55rem; line-height: 1; font-weight: 400; text-align: center; color: var(--copper); transform: translateY(-50%); }
 .metric-label { font-family: var(--font-label); font-size: 0.62rem; text-transform: uppercase; color: rgba(253, 248, 225, 0.5); }
+.sidebar-note { margin: 0 0 1.1rem; font-size: 0.92rem; line-height: 1.6; color: rgba(253, 248, 225, 0.55); }
+.sidebar-link { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-label); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember); transition: gap 200ms ease, color 200ms ease; }
+.sidebar-link:hover { gap: 0.8rem; color: var(--copper); }
+.sidebar-link span { padding: 0.2rem 0.5rem; margin-right: 0.35rem; border: 1px solid rgba(169, 84, 50, 0.4); color: rgba(253, 248, 225, 0.6); font-size: 0.58rem; }
 .tags-flex { display: flex; flex-wrap: wrap; gap: 0.45rem; }
 .tech-tag { padding: 0.3rem 0.65rem; background: var(--paper); border: 1px solid var(--line-dark); font-family: var(--font-label); font-size: 0.6rem; text-transform: uppercase; color: var(--ink); transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }.tech-tag:hover { border-color: var(--copper); transform: translate(-2px, -2px); box-shadow: 0.25rem 0.25rem 0 rgba(169, 84, 50, 0.14); }
 

@@ -231,6 +231,13 @@ export default async function ConsolePage({
           <Link href="/console/logs" className="insight-link">
             Open the full log
           </Link>
+
+          {/* This wall holds the applications the console polls. The project
+              dashboards cover every project, including the ones no probe can
+              reach. */}
+          <Link href="/console/projects" className="insight-link">
+            Open the project dashboards
+          </Link>
         </aside>
       </section>
 

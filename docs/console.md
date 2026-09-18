@@ -7,6 +7,7 @@ almost nothing with it at runtime — see [Performance](#performance).
 - `/console` — status wall: every app, its health, and 90 days of uptime
 - `/console/analytics` — fleet comparison, percentiles, small-multiple trends
 - `/console/incidents` — every degraded or down period, derived automatically
+- `/console/projects` — a dashboard for each project, and what each one can show
 - `/console/<id>` — one app in detail: services, metrics, latency history
 
 ---
@@ -139,6 +140,65 @@ So this needs no adapter at all:
 Other per-probe options: `method`, `headers`, `timeoutMs`, and `okStatuses`
 (treat specific codes as healthy — useful when a `401` still proves the app is
 up).
+
+---
+
+## A dashboard for every project
+
+`/console/projects` gives each project in the portfolio its own page, and
+`/console/projects/<slug>` is that page. This is not the same list as the
+registry: the registry holds the applications the poller can reach, while this
+holds every project, including the ones no probe can reach.
+
+That distinction is the point. Most of the projects run inside a client's
+network — a government agency, a smelting plant, a hospital. Those systems are
+not mine to expose, and a dashboard that answered this with an empty chart
+would be worse than none. So each page declares its access state and then shows
+only what it can actually measure.
+
+| Access | Meaning | What the page measures |
+|---|---|---|
+| `public` | The internet reaches it | Uptime, response time and faults, when a `siteId` is set |
+| `client-network` | The client runs it privately | Reader traffic on the case study only |
+| `not-deployed` | Built, but no live instance | Reader traffic on the case study only |
+| `no-endpoint` | Not a web service | Reader traffic on the case study only |
+
+### Three grades of evidence
+
+The hero chart is always a measurement, never an assertion. The page takes the
+strongest evidence it holds:
+
+1. **A probe** — the project's `siteId` names an application in `sites.json`.
+   The page shows response time, uptime, services, metrics and the fault record.
+2. **Traffic on the project's own site** — `trafficId` names a site that reports
+   to `/t.js`. The page shows page views and visitors.
+3. **Readers of the case study** — every project has `/work/<slug>` on this
+   site, so this figure always exists.
+
+Everything the project asserts about itself — scope, architecture, stack — sits
+below that, under a heading that says **reported by me, not measured**. A reader
+never has to guess which figures came from a probe.
+
+`TODO(you)` markers in `portfolio.ts` never reach a visitor: both public
+surfaces render them as "Not recorded", while the marker stays in the data file
+for whoever must supply the fact.
+
+### Connecting a project
+
+Edit its `monitor` block in `src/data/portfolio.ts`:
+
+```ts
+monitor: {
+  access: "public",
+  siteId: "ironclad",        // an id in sites.json — adds the live panels
+  trafficId: "ironclad",     // the data-site value the tracker sends
+  dashboardUrl: "/console",  // the project's own dashboard, if it has one
+  note: "One line that tells the visitor why the access state is what it is.",
+},
+```
+
+Naming a `siteId` that `sites.json` does not hold is not ignored silently: the
+page says so, so a half-finished connection is visible rather than invisible.
 
 ---
 

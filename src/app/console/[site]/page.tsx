@@ -9,6 +9,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSite } from "@/lib/monitor/config";
+import { projects } from "@/data/portfolio";
 import { currentSnapshot } from "@/lib/monitor/poller";
 import {
   dailyUptime,
@@ -41,6 +42,11 @@ export default async function SitePage({
   const { site: siteId } = await params;
   const config = getSite(siteId);
   if (!config) notFound();
+
+  // This page is the infrastructure view. When a portfolio project points at
+  // this application, the project dashboard is the readable half of the same
+  // story, so the two are linked in both directions.
+  const project = projects.find((p) => p.monitor.siteId === siteId);
 
   const snapshot = currentSnapshot(siteId);
   const day = uptimeSummary(siteId, 86_400);
@@ -101,6 +107,17 @@ export default async function SitePage({
 
       <p className="console__lede" style={{ marginTop: "0.6rem" }}>
         {config.blurb ?? "Monitored production service."}
+        {project && (
+          <>
+            {" "}
+            <Link
+              href={`/console/projects/${project.slug}`}
+              style={{ color: "var(--c-ember)" }}
+            >
+              Project dashboard →
+            </Link>
+          </>
+        )}
         {config.url && (
           <>
             {" "}

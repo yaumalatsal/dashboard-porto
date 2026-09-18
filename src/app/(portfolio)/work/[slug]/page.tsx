@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowUpRight, CheckCircle2, Cpu, ShieldCheck } from "lucide-react";
+import { Activity, ArrowLeft, ArrowUpRight, CheckCircle2, Cpu, ShieldCheck } from "lucide-react";
 import SectionLabel from "@/components/ui/SectionLabel";
-import { projects } from "@/data/portfolio";
+import { ACCESS, projects, stated } from "@/data/portfolio";
 
 export async function generateStaticParams() {
   return projects.map((project) => ({
@@ -60,7 +60,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
             </div>
             <div>
               <span className="case-study-meta-label">Year</span>
-              <span className="case-study-meta-value">{project.year}</span>
+              <span className="case-study-meta-value">{stated(project.year)}</span>
             </div>
             <div>
               <span className="case-study-meta-label">Role</span>
@@ -121,7 +121,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                 <div className="metrics-list">
                   {project.metrics.map((m) => (
                     <div key={m.label} className="metric-item" data-instrument-trace>
-                      <span className="metric-value">{m.value}</span>
+                      <span className="metric-value">{stated(m.value)}</span>
                       <span className="metric-label">{m.label}</span>
                     </div>
                   ))}
@@ -135,6 +135,23 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                     <span key={tech} className="tech-tag">{tech}</span>
                   ))}
                 </div>
+              </div>
+
+              {/* The console half of the site. Every project has a dashboard;
+                  the card says up front what that dashboard can measure, so a
+                  reader is never sent to a page of empty charts. */}
+              <div className="sidebar-card">
+                <h3><Activity size={18} /> Live Dashboard</h3>
+                <p className="sidebar-note">{project.monitor.note}</p>
+                <Link
+                  href={`/console/projects/${project.slug}`}
+                  className="sidebar-link"
+                  data-cursor="link"
+                  data-cursor-label="Open"
+                >
+                  <span>{ACCESS[project.monitor.access].label}</span>
+                  Open the dashboard <ArrowUpRight size={15} />
+                </Link>
               </div>
             </aside>
           </div>

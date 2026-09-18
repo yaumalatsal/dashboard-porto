@@ -46,6 +46,86 @@ export const profile = {
   bio: "I build web systems for organisations that must depend on them. My clients include a hospital, an industrial smelter and a government health agency. I started in computer networks, so I design the full path. I write the interface, the database behind it, and I run the server below both.",
 } as const;
 
+/**
+ * How a visitor can reach the live system, and what the console can measure.
+ *
+ * Most of these systems belong to a client. They run inside the network of
+ * that client. I cannot open them to the public, so the console cannot probe
+ * them. The dashboard states this instead of showing an empty chart.
+ */
+export type ProjectAccess =
+  /** The internet reaches it. The console probes it. */
+  | "public"
+  /** It runs inside the network of the client. No public probe is possible. */
+  | "client-network"
+  /** I built it, but no live instance runs at this time. */
+  | "not-deployed"
+  /** It is not a web service, so there is nothing to probe. */
+  | "no-endpoint";
+
+export type ProjectMonitor = {
+  access: ProjectAccess;
+  /**
+   * The id of the application in sites.json. Set this to give the dashboard
+   * the uptime, the response time and the fault record.
+   */
+  siteId?: string;
+  /**
+   * The `data-site` value that the /t.js tracker sends. Set this to give the
+   * dashboard the page views and the visitors.
+   */
+  trafficId?: string;
+  /**
+   * The address of the dashboard the project itself provides, when that
+   * dashboard is public. A relative path stays on this site.
+   */
+  dashboardUrl?: string;
+  /** One line that tells the visitor why the access state is what it is. */
+  note: string;
+};
+
+/**
+ * The badge on a project dashboard, and the sentence under it.
+ *
+ * It lives here because it is copy. It also keeps the case study page free of
+ * the monitor modules, which reach SQLite and the file system.
+ */
+export const ACCESS: Record<
+  ProjectAccess,
+  { label: string; tone: "good" | "warn" | "muted"; meaning: string }
+> = {
+  public: {
+    label: "Public",
+    tone: "good",
+    meaning: "The internet reaches this system. The console measures it below.",
+  },
+  "client-network": {
+    label: "Client network",
+    tone: "muted",
+    meaning:
+      "The client runs this system on a private network. I cannot probe it from here.",
+  },
+  "not-deployed": {
+    label: "No live instance",
+    tone: "muted",
+    meaning: "I built this system. No instance runs at a public address now.",
+  },
+  "no-endpoint": {
+    label: "Not a web service",
+    tone: "muted",
+    meaning: "This project has no HTTP endpoint, so there is nothing to probe.",
+  },
+};
+
+/**
+ * `TODO(you)` marks a fact that no source gives. The marker stays in the data
+ * above so it is visible to the person who must supply it, but a visitor must
+ * never see it, so every public surface renders it through this.
+ */
+export function stated(value: string): string {
+  return value.startsWith("TODO(") ? "Not recorded" : value;
+}
+
 export type ProjectData = {
   number: string;
   slug: string;
@@ -68,6 +148,8 @@ export type ProjectData = {
   observation: string;
   response: string;
   result: string;
+  /** What the console can and cannot measure about this project. */
+  monitor: ProjectMonitor;
 };
 
 const PLACEHOLDER = "/images/projects/placeholder.svg";
@@ -108,6 +190,11 @@ export const projects: ProjectData[] = [
     observation: "The data existed. It was not in one place or in one shape.",
     response: "Give each area the same structure.",
     result: "The agency reads its performance data. It does not rebuild it.",
+    monitor: {
+      access: "client-network",
+      note:
+        "The agency runs this system on its own network. I cannot open it to the public.",
+    },
   },
   {
     number: "02",
@@ -153,6 +240,11 @@ export const projects: ProjectData[] = [
     observation: "Nobody can check a paper permit at the moment it matters.",
     response: "Put each permit step where a supervisor can read it.",
     result: "The plant sees which hot work it permits, and when.",
+    monitor: {
+      access: "client-network",
+      note:
+        "The plant runs this system inside the works. The permit records belong to the plant.",
+    },
   },
   {
     number: "03",
@@ -188,6 +280,11 @@ export const projects: ProjectData[] = [
     observation: "A record helps only if it costs no effort to keep correct.",
     response: "Make the daily action update the record.",
     result: "Staff read the status. They do not walk to check it.",
+    monitor: {
+      access: "client-network",
+      note:
+        "The hospital runs this system on its own network. The records belong to the hospital.",
+    },
   },
   {
     number: "04",
@@ -232,6 +329,13 @@ export const projects: ProjectData[] = [
     observation: "A monitor that is hard to extend becomes a monitor nobody extends.",
     response: "Make a new application one line of configuration.",
     result: "The console shows an application that it has never seen before.",
+    monitor: {
+      access: "public",
+      trafficId: "portfolio",
+      dashboardUrl: "/console",
+      note:
+        "This console is the project. The traffic below is the traffic of this site.",
+    },
   },
   {
     number: "05",
@@ -267,6 +371,11 @@ export const projects: ProjectData[] = [
     observation: "A paper sheet is cheap until a person must add it up.",
     response: "Record the time at the door, in a form you can query.",
     result: "The report builds itself.",
+    monitor: {
+      access: "client-network",
+      note:
+        "The company runs this system on its own network. The attendance records belong to it.",
+    },
   },
   {
     number: "06",
@@ -302,6 +411,11 @@ export const projects: ProjectData[] = [
     observation: "A business idea does not grow like a syllabus.",
     response: "Build the incubation steps, not the lesson list.",
     result: "The platform has the shape of the subject it teaches.",
+    monitor: {
+      access: "not-deployed",
+      note:
+        "This is an academic project. No public instance runs at this time.",
+    },
   },
   {
     number: "07",
@@ -337,6 +451,11 @@ export const projects: ProjectData[] = [
     observation: "A refraction diagram loses the room.",
     response: "Put the learner inside the fiber.",
     result: "Students learn the task where they already spend their time.",
+    monitor: {
+      access: "no-endpoint",
+      note:
+        "The game runs in Roblox. It has no web service for the console to read.",
+    },
   },
 ];
 
