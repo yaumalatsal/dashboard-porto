@@ -43,7 +43,7 @@ export const profile = {
   phone: "+62 812 4960 2770",
   location: "Malang, Indonesia",
   availability: "I am open to a full-time role and to freelance work",
-  bio: "I build web systems for organisations that must depend on them. My clients include a hospital, an industrial smelter and a government health agency. I started in computer networks, so I design the full path. I write the interface, the database behind it, and I run the server below both.",
+  bio: "I build web systems for organisations that must depend on them. My clients include an industrial smelter, a government health agency and a logistics enterprise. I started in computer networks, so I design the full path. I write the interface, the database behind it, and I run the server below both.",
 } as const;
 
 /**
@@ -273,52 +273,60 @@ export const projects: ProjectData[] = [
   },
   {
     number: "03",
-    slug: "equipment-room-monitoring",
-    title: "Equipment and Room Status System",
-    category: "Healthcare Systems / Laravel",
+    slug: "warehouse-management-system",
+    title: "Warehouse Management System",
+    category: "Enterprise Logistics / Next.js",
     chapter: "Project 03",
     description:
-      "A system that shows which medical equipment is free and which rooms are ready. Staff scan a barcode to change the status.",
-    outcome: "Barcode input keeps the record correct without extra work.",
+      "A multi-warehouse system with real-time stock counts, bin rack allocations and inbound movement records.",
+    outcome: "Multi-facility routing, live rack occupancy and order audits.",
     images: [
-      "/images/projects/baringan-live.png",
-      "/images/projects/baringan-card.png",
+      "/images/projects/wms-qom-live.png",
+      "/images/projects/wms-qom-card.png",
     ],
     accent: "moss",
-    client: "RS Petrokimia (freelance)",
-    year: "TODO(you)",
-    role: "Freelance developer",
+    client: "Qom Logistics",
+    year: "2026",
+    role: "Full-stack engineer",
     overview:
-      "A hospital must know which equipment is free before it moves a patient. It must also know which rooms are ready. This system gives a barcode to each item and each room. Staff scan the barcode when they use or release the item. The scan changes the record.",
+      "Logistics teams must track inventory across different warehouses. This system connects multiple facilities into one web dashboard. Staff switch between locations, audit stock deliveries and check physical bin rack occupancy.",
     challenge:
-      "The old record was only as new as the last manual update. Staff walked to each room to confirm the status.",
+      "Inventory across separate buildings caused blind spots. Staff had no live view of free rack slots and pending order shipments.",
     solution:
-      "The scan is the input. Staff do not write a separate update. The record stays correct because the normal work keeps it correct.",
+      "I built an enterprise warehouse dashboard in Next.js. The system tracks item movement, calculates rack capacity, and logs order dispatches.",
     architecture: [
-      "Laravel application with one barcode for each item and each room",
-      "Status changes from a scan, not from a form",
-      "Live pages for equipment and room status",
+      "Next.js application with multi-facility workspace routing",
+      "Dynamic bin rack location occupancy calculation",
+      "Inbound receiving and outbound order dispatch workflows",
+      "Time-series charts for movement volume and category breakdown",
     ],
-    techStack: ["Laravel", "PHP", "MySQL", "Barcode scanner"],
+    techStack: [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "PostgreSQL",
+      "Docker",
+    ],
     metrics: [
-      { label: "Domain", value: "Hospital operations" },
-      { label: "Input", value: "Barcode" },
-      { label: "Items", value: "TODO(you)" },
+      { label: "Facilities", value: "Multiple warehouses" },
+      { label: "Audit", value: "Real-time rack count" },
+      { label: "Engine", value: "Next.js Enterprise" },
     ],
-    observation: "A record helps only if it costs no effort to keep correct.",
-    response: "Make the daily action update the record.",
-    result: "Staff read the status. They do not walk to check it.",
+    observation: "Separate warehouses create slow counts and lost items.",
+    response: "Unify facility routing and rack audits in one dashboard.",
+    result: "Staff audit stock and rack space with zero delay.",
     monitor: {
       access: "public",
-      siteId: "baringan",
-      dashboardUrl: "https://baringan.yaumalatsal.com",
+      dashboardUrl: "https://wms-qom.my.id",
       demo: {
-        label: "Email",
-        username: "demo@baringan.test",
-        password: "demo1234",
+        url: "https://wms-qom.my.id/login",
+        label: "Username",
+        username: "admin",
+        password: "admin123",
       },
       note:
-        "I run a public instance of this system. The figures below come from it, not from the hospital.",
+        "I run a live instance of this enterprise platform. You can log in with the test account to inspect the warehouse operations.",
     },
   },
   {
@@ -494,64 +502,6 @@ export const projects: ProjectData[] = [
       access: "no-endpoint",
       note:
         "The game runs in Roblox. It has no web service for the console to read.",
-    },
-  },
-  {
-    number: "08",
-    slug: "warehouse-management-system",
-    title: "Warehouse Management System",
-    category: "Enterprise Logistics / Next.js",
-    chapter: "Project 08",
-    description:
-      "A multi-warehouse system with real-time stock counts, bin rack allocations and inbound movement records.",
-    outcome: "Multi-facility routing, live rack occupancy and order audits.",
-    images: [
-      "/images/projects/wms-qom-live.png",
-      "/images/projects/wms-qom-card.png",
-    ],
-    accent: "ember",
-    client: "Qom Logistics",
-    year: "2026",
-    role: "Full-stack engineer",
-    overview:
-      "Logistics teams must track inventory across different warehouses. This system connects multiple facilities into one web dashboard. Staff switch between locations, audit stock deliveries and check physical bin rack occupancy.",
-    challenge:
-      "Inventory across separate buildings caused blind spots. Staff had no live view of free rack slots and pending order shipments.",
-    solution:
-      "I built an enterprise warehouse dashboard in Next.js. The system tracks item movement, calculates rack capacity, and logs order dispatches.",
-    architecture: [
-      "Next.js application with multi-facility workspace routing",
-      "Dynamic bin rack location occupancy calculation",
-      "Inbound receiving and outbound order dispatch workflows",
-      "Time-series charts for movement volume and category breakdown",
-    ],
-    techStack: [
-      "Next.js",
-      "React",
-      "TypeScript",
-      "Tailwind CSS",
-      "PostgreSQL",
-      "Docker",
-    ],
-    metrics: [
-      { label: "Facilities", value: "Multiple warehouses" },
-      { label: "Audit", value: "Real-time rack count" },
-      { label: "Engine", value: "Next.js Enterprise" },
-    ],
-    observation: "Separate warehouses create slow counts and lost items.",
-    response: "Unify facility routing and rack audits in one dashboard.",
-    result: "Staff audit stock and rack space with zero delay.",
-    monitor: {
-      access: "public",
-      dashboardUrl: "https://wms-qom.my.id",
-      demo: {
-        url: "https://wms-qom.my.id/login",
-        label: "Username",
-        username: "admin",
-        password: "admin123",
-      },
-      note:
-        "I run a live instance of this enterprise platform. You can log in with the test account to inspect the warehouse operations.",
     },
   },
 ];

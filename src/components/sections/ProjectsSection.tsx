@@ -15,7 +15,7 @@ export default function ProjectsSection() {
           <h2 id="work-title">
             {COUNT_WORDS[projects.length] ?? projects.length} systems<br />that people use.
           </h2>
-          <p>I built these systems for a hospital, an industrial smelter, a government health agency, a logistics firm and private clients. Each system solves one operational problem.</p>
+          <p>I built these systems for an industrial smelter, a government health agency, a logistics firm and private clients. Each system solves one operational problem.</p>
         </div>
         <div className="projects-list">
           {projects.map((project, index) => (
