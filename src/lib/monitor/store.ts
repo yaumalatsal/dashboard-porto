@@ -162,15 +162,39 @@ function connect(): DatabaseSync {
   handle.exec(`
     CREATE TABLE IF NOT EXISTS page_views (
       id       INTEGER PRIMARY KEY AUTOINCREMENT,
+      site_id  TEXT    NOT NULL DEFAULT 'portfolio',
       ts       INTEGER NOT NULL,
       path     TEXT    NOT NULL,
       referrer TEXT,
       visitor  TEXT    NOT NULL
     );
   `);
+
+  /**
+   * Migration for a database created before traffic covered more than one site.
+   *
+   * The table shipped without `site_id`, so an existing install has rows and a
+   * schema that the queries below no longer match. Adding the column keeps
+   * those rows: they were all views of this site, which is what the default
+   * records.
+   */
+  const viewColumns = handle
+    .prepare("PRAGMA table_info(page_views)")
+    .all() as { name: string }[];
+
+  if (!viewColumns.some((c) => c.name === "site_id")) {
+    handle.exec(
+      "ALTER TABLE page_views ADD COLUMN site_id TEXT NOT NULL DEFAULT 'portfolio'",
+    );
+    console.log("[monitor] added site_id to page_views");
+  }
+
   handle.exec("CREATE INDEX IF NOT EXISTS idx_views_ts ON page_views (ts DESC)");
   handle.exec(
-    "CREATE INDEX IF NOT EXISTS idx_views_path_ts ON page_views (path, ts)",
+    "CREATE INDEX IF NOT EXISTS idx_views_site_ts ON page_views (site_id, ts DESC)",
+  );
+  handle.exec(
+    "CREATE INDEX IF NOT EXISTS idx_views_path_ts ON page_views (site_id, path, ts)",
   );
 
   /**
@@ -751,20 +775,34 @@ export function metricSummary(
 
 /* --------------------------------------------------------------- traffic */
 
+/** The reserved id for this site, which is not in the monitored registry. */
+export const SELF_SITE_ID = "portfolio";
+
 export function recordPageView(view: {
+  siteId?: string;
   path: string;
   referrer?: string | null;
   visitor: string;
   ts?: number;
 }): void {
   sql(
-    "INSERT INTO page_views (ts, path, referrer, visitor) VALUES (?, ?, ?, ?)",
+    "INSERT INTO page_views (site_id, ts, path, referrer, visitor) VALUES (?, ?, ?, ?, ?)",
   ).run(
+    view.siteId ?? SELF_SITE_ID,
     view.ts ?? Date.now(),
     view.path.slice(0, 512),
     view.referrer?.slice(0, 255) ?? null,
     view.visitor,
   );
+}
+
+/** Site ids that have recorded at least one view, for the page's tab bar. */
+export function trafficSites(windowSeconds = 30 * 86_400): string[] {
+  const since = Date.now() - windowSeconds * 1000;
+  const rows = sql(
+    "SELECT DISTINCT site_id FROM page_views WHERE ts >= ? ORDER BY site_id",
+  ).all(since) as { site_id: string }[];
+  return rows.map((r) => r.site_id);
 }
 
 export type TrafficSummary = {
@@ -776,14 +814,22 @@ export type TrafficSummary = {
 export function trafficSummary(
   windowSeconds: number,
   offsetSeconds = 0,
+  siteId?: string,
 ): TrafficSummary {
   const until = Date.now() - offsetSeconds * 1000;
   const since = until - windowSeconds * 1000;
 
-  const row = sql(
-    `SELECT COUNT(*) AS views, COUNT(DISTINCT visitor) AS visitors
-     FROM page_views WHERE ts >= ? AND ts < ?`,
-  ).get(since, until) as { views: number; visitors: number };
+  const row = (
+    siteId
+      ? sql(
+          `SELECT COUNT(*) AS views, COUNT(DISTINCT visitor) AS visitors
+           FROM page_views WHERE ts >= ? AND ts < ? AND site_id = ?`,
+        ).get(since, until, siteId)
+      : sql(
+          `SELECT COUNT(*) AS views, COUNT(DISTINCT visitor) AS visitors
+           FROM page_views WHERE ts >= ? AND ts < ?`,
+        ).get(since, until)
+  ) as { views: number; visitors: number };
 
   return {
     views: row?.views ?? 0,
@@ -797,18 +843,29 @@ export type TrafficPoint = { ts: number; views: number; visitors: number };
 export function trafficSeries(
   windowSeconds: number,
   buckets = 48,
+  siteId?: string,
 ): TrafficPoint[] {
   const now = Date.now();
   const since = now - windowSeconds * 1000;
   const bucketMs = Math.max(1, Math.floor((windowSeconds * 1000) / buckets));
 
-  const rows = sql(
-    `SELECT CAST(ts / ? AS INTEGER) * ? AS bucket,
-            COUNT(*) AS views,
-            COUNT(DISTINCT visitor) AS visitors
-     FROM page_views WHERE ts >= ?
-     GROUP BY bucket ORDER BY bucket`,
-  ).all(bucketMs, bucketMs, since) as {
+  const rows = (
+    siteId
+      ? sql(
+          `SELECT CAST(ts / ? AS INTEGER) * ? AS bucket,
+                  COUNT(*) AS views,
+                  COUNT(DISTINCT visitor) AS visitors
+           FROM page_views WHERE ts >= ? AND site_id = ?
+           GROUP BY bucket ORDER BY bucket`,
+        ).all(bucketMs, bucketMs, since, siteId)
+      : sql(
+          `SELECT CAST(ts / ? AS INTEGER) * ? AS bucket,
+                  COUNT(*) AS views,
+                  COUNT(DISTINCT visitor) AS visitors
+           FROM page_views WHERE ts >= ?
+           GROUP BY bucket ORDER BY bucket`,
+        ).all(bucketMs, bucketMs, since)
+  ) as {
     bucket: number;
     views: number;
     visitors: number;
@@ -837,23 +894,65 @@ export function trafficSeries(
 
 export type TrafficRow = { label: string; views: number; visitors: number };
 
-export function topPaths(windowSeconds: number, limit = 10): TrafficRow[] {
+export function topPaths(
+  windowSeconds: number,
+  limit = 10,
+  siteId?: string,
+): TrafficRow[] {
   const since = Date.now() - windowSeconds * 1000;
-  return sql(
-    `SELECT path AS label, COUNT(*) AS views, COUNT(DISTINCT visitor) AS visitors
-     FROM page_views WHERE ts >= ?
-     GROUP BY path ORDER BY views DESC LIMIT ?`,
-  ).all(since, limit) as TrafficRow[];
+  return (
+    siteId
+      ? sql(
+          `SELECT path AS label, COUNT(*) AS views,
+                  COUNT(DISTINCT visitor) AS visitors
+           FROM page_views WHERE ts >= ? AND site_id = ?
+           GROUP BY path ORDER BY views DESC LIMIT ?`,
+        ).all(since, siteId, limit)
+      : sql(
+          `SELECT site_id || path AS label, COUNT(*) AS views,
+                  COUNT(DISTINCT visitor) AS visitors
+           FROM page_views WHERE ts >= ?
+           GROUP BY label ORDER BY views DESC LIMIT ?`,
+        ).all(since, limit)
+  ) as TrafficRow[];
 }
 
-export function topReferrers(windowSeconds: number, limit = 10): TrafficRow[] {
-  const since = Date.now() - windowSeconds * 1000;
+/** Views and visitors for each site, for the comparison table. */
+export function trafficBySite(
+  windowSeconds: number,
+  offsetSeconds = 0,
+): (TrafficRow & { siteId: string })[] {
+  const until = Date.now() - offsetSeconds * 1000;
+  const since = until - windowSeconds * 1000;
   return sql(
-    `SELECT COALESCE(NULLIF(referrer, ''), 'Direct') AS label,
-            COUNT(*) AS views, COUNT(DISTINCT visitor) AS visitors
-     FROM page_views WHERE ts >= ?
-     GROUP BY label ORDER BY views DESC LIMIT ?`,
-  ).all(since, limit) as TrafficRow[];
+    `SELECT site_id AS siteId, site_id AS label, COUNT(*) AS views,
+            COUNT(DISTINCT visitor) AS visitors
+     FROM page_views WHERE ts >= ? AND ts < ?
+     GROUP BY site_id ORDER BY views DESC`,
+  ).all(since, until) as (TrafficRow & { siteId: string })[];
+}
+
+export function topReferrers(
+  windowSeconds: number,
+  limit = 10,
+  siteId?: string,
+): TrafficRow[] {
+  const since = Date.now() - windowSeconds * 1000;
+  return (
+    siteId
+      ? sql(
+          `SELECT COALESCE(NULLIF(referrer, ''), 'Direct') AS label,
+                  COUNT(*) AS views, COUNT(DISTINCT visitor) AS visitors
+           FROM page_views WHERE ts >= ? AND site_id = ?
+           GROUP BY label ORDER BY views DESC LIMIT ?`,
+        ).all(since, siteId, limit)
+      : sql(
+          `SELECT COALESCE(NULLIF(referrer, ''), 'Direct') AS label,
+                  COUNT(*) AS views, COUNT(DISTINCT visitor) AS visitors
+           FROM page_views WHERE ts >= ?
+           GROUP BY label ORDER BY views DESC LIMIT ?`,
+        ).all(since, limit)
+  ) as TrafficRow[];
 }
 
 /* ----------------------------------------------------------- reliability */

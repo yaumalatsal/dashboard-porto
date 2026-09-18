@@ -142,6 +142,49 @@ up).
 
 ---
 
+## Measuring traffic on your other sites
+
+The console counts page views for itself and for any application you point at
+it. Add one line to the application:
+
+```html
+<script defer src="https://your-console/t.js" data-site="yourday"></script>
+```
+
+`data-site` must match an `id` in `sites.json`. The collector checks the id
+against the registry and drops anything else, so the endpoint cannot be used to
+write rows for sites you do not run.
+
+The script is about 1.4 KB, has no dependencies, and is cached for a day. It
+reports the first view and then follows client-side navigation in a
+single-page application, without counting the same path twice in a row.
+
+### What is stored, and what is not
+
+| Stored | Not stored |
+|---|---|
+| The site id and the path | Any IP address |
+| The referrer's hostname | The full referring URL |
+| A per-day visitor hash | A cookie or any durable id |
+
+The visitor hash is `sha256(salt + address + user-agent)`, where the salt is
+generated in memory at start and rotates every day. It counts distinct visitors
+within a day. It cannot be reversed, and the same person hashes to something
+unrelated tomorrow, so nobody can be followed between days.
+
+Requests whose user-agent looks like a bot are dropped, so the figures describe
+people rather than crawlers.
+
+### Limitations
+
+- A visitor who blocks scripts is not counted.
+- There are no returning visitors and no journeys across days. That is the
+  direct cost of holding no durable identifier.
+- Traffic for an application you do not monitor needs an entry in `sites.json`
+  first. The `ping` adapter is enough.
+
+---
+
 ## Storage
 
 Time-series data lives in SQLite via Node's built-in `node:sqlite`, so the

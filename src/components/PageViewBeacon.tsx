@@ -25,16 +25,18 @@ export default function PageViewBeacon() {
 
     try {
       if (navigator.sendBeacon) {
+        // text/plain keeps this a simple request, matching /t.js. An
+        // application/json body would make the browser preflight first.
         navigator.sendBeacon(
           "/api/analytics/collect",
-          new Blob([payload], { type: "application/json" }),
+          new Blob([payload], { type: "text/plain" }),
         );
         return;
       }
       void fetch("/api/analytics/collect", {
         method: "POST",
         body: payload,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "text/plain" },
         keepalive: true,
       });
     } catch {

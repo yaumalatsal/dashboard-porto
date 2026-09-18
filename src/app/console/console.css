@@ -1667,3 +1667,25 @@
   line-height: 1.5;
   color: var(--c-muted);
 }
+
+/* Inline code in the console prose: the tracker tag people must copy. */
+.console code {
+  display: inline;
+  margin-top: 0;
+  padding: 1px 5px;
+  background: var(--c-page);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 4px;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.72rem;
+  color: var(--c-ember);
+  word-break: break-all;
+}
+
+/* The setup snippet in the empty state is long enough to need its own line. */
+.console__empty code {
+  display: block;
+  margin-top: var(--s-2);
+  padding: var(--s-1) var(--s-2);
+  text-align: left;
+}

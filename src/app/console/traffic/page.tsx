@@ -9,10 +9,15 @@
  * visitors, no journeys) and is a deliberate trade.
  */
 
+import Link from "next/link";
+import { loadConfig } from "@/lib/monitor/config";
 import {
+  SELF_SITE_ID,
   topPaths,
   topReferrers,
+  trafficBySite,
   trafficSeries,
+  trafficSites,
   trafficSummary,
 } from "@/lib/monitor/store";
 import { compact } from "@/lib/monitor/format";
@@ -33,16 +38,30 @@ const RANGES: Record<string, { label: string; seconds: number; buckets: number }
 export default async function TrafficPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string }>;
+  searchParams: Promise<{ range?: string; site?: string }>;
 }) {
-  const { range: rangeKey = "24h" } = await searchParams;
+  const params = await searchParams;
+  const rangeKey = params.range ?? "24h";
   const range = RANGES[rangeKey] ?? RANGES["24h"];
 
-  const now = trafficSummary(range.seconds);
-  const before = trafficSummary(range.seconds, range.seconds);
-  const points = trafficSeries(range.seconds, range.buckets);
-  const paths = topPaths(range.seconds, 8);
-  const referrers = topReferrers(range.seconds, 8);
+  // "all" is the default: the first question is how the whole estate is doing.
+  const siteFilter =
+    params.site && params.site !== "all" ? params.site : undefined;
+
+  const { sites } = loadConfig();
+  const seen = trafficSites();
+  const label = (id: string) =>
+    id === SELF_SITE_ID
+      ? "This site"
+      : (sites.find((s) => s.id === id)?.label ?? id);
+
+  const now = trafficSummary(range.seconds, 0, siteFilter);
+  const before = trafficSummary(range.seconds, range.seconds, siteFilter);
+  const points = trafficSeries(range.seconds, range.buckets, siteFilter);
+  const paths = topPaths(range.seconds, 8, siteFilter);
+  const referrers = topReferrers(range.seconds, 8, siteFilter);
+  const bySite = trafficBySite(range.seconds);
+  const bySiteBefore = trafficBySite(range.seconds, range.seconds);
 
   const delta = (a: number, b: number) => (b > 0 ? ((a - b) / b) * 100 : null);
   const viewsPerVisitor =
@@ -72,12 +91,36 @@ export default async function TrafficPage({
         />
       </div>
 
+      {seen.length > 1 && (
+        <div className="site-tabs" role="group" aria-label="Site">
+          <Link
+            href={`/console/traffic?range=${rangeKey}`}
+            className="site-tab"
+            aria-current={siteFilter === undefined ? "true" : undefined}
+          >
+            All sites
+          </Link>
+          {seen.map((id) => (
+            <Link
+              key={id}
+              href={`/console/traffic?range=${rangeKey}&site=${id}`}
+              className="site-tab"
+              aria-current={siteFilter === id ? "true" : undefined}
+            >
+              {label(id)}
+            </Link>
+          ))}
+        </div>
+      )}
+
       {!hasData ? (
         <div className="console__empty">
           <h2>No visits</h2>
           <p>
-            Each page sends a signal when it opens. Open the site in another tab to
-            add a view. You can also wait for the first visitor.
+            Each page sends a signal when it opens. To measure another
+            application, add one line to it:
+            <code>&lt;script defer src=&quot;/t.js&quot; data-site=&quot;your-app-id&quot;&gt;&lt;/script&gt;</code>
+            The id must match an application in sites.json.
           </p>
         </div>
       ) : (
@@ -139,6 +182,11 @@ export default async function TrafficPage({
                   The browser sends the signal. This page does not count a visitor who
                   blocks scripts.
                 </li>
+                <li className="insight insight--good">
+                  <i aria-hidden="true" />
+                  Add <code>/t.js</code> to another application to measure it
+                  here as well.
+                </li>
               </ul>
               <div className="insight-stat">
                 <span className="insight-stat__label">Most read</span>
@@ -167,6 +215,69 @@ export default async function TrafficPage({
               <BreakdownList rows={referrers} total={now.views} />
             </div>
           </section>
+
+          {bySite.length > 1 && (
+            <section className="console__section">
+              <div className="console__section-head">
+                <h2>Sites compared</h2>
+                <span className="panel__meta">{range.label}</span>
+              </div>
+              <div className="panel">
+                <table className="ctable">
+                  <thead>
+                    <tr>
+                      <th>Site</th>
+                      <th className="ctable__num">Views</th>
+                      <th className="ctable__num">Visitors</th>
+                      <th className="ctable__num">Change</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bySite.map((row) => {
+                      const past = bySiteBefore.find(
+                        (b) => b.siteId === row.siteId,
+                      );
+                      const change =
+                        past && past.views > 0
+                          ? ((row.views - past.views) / past.views) * 100
+                          : null;
+                      return (
+                        <tr key={row.siteId}>
+                          <td>
+                            <Link
+                              href={`/console/traffic?range=${rangeKey}&site=${row.siteId}`}
+                              className="ctable__link"
+                            >
+                              {label(row.siteId)}
+                            </Link>
+                          </td>
+                          <td className="ctable__num">{compact(row.views)}</td>
+                          <td className="ctable__num">{compact(row.visitors)}</td>
+                          <td className="ctable__num">
+                            {change === null ? (
+                              <span style={{ color: "var(--c-muted)" }}>—</span>
+                            ) : (
+                              <span
+                                style={{
+                                  color:
+                                    change >= 0
+                                      ? "var(--s-good)"
+                                      : "var(--s-critical)",
+                                }}
+                              >
+                                {change > 0 ? "+" : ""}
+                                {Math.round(change)}%
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
         </>
       )}
 

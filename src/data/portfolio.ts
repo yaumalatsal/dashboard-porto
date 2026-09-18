@@ -82,7 +82,7 @@ export const projects: ProjectData[] = [
     description:
       "A web system that holds the performance data of every work area of the Surabaya Health Quarantine Centre.",
     outcome: "I designed, built and deployed the system alone.",
-    images: [PLACEHOLDER],
+    images: ["/images/projects/github-activity.png"],
     accent: "ember",
     client: "Balai Besar Kekarantinaan Kesehatan Surabaya",
     year: "2025",
@@ -118,7 +118,7 @@ export const projects: ProjectData[] = [
     description:
       "A web permit system for hot work in a smelting plant. It replaces the paper permit for a high-risk task.",
     outcome: "Role-based approval, PDF permits and QR codes for each permit.",
-    images: [PLACEHOLDER],
+    images: ["/images/projects/hotwork-permit.png", "/images/projects/hotwork-repo.png"],
     accent: "copper",
     client: "PT Smelting Gresik",
     year: "2024",
@@ -163,7 +163,7 @@ export const projects: ProjectData[] = [
     description:
       "A system that shows which medical equipment is free and which rooms are ready. Staff scan a barcode to change the status.",
     outcome: "Barcode input keeps the record correct without extra work.",
-    images: [PLACEHOLDER],
+    images: ["/images/projects/baringan.png", "/images/projects/github-activity.png"],
     accent: "moss",
     client: "RS Petrokimia (freelance)",
     year: "TODO(you)",
@@ -198,7 +198,7 @@ export const projects: ProjectData[] = [
     description:
       "A console that watches each application I run. It keeps the uptime, the response times and a record of each fault.",
     outcome: "No runtime npm dependencies. It keeps 90 days of history.",
-    images: ["/images/projects/field-console.png"],
+    images: ["/images/projects/field-console.png", "/images/projects/github-activity.png"],
     accent: "ivory",
     client: "My own infrastructure",
     year: "2026",
@@ -242,7 +242,7 @@ export const projects: ProjectData[] = [
     description:
       "A digital attendance system. Each employee has a barcode. The system records the arrival and the departure.",
     outcome: "The monthly report is a query, not a manual count.",
-    images: [PLACEHOLDER],
+    images: ["/images/projects/github-activity.png"],
     accent: "ember",
     client: "PT. Panca Pilar Hutama (freelance)",
     year: "TODO(you)",
@@ -277,7 +277,7 @@ export const projects: ProjectData[] = [
     description:
       "A learning platform for student business ideas. It follows the steps of a business incubator.",
     outcome: "The platform follows the incubation steps, not a lesson list.",
-    images: [PLACEHOLDER],
+    images: ["/images/projects/bisa-lms.png", "/images/projects/github-activity.png"],
     accent: "moss",
     client: "Academic project",
     year: "TODO(you)",
@@ -312,7 +312,7 @@ export const projects: ProjectData[] = [
     description:
       "A game in Roblox that teaches fiber optic technology. The player does the work instead of reading a diagram.",
     outcome: "The game models fiber splice work and OTDR tests.",
-    images: [PLACEHOLDER],
+    images: ["/images/projects/github-activity.png"],
     accent: "copper",
     client: "Freelance",
     year: "TODO(you)",
