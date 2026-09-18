@@ -58,6 +58,24 @@
           "intervalSeconds": 300
         }
       ]
+    },
+    {
+      "id": "pinglab",
+      "label": "PingLab LMS",
+      "url": "https://pinglab.yaumalatsal.com",
+      "blurb": "Adaptive scaffolding learning platform",
+      "adapter": "monitor-api",
+      "tags": [
+        "production",
+        "laravel"
+      ],
+      "probes": [
+        {
+          "name": "health",
+          "url": "https://pinglab.yaumalatsal.com/api/health",
+          "intervalSeconds": 30
+        }
+      ]
     }
   ]
 }

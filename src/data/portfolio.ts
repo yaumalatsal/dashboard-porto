@@ -183,7 +183,10 @@ export const projects: ProjectData[] = [
     description:
       "A web system that holds the performance data of every work area of the Surabaya Health Quarantine Centre.",
     outcome: "I designed, built and deployed the system alone.",
-    images: ["/images/projects/github-activity.png"],
+    images: [
+      "/images/projects/simaksi-live.png",
+      "/images/projects/simaksi-card.png",
+    ],
     accent: "ember",
     client: "Balai Besar Kekarantinaan Kesehatan Surabaya",
     year: "2025",
@@ -212,6 +215,7 @@ export const projects: ProjectData[] = [
     monitor: {
       access: "public",
       siteId: "simaksi",
+      dashboardUrl: "https://simaksi.yaumalatsal.com",
       note:
         "I run a public instance of this system. The figures below come from it, not from the agency.",
     },
@@ -276,7 +280,10 @@ export const projects: ProjectData[] = [
     description:
       "A system that shows which medical equipment is free and which rooms are ready. Staff scan a barcode to change the status.",
     outcome: "Barcode input keeps the record correct without extra work.",
-    images: ["/images/projects/baringan-live.png"],
+    images: [
+      "/images/projects/baringan-live.png",
+      "/images/projects/baringan-card.png",
+    ],
     accent: "moss",
     client: "RS Petrokimia (freelance)",
     year: "TODO(you)",
@@ -304,6 +311,7 @@ export const projects: ProjectData[] = [
     monitor: {
       access: "public",
       siteId: "baringan",
+      dashboardUrl: "https://baringan.yaumalatsal.com",
       demo: {
         label: "Email",
         username: "demo@baringan.test",
@@ -315,53 +323,48 @@ export const projects: ProjectData[] = [
   },
   {
     number: "04",
-    slug: "field-console",
-    title: "Operations Console",
-    category: "Monitoring / Next.js",
+    slug: "pinglab",
+    title: "Adaptive Learning Platform",
+    category: "Adaptive Systems / Laravel & AI",
     chapter: "Project 04",
     description:
-      "A console that watches each application I run. It keeps the uptime, the response times and a record of each fault.",
-    outcome: "No runtime npm dependencies. It keeps 90 days of history.",
-    images: ["/images/projects/field-console-live.png"],
+      "An adaptive learning platform with AI scaffolding. The platform reduces guidance as the student learns each concept.",
+    outcome: "Five levels of scaffolding that fade when the student proves competence.",
+    images: [
+      "/images/projects/pinglab-live.png",
+      "/images/projects/pinglab-card.png",
+    ],
     accent: "ivory",
-    client: "My own infrastructure",
-    year: "2026",
-    role: "Design and development",
+    client: "Research and academic platform",
+    year: "2025",
+    role: "Full-stack developer",
     overview:
-      "This console is the second half of this site. It calls each application at its own interval. It then changes the reply into one common shape. It writes a sample every 30 seconds. From these samples it calculates the uptime, the response time percentiles and the fault record. It writes to SQLite, so a new deployment does not delete the history.",
+      "Students learn at different speeds. This platform gives support to the student through five steps. It shows full examples at the start. It gives hints as the student works. The platform removes the help when the student works well alone.",
     challenge:
-      "Each application reports its health in a different shape. A separate integration for each one is slow to write. The tenth application never gets added.",
+      "A standard course shows the same text to each student. It cannot adjust the help to the current ability of the learner.",
     solution:
-      "An adapter sits between the poller and the pages. The default adapter reads the shape of any JSON reply. It finds the health, the services and the metrics. A new application works when you add its address. You write no code.",
+      "I built an adaptive engine in Laravel. The engine tests each answer. It then changes the level of help for the next task.",
     architecture: [
-      "One interval for each probe, so a slow probe does not delay the health check",
-      "An adapter layer that changes any JSON into one shape",
-      "SQLite through the built-in node:sqlite module, with no npm dependency",
-      "Fault records that the console derives from the samples",
-      "Pages that the server renders, so the first view shows real data",
+      "Laravel application with five scaffolding levels",
+      "Progression from full examples to independent work",
+      "Interactive code exercises with immediate feedback",
+      "Teacher view to inspect student progress and results",
     ],
-    techStack: [
-      "TypeScript",
-      "Next.js",
-      "React",
-      "SQLite",
-      "Docker",
-      "GitHub Actions",
-    ],
+    techStack: ["Laravel", "PHP", "MySQL", "Tailwind CSS", "JavaScript"],
     metrics: [
-      { label: "Client JavaScript", value: "179 KB gzipped" },
-      { label: "Runtime dependencies", value: "0" },
-      { label: "History", value: "90 days" },
+      { label: "Levels", value: "5 support tiers" },
+      { label: "Method", value: "Adaptive fading" },
+      { label: "Status", value: "Live production" },
     ],
-    observation: "A monitor that is hard to extend becomes a monitor nobody extends.",
-    response: "Make a new application one line of configuration.",
-    result: "The console shows an application that it has never seen before.",
+    observation: "One lesson does not fit every student.",
+    response: "Remove the help as the student learns.",
+    result: "The student moves from assisted work to independent mastery.",
     monitor: {
       access: "public",
-      trafficId: "portfolio",
-      dashboardUrl: "/console",
+      siteId: "pinglab",
+      dashboardUrl: "https://pinglab.yaumalatsal.com",
       note:
-        "This console is the project. The traffic below is the traffic of this site.",
+        "I run a live instance of this platform. You can test the learning paths directly.",
     },
   },
   {
