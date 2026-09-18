@@ -602,7 +602,7 @@ export const experiences: ExperienceEntry[] = [
   },
   {
     number: "IV",
-    title: "CLEAN Research Group, State University of Malang",
+    title: "CLEARN Lab, State University of Malang",
     role: "Member",
     type: "community",
     year: "2024 — 2026",
@@ -674,7 +674,7 @@ export const credentials: Credential[] = [
   {
     label: "Computer and Network Engineering",
     detail: "Competency certificate from langit.net",
-    year: "—",
+    year: "2020",
   },
 ];
 
