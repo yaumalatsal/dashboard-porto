@@ -21,18 +21,18 @@ export default function CredentialsSection() {
       aria-labelledby="credentials-title"
     >
       <div className="section-shell">
-        <SectionLabel number="05" label="Record" />
+        <SectionLabel number="06" label="Education" />
 
         <div className="credentials-intro">
           <h2 id="credentials-title">
-            Trained in networks.
+            I study networks.
             <br />
-            <em>Taught to explain them.</em>
+            <em>I also teach them.</em>
           </h2>
           <p>
-            A vocational start in computer networking, then a degree in
-            informatics engineering education — which is why the work tends to
-            come with documentation and a session explaining it.
+            I started with a vocational course in computer networks. Then I took a
+            degree in informatics engineering education. For this reason I write
+            documentation for each system, and I can teach it.
           </p>
         </div>
 
@@ -56,7 +56,7 @@ export default function CredentialsSection() {
 
           <section aria-labelledby="credentials-heading-2">
             <h3 id="credentials-heading-2" className="credentials-heading">
-              Certifications &amp; recognition
+              Certificates and awards
             </h3>
             <ul className="credentials-list">
               {credentials.map((entry) => (

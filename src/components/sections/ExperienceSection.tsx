@@ -66,15 +66,15 @@ export default function ExperienceSection() {
       aria-labelledby="experience-title"
     >
       <div className="section-shell">
-        <SectionLabel number="04" label="Field Journal" />
+        <SectionLabel number="05" label="Experience" />
 
         <div className="experience-intro">
           <h2 id="experience-title">
-            Beyond the workbench.<br />
-            <em>Community &amp; discourse.</em>
+            Where I worked.<br />
+            <em>And what I did there.</em>
           </h2>
           <p>
-            Conferences spoken at, developer communities nurtured, and civic initiatives shaped outside daily client practice.
+            These are the employers and the university groups that I worked with. Each entry says what I did.
           </p>
         </div>
 

@@ -28,10 +28,10 @@ export default function SkillsSection() {
   return (
     <div id="skills" className="skills-section" tabIndex={-1} aria-labelledby="skills-title">
       <div className="section-shell">
-        <SectionLabel number="03" label="Field Kit" />
+        <SectionLabel number="03" label="Skills" />
         <div className="skills-heading">
-          <h2 id="skills-title">One practice,<br />four working layers.</h2>
-          <p>The tools change with the terrain. The standard does not: clear decisions, durable systems, and deliberate craft.</p>
+          <h2 id="skills-title">One practice.<br />Four layers.</h2>
+          <p>The tools change with the job. The standard does not change. I make clear decisions and I build systems that last.</p>
         </div>
         <div className="skill-ledger">
           <div ref={graphRef} className="skill-graph" aria-hidden="true">
@@ -48,10 +48,10 @@ export default function SkillsSection() {
             <span className="skill-graph__pulse" />
           </div>
           <span className="skill-ledger__hub" aria-hidden="true"><i /></span>
-          <span className="skill-ledger__bearing skill-ledger__bearing--north" aria-hidden="true">N / Direction</span>
-          <span className="skill-ledger__bearing skill-ledger__bearing--east" aria-hidden="true">E / Build</span>
-          <span className="skill-ledger__bearing skill-ledger__bearing--south" aria-hidden="true">S / Systems</span>
-          <span className="skill-ledger__bearing skill-ledger__bearing--west" aria-hidden="true">W / Operate</span>
+          <span className="skill-ledger__bearing skill-ledger__bearing--north" aria-hidden="true">N / Build</span>
+          <span className="skill-ledger__bearing skill-ledger__bearing--east" aria-hidden="true">E / Deploy</span>
+          <span className="skill-ledger__bearing skill-ledger__bearing--south" aria-hidden="true">S / Connect</span>
+          <span className="skill-ledger__bearing skill-ledger__bearing--west" aria-hidden="true">W / Explain</span>
           {capabilities.map((capability) => (
             <article key={capability.title} className="skill-row">
               <span className="skill-row__number">{capability.number}</span>

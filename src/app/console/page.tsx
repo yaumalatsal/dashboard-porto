@@ -92,7 +92,7 @@ export default async function ConsolePage({
   if (openIncidents.length > 0) {
     actions.push({
       level: "critical",
-      text: `${openIncidents.length} incident${openIncidents.length === 1 ? "" : "s"} still open — start with ${
+      text: `${openIncidents.length} fault${openIncidents.length === 1 ? "" : "s"} is still open. Start with ${
         sites.find((s) => s.id === openIncidents[0].siteId)?.label ?? openIncidents[0].siteId
       }.`,
     });
@@ -100,7 +100,7 @@ export default async function ConsolePage({
   if (worstUptime && worstUptime.current.upRatio < 0.999) {
     actions.push({
       level: "warn",
-      text: `${worstUptime.config?.label} is the least available at ${formatUptime(worstUptime.current.upRatio)} over ${range.label}.`,
+      text: `${worstUptime.config?.label} has the lowest uptime: ${formatUptime(worstUptime.current.upRatio)} over ${range.label}.`,
     });
   }
   if (
@@ -111,7 +111,7 @@ export default async function ConsolePage({
   ) {
     actions.push({
       level: "warn",
-      text: `Fleet p95 is up ${Math.round(((p95Now - p95Before) / p95Before) * 100)}% on the previous ${range.label} — check the slowest app first.`,
+      text: `The p95 response time is ${Math.round(((p95Now - p95Before) / p95Before) * 100)}% higher than the last ${range.label}. Check the slowest application first.`,
     });
   }
   for (const row of rows) {
@@ -125,7 +125,7 @@ export default async function ConsolePage({
   if (actions.length === 0) {
     actions.push({
       level: "good",
-      text: `Nothing needs attention. All ${snapshots.length} application${snapshots.length === 1 ? "" : "s"} operational across ${range.label}.`,
+      text: `No system needs attention. All ${snapshots.length} application${snapshots.length === 1 ? "" : "s"} stayed operational for the last ${range.label}.`,
     });
   }
 
@@ -137,7 +137,7 @@ export default async function ConsolePage({
       <div className="board-head">
         <div>
           <p className="console__eyebrow">Operations / Live</p>
-          <h1>Everything I run.</h1>
+          <h1>The systems I run.</h1>
         </div>
         <ScopeBar
           current={rangeKey}
@@ -171,7 +171,7 @@ export default async function ConsolePage({
           footer={<Status health={overall} />}
         />
         <Kpi
-          label="Open incidents"
+          label="Open faults"
           value={String(openIncidents.length)}
           footer={
             <span className="kpi__note">
@@ -203,7 +203,7 @@ export default async function ConsolePage({
 
         <aside className="panel panel--insights" aria-label="Insights and actions">
           <div className="panel__head">
-            <h2>What to do</h2>
+            <h2>What to do next</h2>
           </div>
           <ul className="insight-list">
             {actions.slice(0, 4).map((action) => (
@@ -216,7 +216,7 @@ export default async function ConsolePage({
 
           {slowest && (
             <div className="insight-stat">
-              <span className="insight-stat__label">Slowest right now</span>
+              <span className="insight-stat__label">Slowest now</span>
               <span className="insight-stat__value">
                 {slowest.config?.label}
                 <em>
@@ -229,7 +229,7 @@ export default async function ConsolePage({
           )}
 
           <Link href="/console/logs" className="insight-link">
-            Open the full log →
+            Open the full log
           </Link>
         </aside>
       </section>
@@ -279,14 +279,14 @@ export default async function ConsolePage({
 
         <div className="panel">
           <div className="panel__head">
-            <h2>Recent activity</h2>
+            <h2>Recent events</h2>
             <Link href="/console/logs" className="panel__meta panel__meta--link">
               All events →
             </Link>
           </div>
           {events.length === 0 ? (
             <p className="panel__empty">
-              No warnings or errors recorded. Transitions appear here as they happen.
+              The console recorded no warnings and no errors. New events show here.
             </p>
           ) : (
             <ul className="activity">
@@ -305,8 +305,8 @@ export default async function ConsolePage({
       </section>
 
       <p className="console__note">
-        Health polled every 30s · services every 60s · metrics every 5 min ·
-        history retained 90 days.
+        The console checks the health every 30 seconds, the services every 60
+        seconds and the metrics every 5 minutes. It keeps 90 days of history.
         {openIncidents.length > 0 &&
           ` · ${HEALTH_LABEL[openIncidents[0].worst]} ongoing.`}
       </p>

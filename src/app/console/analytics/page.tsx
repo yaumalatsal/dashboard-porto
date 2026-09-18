@@ -66,10 +66,10 @@ export default async function AnalyticsPage({
       <AutoRefresh seconds={60} />
 
       <p className="console__eyebrow">Operations / Analytics</p>
-      <h1>Fleet analytics.</h1>
+      <h1>Compare the systems.</h1>
       <p className="console__lede">
-        Uptime and response-time behaviour across every monitored application,
-        computed from {totalSamples.toLocaleString("en-US")} recorded samples.
+        This page compares the uptime and the response time of each application.
+        The console calculated the values from {totalSamples.toLocaleString("en-US")} samples.
       </p>
 
       <RangePicker
@@ -102,7 +102,7 @@ export default async function AnalyticsPage({
                 : "—"}
             </div>
             <div className="hero-figure__label">
-              Slowest p95 {slowest ? `· ${slowest.site.label}` : ""}
+              Highest p95 {slowest ? `· ${slowest.site.label}` : ""}
             </div>
           </div>
           <div>
@@ -177,9 +177,9 @@ export default async function AnalyticsPage({
 
       <section className="console__section">
         <div className="console__section-head">
-          <h2>Reported metrics, compared</h2>
+          <h2>Metrics from the applications</h2>
           <span style={{ fontSize: "0.72rem", color: "var(--c-muted)" }}>
-            keys published by more than one application
+            values that two or more applications report
           </span>
         </div>
         <MetricCompare
@@ -193,7 +193,7 @@ export default async function AnalyticsPage({
         <div className="console__section-head">
           <h2>Response time / {range.label}</h2>
           <span style={{ fontSize: "0.72rem", color: "var(--c-muted)" }}>
-            one panel per application · independent scales
+            one panel for each application. Each panel has its own scale
           </span>
         </div>
         <div className="chart-grid">
@@ -214,7 +214,7 @@ export default async function AnalyticsPage({
               <p className="chart__sub">
                 {summary.samples > 0
                   ? `${formatUptime(summary.upRatio)} uptime · ${summary.samples.toLocaleString("en-US")} samples`
-                  : "Waiting for samples"}
+                  : "No samples yet"}
               </p>
               <PanelChart points={points.map((p) => p.latencyP50)} />
             </div>
@@ -223,9 +223,9 @@ export default async function AnalyticsPage({
       </section>
 
       <p className="console__note">
-        Percentiles are nearest-rank over the selected window. Each panel scales
-        to its own range, so compare shape here and absolute values in the table
-        above.
+        The console uses the nearest-rank method for the percentiles. Each panel
+        has its own scale. Use the panels to compare the shape. Use the table
+        above to compare the values.
       </p>
     </>
   );
@@ -238,7 +238,7 @@ export default async function AnalyticsPage({
 function PanelChart({ points }: { points: (number | null)[] }) {
   const values = points.filter((v): v is number => v !== null);
   if (values.length === 0) {
-    return <div className="chart__empty">Waiting for samples</div>;
+    return <div className="chart__empty">No samples yet</div>;
   }
 
   // One point cannot make a line; draw it as a marker so the panel still

@@ -63,7 +63,7 @@ export default async function TrafficPage({
       <div className="board-head">
         <div>
           <p className="console__eyebrow">Operations / Traffic</p>
-          <h1>Who is reading.</h1>
+          <h1>Site visitors.</h1>
         </div>
         <ScopeBar
           current={rangeKey}
@@ -74,10 +74,10 @@ export default async function TrafficPage({
 
       {!hasData ? (
         <div className="console__empty">
-          <h2>No visits recorded yet</h2>
+          <h2>No visits</h2>
           <p>
-            Views are counted by a beacon on each page. Open the site in another
-            tab and this fills in — or wait for the first real visitor.
+            Each page sends a signal when it opens. Open the site in another tab to
+            add a view. You can also wait for the first visitor.
           </p>
         </div>
       ) : (
@@ -101,7 +101,7 @@ export default async function TrafficPage({
               label="Views per visitor"
               value={viewsPerVisitor}
               footer={
-                <span className="kpi__note">depth of a typical visit</span>
+                <span className="kpi__note">pages in one visit</span>
               }
             />
             <Kpi
@@ -122,22 +122,22 @@ export default async function TrafficPage({
 
             <aside className="panel panel--insights" aria-label="Notes">
               <div className="panel__head">
-                <h2>How this is measured</h2>
+                <h2>How I measure this</h2>
               </div>
               <ul className="insight-list">
                 <li className="insight insight--good">
                   <i aria-hidden="true" />
-                  No cookies, no stored IP addresses, no cross-day identifier.
+                  I use no cookies. I store no IP address. I keep no identifier between days.
                 </li>
                 <li className="insight insight--good">
                   <i aria-hidden="true" />
-                  Visitors are counted with a hash salted by a key that is held
-                  in memory and rotates daily.
+                  I count visitors with a hash. The key stays in memory and changes
+                  each day.
                 </li>
                 <li className="insight insight--warn">
                   <i aria-hidden="true" />
-                  Counted by a browser beacon, so visitors blocking scripts are
-                  not represented.
+                  The browser sends the signal. This page does not count a visitor who
+                  blocks scripts.
                 </li>
               </ul>
               <div className="insight-stat">
@@ -162,7 +162,7 @@ export default async function TrafficPage({
             <div className="panel">
               <div className="panel__head">
                 <h2>Referrers</h2>
-                <span className="panel__meta">where visits came from</span>
+                <span className="panel__meta">the previous site</span>
               </div>
               <BreakdownList rows={referrers} total={now.views} />
             </div>
@@ -171,7 +171,7 @@ export default async function TrafficPage({
       )}
 
       <p className="console__note">
-        Traffic is retained for the same 90 days as the monitoring history.
+        The console keeps the traffic data for 90 days.
       </p>
     </>
   );

@@ -10,12 +10,12 @@ export default function ProjectsSection() {
   return (
     <div id="work" className="projects-section" tabIndex={-1} aria-labelledby="work-title">
       <div className="section-shell">
-        <SectionLabel number="02" label="Field Records" />
+        <SectionLabel number="02" label="Projects" />
         <div className="projects-intro">
           <h2 id="work-title">
-            {COUNT_WORDS[projects.length] ?? projects.length} systems,<br />mapped in context.
+            {COUNT_WORDS[projects.length] ?? projects.length} systems<br />that people use.
           </h2>
-          <p>Work delivered for hospitals, an industrial smelter, a government health agency and private clients — each shaped around a real operational terrain.</p>
+          <p>I built these systems for a hospital, an industrial smelter, a government health agency and private clients. Each system solves one operational problem.</p>
         </div>
         <div className="projects-list">
           {projects.map((project, index) => (

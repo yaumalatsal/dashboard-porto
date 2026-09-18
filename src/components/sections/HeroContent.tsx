@@ -94,7 +94,7 @@ export default function HeroContent() {
           <div className="hero-satellite__content hero-coordinates" data-hero-detail aria-hidden="true">
             <span>RA 02H 07M</span>
             <span>DEC +23 27</span>
-            <span>Aries plate / Orientation</span>
+            <span>Start</span>
           </div>
         </div>
       </div>

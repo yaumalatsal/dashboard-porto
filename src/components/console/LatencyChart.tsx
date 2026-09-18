@@ -54,7 +54,7 @@ export default function LatencyChart({ points }: Props) {
   if (withData.length === 0) {
     return (
       <div className="chart__empty">
-        No samples in this window yet — the chart fills in as the poller runs.
+        No samples for this period. The chart fills when the console collects data.
       </div>
     );
   }

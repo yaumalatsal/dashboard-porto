@@ -27,18 +27,18 @@ export default async function IncidentsPage() {
       <AutoRefresh seconds={60} />
 
       <p className="console__eyebrow">Operations / Incidents</p>
-      <h1>Incident record.</h1>
+      <h1>The fault record.</h1>
       <p className="console__lede">
-        Every period an application spent degraded or down, derived from the
-        health samples as they arrive.
+        This page shows each period when an application was degraded or down.
+        The console calculates the periods from the health checks.
       </p>
 
       {incidents.length === 0 ? (
         <div className="console__empty">
-          <h2>No incidents recorded</h2>
+          <h2>No faults</h2>
           <p>
-            Nothing has gone degraded or down since monitoring began. This page
-            fills itself in when something does.
+            No application became degraded or went down. This page fills when one
+            does.
           </p>
         </div>
       ) : (

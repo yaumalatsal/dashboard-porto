@@ -64,7 +64,7 @@ export default function FleetChart({ series }: { series: FleetSeries[] }) {
   if (!hasData || domain.max <= domain.min) {
     return (
       <div className="chart__empty" style={{ height: 300 }}>
-        Waiting for samples — the chart fills in as the poller runs.
+        No samples yet. The chart fills when the console collects data.
       </div>
     );
   }
@@ -228,7 +228,7 @@ export default function FleetChart({ series }: { series: FleetSeries[] }) {
           ))}
           {series.length > 3 && (
             <span className="legend__item legend__item--muted">
-              +{series.length - 3} more in the table below
+              {series.length - 3} more in the table below
             </span>
           )}
         </div>

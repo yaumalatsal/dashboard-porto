@@ -51,11 +51,11 @@ export default async function LogsPage({
       <AutoRefresh seconds={30} />
 
       <p className="console__eyebrow">Operations / Log</p>
-      <h1>What happened.</h1>
+      <h1>The event log.</h1>
       <p className="console__lede">
-        Status changes, probe failures and recoveries, newest first. Only
-        transitions are recorded — a poll that found everything unchanged does
-        not get a line, so this stays readable.
+        This page shows each status change, each probe failure and each recovery.
+        The newest event is first. The console records only a change. A check
+        that finds no change does not add a line.
       </p>
 
       <div className="log-summary">
@@ -79,11 +79,11 @@ export default async function LogsPage({
 
       {events.length === 0 ? (
         <div className="console__empty" style={{ marginTop: "1.5rem" }}>
-          <h2>Nothing logged yet</h2>
+          <h2>No events</h2>
           <p>
             {level || siteId
-              ? "No events match this filter. Try widening it."
-              : "No status changes or probe failures have been recorded. This page fills itself in when something happens."}
+              ? "No event matches this filter. Select a wider filter."
+              : "The console recorded no status change and no probe failure. This page fills when something happens."}
           </p>
         </div>
       ) : (
@@ -132,8 +132,8 @@ export default async function LogsPage({
       )}
 
       <p className="console__note">
-        Showing up to 200 entries. Retained for the same 90 days as the
-        time-series.
+        This page shows a maximum of 200 events. The console keeps them for 90
+        days.
       </p>
     </>
   );

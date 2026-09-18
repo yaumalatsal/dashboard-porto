@@ -36,7 +36,7 @@ export default function Footer() {
       <div className="site-footer__instrument" data-instrument-trace aria-hidden="true">
         <span /><span /><span /><i />
       </div>
-      <div className="site-footer__seal" aria-hidden="true">Field Office</div>
+      <div className="site-footer__seal" aria-hidden="true">Portfolio</div>
       <div className="site-footer__inner">
         <div>
           <p className="site-footer__brand">{profile.name}</p>
@@ -65,7 +65,7 @@ export default function Footer() {
           <a href="#hero" aria-label="Back to top" data-cursor="link"><ArrowUp size={17} /></a>
         </div>
         <p className="site-footer__copyright">
-          {new Date().getFullYear()} / Built and operated in {profile.location}
+          {new Date().getFullYear()} / I build and operate this site in {profile.location}
         </p>
       </div>
     </footer>

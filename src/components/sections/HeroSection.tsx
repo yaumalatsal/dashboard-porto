@@ -85,7 +85,7 @@ export default function HeroSection() {
         </div>
 
         <a className="hero-scroll" href="#about" data-cursor="link" data-hero-detail>
-          <span>Follow the constellation</span><ArrowDown size={16} aria-hidden="true" />
+          <span>Move down the page</span><ArrowDown size={16} aria-hidden="true" />
         </a>
 
       </div>

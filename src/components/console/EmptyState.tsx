@@ -43,10 +43,10 @@ export default function EmptyState() {
   return (
     <>
       <p className="console__eyebrow">Operations / Setup</p>
-      <h1>No applications registered yet.</h1>
+      <h1>No applications.</h1>
 
       <div className="console__empty">
-        <h2>Add your first app</h2>
+        <h2>Add the first application</h2>
         <p>
           Write <code>sites.json</code> at <code>{configPath}</code>, or POST to{" "}
           <code>/api/monitor/sites</code> with a <code>baseUrl</code> to derive

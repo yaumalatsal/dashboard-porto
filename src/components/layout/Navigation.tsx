@@ -8,12 +8,12 @@ import { useUiStore, type AstrolabeSection } from "@/stores/uiStore";
 import { experiences, profile } from "@/data/portfolio";
 
 const allLinks = [
-  { section: "about" as AstrolabeSection, href: "#about", label: "Practice" },
-  { section: "work" as AstrolabeSection, href: "#work", label: "Field Records" },
-  { section: "skills" as AstrolabeSection, href: "#skills", label: "Field Kit" },
+  { section: "about" as AstrolabeSection, href: "#about", label: "About" },
+  { section: "work" as AstrolabeSection, href: "#work", label: "Projects" },
+  { section: "skills" as AstrolabeSection, href: "#skills", label: "Skills" },
   { section: "operations" as AstrolabeSection, href: "#operations", label: "Live Systems" },
   { section: "experience" as AstrolabeSection, href: "#experience", label: "Experience" },
-  { section: "credentials" as AstrolabeSection, href: "#credentials", label: "Record" },
+  { section: "credentials" as AstrolabeSection, href: "#credentials", label: "Education" },
   { section: "contact" as AstrolabeSection, href: "#contact", label: "Contact" },
 ] as const;
 
@@ -105,7 +105,7 @@ export default function Navigation() {
         <div className="site-nav__inner">
           <a className="site-nav__brand" href="#hero" onClick={(event) => navigate(event, "hero")} data-cursor="link">
             <span className="site-nav__sigil" aria-hidden="true" />
-            <span className="site-nav__wordmark">{profile.shortName} <small>Field Office</small></span>
+            <span className="site-nav__wordmark">{profile.shortName} <small>Portfolio</small></span>
           </a>
 
           <div className="site-nav__links">
@@ -147,7 +147,7 @@ export default function Navigation() {
 
       <div id="mobile-navigation" className={`mobile-nav${isMenuOpen ? " is-open" : ""}`} aria-hidden={!isMenuOpen}>
         <div className="mobile-nav__instrument" aria-hidden="true"><span /><span /><i /></div>
-        <p className="mobile-nav__eyebrow">Field guide index</p>
+        <p className="mobile-nav__eyebrow">Contents</p>
         <div className="mobile-nav__links">
           {links.map((link, index) => (
             <a key={link.href} href={link.href} onClick={(event) => navigate(event, link.section)} tabIndex={isMenuOpen ? 0 : -1}>
@@ -156,7 +156,7 @@ export default function Navigation() {
           ))}
         </div>
         <Link href="/console" className="mobile-nav__console" tabIndex={isMenuOpen ? 0 : -1}>
-          Live Console <span aria-hidden="true">↗</span>
+          Console <span aria-hidden="true">↗</span>
         </Link>
         <p className="mobile-nav__footer">{profile.role} / {profile.location}</p>
       </div>

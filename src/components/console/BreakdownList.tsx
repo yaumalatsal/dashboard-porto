@@ -16,7 +16,7 @@ export default function BreakdownList({
   total: number;
 }) {
   if (rows.length === 0) {
-    return <p className="panel__empty">Nothing recorded in this window.</p>;
+    return <p className="panel__empty">No data for this period.</p>;
   }
 
   const top = Math.max(...rows.map((r) => r.views), 1);

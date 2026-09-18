@@ -48,10 +48,10 @@ const portfolioStar = (key: string, content: PortfolioStarContent): OrreryStar =
 };
 
 const stars: OrreryStar[] = [
-  portfolioStar("bharani", { id: "hero", chapter: "Orientation", title: profile.shortName, story: "Web systems and network engineering, treated as one connected sky.", level: "00", status: "Origin charted" }),
-  portfolioStar("botein", { id: "contact", chapter: "Correspondence", title: "Bring the difficult map", story: "Selected commissions for digital products, interactive stories, service platforms, and systems that cross disciplines.", level: "05", status: "Signal open" }),
-  portfolioStar("hamal", { id: "about", chapter: "The Practice", title: "Making terrain legible", story: "I turn complex product and infrastructure problems into clear, expressive systems people can understand and use.", level: "01", status: "Primary route" }),
-  portfolioStar("sheratan", { id: "work", chapter: "Field Records", title: "Systems in context", story: "Selected work spanning observability, immersive storytelling, service operations, and design systems.", level: "02", status: "Four records" }),
+  portfolioStar("bharani", { id: "hero", chapter: "Start", title: profile.shortName, story: "I build web systems and I operate the networks below them.", level: "00", status: "Origin charted" }),
+  portfolioStar("botein", { id: "contact", chapter: "Contact", title: "Bring the difficult map", story: "Selected commissions for digital products, interactive stories, service platforms, and systems that cross disciplines.", level: "05", status: "Signal open" }),
+  portfolioStar("hamal", { id: "about", chapter: "About", title: "Making terrain legible", story: "I turn complex product and infrastructure problems into clear, expressive systems people can understand and use.", level: "01", status: "Primary route" }),
+  portfolioStar("sheratan", { id: "work", chapter: "Projects", title: "Systems in context", story: "Selected work spanning observability, immersive storytelling, service operations, and design systems.", level: "02", status: "Four records" }),
   portfolioStar("mesarthim", { id: "skills", chapter: "Capabilities", title: "Four working layers", story: "Direction, product engineering, infrastructure, and operations form a single practical toolkit.", level: "03", status: "Kit calibrated" }),
   portfolioStar("eta-psc", { id: "experience", chapter: "Field Journal", title: "Beyond the workbench", story: "Conferences spoken at, communities built, and organisations shaped outside the daily practice.", level: "04", status: "Signal active" }),
   portfolioStar("alrescha", { id: "pisces", chapter: "The Knot", title: "Binding the threads", story: "Connecting disparate systems into a unified whole, just as Alrescha binds the two fishes.", level: "06", status: "New signal" }),
@@ -60,15 +60,15 @@ const stars: OrreryStar[] = [
 const rimGripPositions = ["north", "east", "south", "west"] as const;
 
 const missionMedia: Record<AstrolabeSection, { src: string; label: string; title: string }> = {
-  hero: { src: "/images/projects/nexus-control.png", label: "Origin survey", title: "Field system" },
-  about: { src: "/images/projects/chronoscape.png", label: "Practice survey", title: "Interfaces as navigable terrain" },
-  work: { src: "/images/projects/field-console.png", label: "Selected record", title: "Field Console" },
-  skills: { src: "/images/projects/astrolabe.png", label: "Capability scan", title: "Build, direct, operate, connect" },
-  operations: { src: "/images/projects/field-console.png", label: "Live systems", title: "Production status, measured" },
-  experience: { src: "/images/projects/chronoscape-field-guide.png", label: "Field journal", title: "Where the work was done" },
-  credentials: { src: "/images/projects/embervault-field-guide.png", label: "Record", title: "Education and certification" },
-  contact: { src: "/images/projects/ironclad.png", label: "Signal channel", title: "Open correspondence" },
-  pisces: { src: "/images/projects/chronoscape-field-guide.png", label: "Constellation survey", title: "The Pisces knot" },
+  hero: { src: "/images/projects/nexus-control.png", label: "Start", title: "Portfolio" },
+  about: { src: "/images/projects/chronoscape.png", label: "About", title: "How I work" },
+  work: { src: "/images/projects/field-console.png", label: "Project", title: "Operations Console" },
+  skills: { src: "/images/projects/astrolabe.png", label: "Skills", title: "Build, deploy, connect, explain" },
+  operations: { src: "/images/projects/field-console.png", label: "Live systems", title: "The systems I run now" },
+  experience: { src: "/images/projects/chronoscape-field-guide.png", label: "Experience", title: "Where I worked" },
+  credentials: { src: "/images/projects/embervault-field-guide.png", label: "Education", title: "Education and certificates" },
+  contact: { src: "/images/projects/ironclad.png", label: "Contact", title: "How to reach me" },
+  pisces: { src: "/images/projects/chronoscape-field-guide.png", label: "Star map", title: "The second map" },
 };
 
 /** The instrument tips this far before the case starts hiding its own face. */
@@ -1055,7 +1055,7 @@ export default function AstrolabeScene() {
       <div className={`orrery__guide${hasOpenedChapter ? " is-learned" : ""}`}>
         <p className="orrery__instruction">
           <span className="orrery__instruction-mark" aria-hidden="true" />
-          Drag the instrument <span>· select a star to jump to its chapter</span>
+          Turn the instrument. <span>Select a star to go to that section.</span>
         </p>
       </div>
 

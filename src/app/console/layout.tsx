@@ -15,8 +15,7 @@ import "./console.css";
 
 export const metadata: Metadata = {
   title: "Console",
-  description:
-    "Live operational status for the applications I run in production.",
+  description: "The status of the applications that I run in production.",
 };
 
 export default function ConsoleLayout({
@@ -33,7 +32,7 @@ export default function ConsoleLayout({
         </Link>
         <ConsoleNav />
         <Link href="/" className="console__back">
-          ← Field Office
+          ← Portfolio
         </Link>
       </header>
       <main className="console__main">{children}</main>
@@ -44,7 +43,7 @@ export default function ConsoleLayout({
         <span>
           {profile.name} — {profile.role}
         </span>
-        <Link href="/">Return to the field office ←</Link>
+        <Link href="/">Back to the portfolio ←</Link>
       </footer>
     </div>
   );

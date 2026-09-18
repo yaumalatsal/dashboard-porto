@@ -21,14 +21,14 @@ export default function ContactSection() {
         <i />
       </div>
       <div className="section-shell">
-        <SectionLabel number="05" label="Correspondence" light />
+        <SectionLabel number="07" label="Contact" light />
         <div className="contact-grid">
           <div>
-            <p className="contact-section__eyebrow">Accepting selected commissions</p>
-            <h2 id="contact-title">Bring me the<br /><em>difficult map.</em></h2>
+            <p className="contact-section__eyebrow">{profile.availability}</p>
+            <h2 id="contact-title">Send me the<br /><em>difficult problem.</em></h2>
           </div>
           <div className="contact-copy">
-            <p>For immersive web experiences, internal platforms, network architecture, or work that spans all three.</p>
+            <p>I take work on web applications, internal platforms and networks. I also take work that needs all three.</p>
             {profile.email ? (
               <a
                 ref={magneticRef}
@@ -68,7 +68,7 @@ export default function ContactSection() {
             </div>
           </div>
         </div>
-        <div className="contact-note"><span />Based in {profile.location} / open to remote</div>
+        <div className="contact-note"><span />I work in {profile.location}. I also work remotely</div>
       </div>
     </div>
   );

@@ -60,7 +60,7 @@ export default function AboutSection() {
             <span className="atlas__node atlas__node--one">Experience</span>
             <span className="atlas__node atlas__node--two">Software</span>
             <span className="atlas__node atlas__node--three">Infrastructure</span>
-            <p className="atlas__caption">One connected practice / Plate 01</p>
+            <p className="atlas__caption">One practice</p>
           </div>
         </div>
 
