@@ -89,6 +89,28 @@ export function formatUptime(ratio: number): string {
   return `${pct.toFixed(1)}%`;
 }
 
+/**
+ * Compares a metric against the limits its adapter declared.
+ *
+ * `warnAbove` and `critAbove` were part of the Metric type from the start and
+ * nothing read them, so an application could declare a limit and the console
+ * would ignore it. A metric with no limit returns "none" and renders plain.
+ */
+export function metricLevel(metric: {
+  value: number | string;
+  warnAbove?: number;
+  critAbove?: number;
+}): "none" | "warn" | "critical" {
+  if (typeof metric.value !== "number") return "none";
+  if (metric.critAbove !== undefined && metric.value > metric.critAbove) {
+    return "critical";
+  }
+  if (metric.warnAbove !== undefined && metric.value > metric.warnAbove) {
+    return "warn";
+  }
+  return "none";
+}
+
 /** Human label for a health state. Always shown beside the colour, never alone. */
 export const HEALTH_LABEL: Record<Health, string> = {
   operational: "Operational",

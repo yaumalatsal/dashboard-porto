@@ -1492,3 +1492,178 @@
   color: var(--c-copper);
 }
 .metric-compare .ctable { width: 100%; min-width: 420px; }
+
+/* ── Application tabs ─────────────────────────────────────────────────────
+   Links, not buttons: each one is a real address, so a chosen application
+   survives the refresh and can be kept open. */
+.site-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  margin-bottom: var(--s-3);
+}
+.site-tab {
+  padding: 6px 14px;
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 999px;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-ink-2);
+  text-decoration: none;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.site-tab:hover { color: var(--c-ink); border-color: var(--c-rule); }
+.site-tab[aria-current="true"] {
+  background: var(--c-ember);
+  border-color: var(--c-ember);
+  color: var(--c-page);
+}
+
+/* ── Error budget meter ───────────────────────────────────────────────────
+   One ratio against one limit, so a meter and not a chart. The unfilled track
+   is a darker step of the same ramp, which keeps the state readable across the
+   whole bar rather than only where the fill ends. */
+.budget { display: flex; flex-direction: column; gap: var(--s-2); }
+.budget__track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(253, 248, 225, 0.08);
+  overflow: hidden;
+}
+.budget__fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+.budget__fill--good { background: var(--s-good); }
+.budget__fill--warn { background: var(--s-warning); }
+.budget__fill--critical { background: var(--s-critical); }
+.budget__text {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--c-ink-2);
+}
+.budget__text strong { color: var(--c-ink); font-weight: 600; }
+
+.kpi__note--good { color: var(--s-good); }
+.kpi__note--warn { color: var(--s-warning); }
+.kpi__note--critical { color: var(--s-critical); }
+
+/* ── Heatmap ──────────────────────────────────────────────────────────────
+   24 columns for the hours and one row for each weekday. A 2px gap of surface
+   separates the cells; no cell carries a border. */
+.heatmap { display: flex; flex-direction: column; gap: var(--s-2); }
+.heatmap__grid {
+  display: grid;
+  grid-template-columns: 2.6rem repeat(24, minmax(0, 1fr));
+  gap: 2px;
+  align-items: center;
+}
+.heatmap__hour,
+.heatmap__day {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.56rem;
+  color: var(--c-muted);
+}
+.heatmap__hour { text-align: left; }
+.heatmap__day { letter-spacing: 0.06em; }
+.heatmap__cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  min-height: 12px;
+}
+/* An hour with no samples is not a fast hour. It reads as absence. */
+.heatmap__cell--empty {
+  background: var(--grid);
+  opacity: 0.45;
+}
+.heatmap__legend {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+.heatmap__legend i {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+}
+.heatmap__legend em {
+  margin-left: auto;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Histogram ────────────────────────────────────────────────────────────
+   Horizontal bars, because the bucket labels are long. */
+.histogram { list-style: none; margin: 0; padding: 0; }
+.histogram__row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) 3.2rem 3rem;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-1) 0;
+  font-size: 0.8rem;
+}
+.histogram__label {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.68rem;
+  color: var(--c-ink-2);
+  white-space: nowrap;
+}
+.histogram__track {
+  height: 10px;
+  background: rgba(253, 248, 225, 0.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.histogram__bar {
+  display: block;
+  height: 100%;
+  /* 4px rounded data end, square at the baseline. */
+  border-radius: 0 4px 4px 0;
+  background: var(--series-accent);
+}
+.histogram__share,
+.histogram__count {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--c-muted);
+  font-size: 0.74rem;
+}
+.histogram__count { color: var(--c-ink); font-weight: 600; }
+
+@media (max-width: 720px) {
+  .heatmap__grid { grid-template-columns: 2.2rem repeat(24, minmax(0, 1fr)); }
+  .heatmap__cell { min-height: 8px; border-radius: 1px; }
+  .histogram__row { grid-template-columns: 5.4rem minmax(0, 1fr) 2.8rem; }
+  .histogram__count { display: none; }
+}
+
+/* A metric past a limit its own application declared. The colour marks the
+   value; the label stays in readable ink. */
+.metric-row--warn .metric-row__value { color: var(--s-warning); }
+.metric-row--critical .metric-row__value { color: var(--s-critical); }
+.metric-row--critical .metric-row__value::after,
+.metric-row--warn .metric-row__value::after {
+  content: " !";
+  font-family: var(--font-jetbrains), monospace;
+}
+
+/* The caveat on a partial figure. Quiet, but present whenever the window is
+   longer than the history. */
+.budget__caveat {
+  margin: 0;
+  padding-top: var(--s-1);
+  border-top: 1px solid var(--c-rule-soft);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--c-muted);
+}

@@ -21,6 +21,7 @@ import {
   formatMetric,
   formatRelative,
   formatUptime,
+  metricLevel,
   HEALTH_LABEL,
 } from "@/lib/monitor/format";
 import type { Metric } from "@/lib/monitor/types";
@@ -230,7 +231,10 @@ export default async function SitePage({
               <div key={group} className="metric-group">
                 <h3>{group}</h3>
                 {metrics.map((metric) => (
-                  <div key={metric.key} className="metric-row">
+                  <div
+                    key={metric.key}
+                    className={`metric-row metric-row--${metricLevel(metric)}`}
+                  >
                     <span className="metric-row__label" title={metric.label}>
                       {metric.label}
                     </span>

@@ -173,6 +173,23 @@ function connect(): DatabaseSync {
     "CREATE INDEX IF NOT EXISTS idx_views_path_ts ON page_views (path, ts)",
   );
 
+  /**
+   * The certificate expiry for each site that uses https.
+   *
+   * One row per site, replaced on each check: only the current expiry date
+   * matters, and a history of "it was still valid yesterday" has no use.
+   */
+  handle.exec(`
+    CREATE TABLE IF NOT EXISTS tls_checks (
+      site_id    TEXT PRIMARY KEY,
+      host       TEXT    NOT NULL,
+      checked_at INTEGER NOT NULL,
+      valid_to   INTEGER NOT NULL,
+      issuer     TEXT,
+      error      TEXT
+    );
+  `);
+
   db = handle;
   return handle;
 }
@@ -837,4 +854,292 @@ export function topReferrers(windowSeconds: number, limit = 10): TrafficRow[] {
      FROM page_views WHERE ts >= ?
      GROUP BY label ORDER BY views DESC LIMIT ?`,
   ).all(since, limit) as TrafficRow[];
+}
+
+/* ----------------------------------------------------------- reliability */
+
+export type SloStatus = {
+  target: number;
+  actual: number;
+  /** Seconds of downtime the target permits across the whole window. */
+  budgetSeconds: number;
+  /** Seconds of downtime measured inside the observed period. */
+  usedSeconds: number;
+  /** 0 = untouched, 1 = exhausted, above 1 = over. */
+  consumed: number;
+  samples: number;
+  /** Seconds of the window that the console actually watched. */
+  observedSeconds: number;
+  /** observedSeconds / windowSeconds. Below 1 means the figure is partial. */
+  coverage: number;
+};
+
+/**
+ * Uptime against a target, expressed as an error budget.
+ *
+ * "99.4% uptime" does not say whether that is acceptable. An error budget does:
+ * a 99.9% target over 30 days permits 43 minutes of downtime, and the number
+ * that matters is how much of that is already spent.
+ *
+ * Downtime is derived from the sample ratio rather than from incident
+ * durations. Samples are evenly spaced, so the ratio of bad samples is an
+ * unbiased estimate of the ratio of bad time; incident records start and end on
+ * a sample boundary and would round every outage up to the poll interval.
+ */
+export function sloStatus(
+  siteId: string,
+  windowSeconds: number,
+  target = 0.999,
+): SloStatus {
+  const summary = uptimeSummary(siteId, windowSeconds);
+  const budgetSeconds = windowSeconds * (1 - target);
+
+  /**
+   * Downtime is measured across the period the console watched, not across the
+   * whole window.
+   *
+   * Multiplying the bad-sample ratio by the full window assumes the samples
+   * cover it. On a new deployment they do not: one minute of checks at 47%
+   * uptime became "16 days of downtime in the last 30 days", and the error
+   * budget was useless for as long as the history was shorter than the window.
+   *
+   * `coverage` is returned with the figure so a page can say how much of the
+   * window the number rests on.
+   */
+  const bounds = sql(
+    `SELECT MIN(ts) AS first, MAX(ts) AS last FROM samples
+     WHERE site_id = ? AND ts >= ?`,
+  ).get(siteId, Date.now() - windowSeconds * 1000) as {
+    first: number | null;
+    last: number | null;
+  };
+
+  const observedSeconds =
+    bounds?.first != null && bounds?.last != null
+      ? Math.min(windowSeconds, (bounds.last - bounds.first) / 1000)
+      : 0;
+
+  const usedSeconds =
+    summary.samples > 0 ? observedSeconds * (1 - summary.upRatio) : 0;
+
+  return {
+    target,
+    actual: summary.upRatio,
+    budgetSeconds,
+    usedSeconds,
+    consumed: budgetSeconds > 0 ? usedSeconds / budgetSeconds : 0,
+    samples: summary.samples,
+    observedSeconds,
+    coverage: windowSeconds > 0 ? observedSeconds / windowSeconds : 0,
+  };
+}
+
+export type IncidentStats = {
+  count: number;
+  /** Mean time to recovery, in seconds. Closed incidents only. */
+  mttrSeconds: number | null;
+  /** Mean time between the start of one incident and the next, in seconds. */
+  mtbfSeconds: number | null;
+  longestSeconds: number | null;
+  openCount: number;
+};
+
+/**
+ * How often it breaks, and how long it stays broken.
+ *
+ * MTTR counts only closed incidents: an incident still running has no recovery
+ * time yet, and including it as "so far" would drag the mean down every time
+ * the page refreshes.
+ */
+export function incidentStats(
+  siteId: string,
+  windowSeconds: number,
+): IncidentStats {
+  const since = Date.now() - windowSeconds * 1000;
+
+  const rows = sql(
+    `SELECT started_at, ended_at FROM incidents
+     WHERE site_id = ? AND started_at >= ? ORDER BY started_at ASC`,
+  ).all(siteId, since) as { started_at: number; ended_at: number | null }[];
+
+  const closed = rows.filter((r) => r.ended_at !== null);
+  const durations = closed.map((r) => (r.ended_at! - r.started_at) / 1000);
+
+  const gaps: number[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    gaps.push((rows[i].started_at - rows[i - 1].started_at) / 1000);
+  }
+
+  const mean = (values: number[]) =>
+    values.length > 0
+      ? values.reduce((a, b) => a + b, 0) / values.length
+      : null;
+
+  return {
+    count: rows.length,
+    mttrSeconds: mean(durations),
+    mtbfSeconds: mean(gaps),
+    longestSeconds: durations.length > 0 ? Math.max(...durations) : null,
+    openCount: rows.length - closed.length,
+  };
+}
+
+export type HistogramBin = { from: number; to: number | null; count: number };
+
+/**
+ * The shape of the response times, not only their percentiles.
+ *
+ * p50 and p95 hide whether the distribution has one peak or two. A service that
+ * answers in 40ms from cache and 900ms from the database has a bimodal shape
+ * that no percentile shows, and the fix for it is different.
+ *
+ * The boundaries are fixed rather than derived from the data, so the picture
+ * does not change shape when the range changes.
+ */
+const HISTOGRAM_EDGES = [0, 50, 100, 200, 500, 1000, 2000];
+
+export function latencyHistogram(
+  siteId: string,
+  windowSeconds: number,
+): HistogramBin[] {
+  const since = Date.now() - windowSeconds * 1000;
+
+  const cases = HISTOGRAM_EDGES.map(
+    (edge, i) =>
+      `SUM(CASE WHEN latency_ms >= ${edge}${
+        i < HISTOGRAM_EDGES.length - 1
+          ? ` AND latency_ms < ${HISTOGRAM_EDGES[i + 1]}`
+          : ""
+      } THEN 1 ELSE 0 END) AS b${i}`,
+  ).join(", ");
+
+  const row = sql(
+    `SELECT ${cases} FROM samples
+     WHERE site_id = ? AND ts >= ? AND latency_ms IS NOT NULL`,
+  ).get(siteId, since) as Record<string, number>;
+
+  return HISTOGRAM_EDGES.map((edge, i) => ({
+    from: edge,
+    to: i < HISTOGRAM_EDGES.length - 1 ? HISTOGRAM_EDGES[i + 1] : null,
+    count: row?.[`b${i}`] ?? 0,
+  }));
+}
+
+export type HeatCell = {
+  weekday: number;
+  hour: number;
+  value: number | null;
+  samples: number;
+};
+
+/**
+ * Mean response time for each hour of each weekday.
+ *
+ * This answers "when is it slow", which a time series cannot: a spike every
+ * Monday at 09:00 looks like random noise on a 30-day line, and like a column
+ * here.
+ *
+ * `offsetMinutes` shifts the timestamps before the hour is read, because the
+ * server clock is usually UTC and the question is about local working hours.
+ */
+export function latencyHeatmap(
+  siteId: string,
+  windowSeconds: number,
+  offsetMinutes = 0,
+): HeatCell[] {
+  const since = Date.now() - windowSeconds * 1000;
+  const shiftSeconds = offsetMinutes * 60;
+
+  const rows = sql(
+    `SELECT
+       CAST(strftime('%w', (ts / 1000) + ?, 'unixepoch') AS INTEGER) AS weekday,
+       CAST(strftime('%H', (ts / 1000) + ?, 'unixepoch') AS INTEGER) AS hour,
+       AVG(latency_ms) AS value,
+       COUNT(*)        AS samples
+     FROM samples
+     WHERE site_id = ? AND ts >= ? AND latency_ms IS NOT NULL
+     GROUP BY weekday, hour`,
+  ).all(shiftSeconds, shiftSeconds, siteId, since) as {
+    weekday: number;
+    hour: number;
+    value: number;
+    samples: number;
+  }[];
+
+  const byCell = new Map(rows.map((r) => [`${r.weekday}-${r.hour}`, r]));
+  const out: HeatCell[] = [];
+
+  // Every cell is emitted, including the empty ones. A gap in the grid is the
+  // honest answer for an hour that was never observed.
+  for (let weekday = 0; weekday < 7; weekday++) {
+    for (let hour = 0; hour < 24; hour++) {
+      const cell = byCell.get(`${weekday}-${hour}`);
+      out.push({
+        weekday,
+        hour,
+        value: cell ? Math.round(cell.value) : null,
+        samples: cell?.samples ?? 0,
+      });
+    }
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------- TLS */
+
+export function recordTlsCheck(check: {
+  siteId: string;
+  host: string;
+  validTo: number;
+  issuer: string | null;
+  error?: string | null;
+}): void {
+  sql(
+    `INSERT INTO tls_checks (site_id, host, checked_at, valid_to, issuer, error)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(site_id) DO UPDATE SET
+       host = excluded.host, checked_at = excluded.checked_at,
+       valid_to = excluded.valid_to, issuer = excluded.issuer,
+       error = excluded.error`,
+  ).run(
+    check.siteId,
+    check.host,
+    Date.now(),
+    check.validTo,
+    check.issuer,
+    check.error ?? null,
+  );
+}
+
+export type TlsStatus = {
+  siteId: string;
+  host: string;
+  checkedAt: number;
+  validTo: number;
+  issuer: string | null;
+  error: string | null;
+  daysLeft: number;
+};
+
+export function tlsStatuses(): TlsStatus[] {
+  const rows = sql("SELECT * FROM tls_checks").all() as Record<
+    string,
+    unknown
+  >[];
+
+  return rows.map((r) => ({
+    siteId: r.site_id as string,
+    host: r.host as string,
+    checkedAt: r.checked_at as number,
+    validTo: r.valid_to as number,
+    issuer: (r.issuer as string | null) ?? null,
+    error: (r.error as string | null) ?? null,
+    daysLeft: Math.floor(
+      ((r.valid_to as number) - Date.now()) / 86_400_000,
+    ),
+  }));
+}
+
+export function tlsStatus(siteId: string): TlsStatus | null {
+  return tlsStatuses().find((t) => t.siteId === siteId) ?? null;
 }

@@ -21,7 +21,10 @@ import {
   readSnapshot,
   recordEvent,
   recordMetrics,
+  recordTlsCheck,
+  tlsStatus,
 } from "./store";
+import { checkCertificate } from "./tls";
 import type { Health, ProbeResult, SiteConfig, SiteSnapshot } from "./types";
 
 const DEFAULT_INTERVALS: Record<string, number> = {
@@ -304,6 +307,63 @@ export function reconcile(): void {
   }
 }
 
+/**
+ * Reads the certificate of every https site.
+ *
+ * Runs once at start and then daily. A certificate changes a few times a year,
+ * so a faster check would add load for no new information. An event is written
+ * when the certificate enters the last 21 days, which is enough warning to
+ * renew it by hand if the automatic renewal failed.
+ */
+async function checkCertificates(): Promise<void> {
+  for (const site of loadConfig().sites) {
+    const target = site.url ?? site.probes[0]?.url;
+    if (!target) continue;
+
+    const info = await checkCertificate(target);
+    if (!info) continue;
+
+    const previous = tlsStatus(site.id);
+
+    recordTlsCheck({
+      siteId: site.id,
+      host: info.host,
+      validTo: info.validTo,
+      issuer: info.issuer,
+      error: info.error ?? null,
+    });
+
+    if (info.error) {
+      recordEvent({
+        siteId: site.id,
+        level: "warn",
+        kind: "system",
+        message: `${site.label}: the console cannot read the certificate`,
+        detail: info.error,
+      });
+      continue;
+    }
+
+    const daysLeft = Math.floor((info.validTo - Date.now()) / 86_400_000);
+
+    // Only on the way in, so a certificate that sits at 14 days does not log a
+    // line every day until somebody renews it.
+    const wasAbove =
+      previous === null ||
+      Math.floor((previous.validTo - Date.now()) / 86_400_000) > 21;
+
+    if (daysLeft <= 21 && wasAbove) {
+      recordEvent({
+        siteId: site.id,
+        level: daysLeft <= 7 ? "error" : "warn",
+        kind: "system",
+        message: `${site.label}: the certificate expires in ${daysLeft} days`,
+        detail: info.host,
+      });
+    }
+  }
+}
+
 export function startPolling(): void {
   if (state.started) return;
   state.started = true;
@@ -321,6 +381,11 @@ export function startPolling(): void {
   } catch (error) {
     console.error("[monitor] prune failed:", error);
   }
+
+  void checkCertificates();
+  const certificates = setInterval(() => void checkCertificates(), 86_400_000);
+  certificates.unref?.();
+  globalTimers.add(certificates);
 
   // Picks up hand-edits to sites.json without a restart.
   const reconciler = setInterval(reconcile, 30_000);
