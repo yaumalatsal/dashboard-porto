@@ -18,13 +18,14 @@ import { notFound } from "next/navigation";
 import { projects, stated } from "@/data/portfolio";
 import { projectBySlug, projectDashboard } from "@/lib/monitor/projects";
 import {
+  HEALTH_LABEL,
   compact,
+  coverageLabel,
   formatDuration,
   formatMetric,
   formatRelative,
   formatUptime,
   metricLevel,
-  HEALTH_LABEL,
 } from "@/lib/monitor/format";
 import type { Metric } from "@/lib/monitor/types";
 import AutoRefresh from "@/components/console/AutoRefresh";
@@ -232,7 +233,7 @@ export default async function ProjectDashboardPage({
         {live ? (
           <>
             <Kpi
-              label="Uptime / 30d"
+              label={`Uptime / ${coverageLabel("30d", live.month.observedSeconds, live.month.coverage)}`}
               value={
                 live.month.samples > 0 ? formatUptime(live.month.upRatio) : "—"
               }

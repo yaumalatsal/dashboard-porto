@@ -27,6 +27,7 @@ import {
   type ProjectData,
 } from "@/data/portfolio";
 import { getSite } from "./config";
+import { coverageLabel } from "./format";
 import { currentSnapshot } from "./poller";
 import {
   dailyUptime,
@@ -173,6 +174,8 @@ export type ProjectCard = {
   access: (typeof ACCESS)[ProjectAccess];
   health: Health | null;
   upRatio: number | null;
+  /** The window upRatio may honestly claim: "30d" only once 30d were watched. */
+  uptimeWindow: string;
   studyViews: number;
 };
 
@@ -187,6 +190,9 @@ export function projectCards(): ProjectCard[] {
       access: ACCESS[project.monitor.access],
       health: siteId && config ? (currentSnapshot(siteId)?.health ?? "unknown") : null,
       upRatio: summary && summary.samples > 0 ? summary.upRatio : null,
+      uptimeWindow: summary
+        ? coverageLabel("30d", summary.observedSeconds, summary.coverage)
+        : "30d",
       studyViews: pathSummary(`/work/${project.slug}`, MONTH).views,
     };
   });

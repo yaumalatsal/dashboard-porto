@@ -17,7 +17,7 @@ import {
   tlsStatuses,
   uptimeSummary,
 } from "@/lib/monitor/store";
-import { formatDuration, formatUptime } from "@/lib/monitor/format";
+import { coverageLabel, formatDuration, formatUptime } from "@/lib/monitor/format";
 import AutoRefresh from "@/components/console/AutoRefresh";
 import ScopeBar from "@/components/console/ScopeBar";
 import Kpi from "@/components/console/Kpi";
@@ -111,7 +111,8 @@ export default async function ReliabilityPage({
           value={slo.samples > 0 ? formatUptime(slo.actual) : "—"}
           footer={
             <span className="kpi__note">
-              {slo.samples.toLocaleString("en-US")} checks
+              {slo.samples.toLocaleString("en-US")} checks over{" "}
+              {coverageLabel(range.label, slo.observedSeconds, slo.coverage)}
             </span>
           }
         />
@@ -309,6 +310,11 @@ export default async function ReliabilityPage({
                     {row.summary.samples > 0
                       ? formatUptime(row.summary.upRatio)
                       : "—"}
+                    {row.summary.samples > 0 && row.summary.coverage < 0.9 && (
+                      <em className="ctable__qualifier">
+                        {coverageLabel(range.label, row.summary.observedSeconds, row.summary.coverage)}
+                      </em>
+                    )}
                   </td>
                   <td className="ctable__num">
                     {row.slo.samples > 0 ? (

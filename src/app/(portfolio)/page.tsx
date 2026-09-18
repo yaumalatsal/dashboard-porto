@@ -8,6 +8,7 @@ import ExperienceSection from "@/components/sections/ExperienceSection";
 import CredentialsSection from "@/components/sections/CredentialsSection";
 import ContactSection from "@/components/sections/ContactSection";
 import ScrollSectionTracker from "@/components/ui/ScrollSectionTracker";
+import { heroReadout } from "@/lib/monitor/hero";
 
 /**
  * The Live Systems section reads real monitoring data, so the page cannot be
@@ -22,7 +23,7 @@ export default function Home() {
   return (
     <AstrolabeNavigator>
       <ScrollSectionTracker />
-      <HeroSection />
+      <HeroSection readout={heroReadout()} />
       <AboutSection />
       <ProjectsSection />
       <SkillsSection />

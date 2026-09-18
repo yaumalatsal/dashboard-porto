@@ -18,6 +18,9 @@ import { useRef, useState } from "react";
  * Keyboard reachable, because a dial that only answers a mouse is a picture.
  */
 
+/** 60 marks around the bezel; every fifth is drawn long. */
+const TICKS = Array.from({ length: 60 }, (_, i) => i);
+
 type Layer = {
   id: "experience" | "software" | "infrastructure";
   name: string;
@@ -80,6 +83,7 @@ export default function AboutSection() {
         return;
       }
 
+      // Entry: the instrument spins up.
       gsap
         .timeline()
         .fromTo(
@@ -93,7 +97,77 @@ export default function AboutSection() {
           { rotate: 22, opacity: 0 },
           { rotate: -90, opacity: 1, duration: 1.4, ease: "power3.out" },
           0.1,
+        )
+        .fromTo(
+          ".atlas__tick",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.5, stagger: 0.006, ease: "none" },
+          0.2,
         );
+
+      // Then it keeps running. A dial that settles and stops is a drawing of
+      // an instrument; the whole point of the thing is that it is still
+      // reading. Each ring has its own period so they never lock into one
+      // rotating disc.
+      const idle = [
+        gsap.to(".atlas__rings", {
+          rotate: "+=360",
+          duration: 96,
+          ease: "none",
+          repeat: -1,
+        }),
+        gsap.to(".atlas__sweep", {
+          rotate: "-=360",
+          duration: 61,
+          ease: "none",
+          repeat: -1,
+        }),
+        gsap.to(".atlas__radar", {
+          rotate: "+=360",
+          duration: 7.5,
+          ease: "none",
+          repeat: -1,
+        }),
+        gsap.to(".atlas__terrain", {
+          rotate: "+=360",
+          duration: 240,
+          ease: "none",
+          repeat: -1,
+        }),
+      ];
+
+      // Pointer tilt. The dial already has perspective; using it makes the
+      // thing feel like an object under glass rather than a flat badge.
+      const rotX = gsap.quickTo(".atlas__plate", "rotationX", {
+        duration: 0.9,
+        ease: "power3.out",
+      });
+      const rotY = gsap.quickTo(".atlas__plate", "rotationY", {
+        duration: 0.9,
+        ease: "power3.out",
+      });
+
+      const el = atlasRef.current;
+      const onMove = (event: PointerEvent) => {
+        const box = el.getBoundingClientRect();
+        const x = (event.clientX - box.left) / box.width - 0.5;
+        const y = (event.clientY - box.top) / box.height - 0.5;
+        rotX(-y * 13);
+        rotY(x * 13);
+      };
+      const onLeave = () => {
+        rotX(0);
+        rotY(0);
+      };
+
+      el.addEventListener("pointermove", onMove);
+      el.addEventListener("pointerleave", onLeave);
+
+      return () => {
+        el.removeEventListener("pointermove", onMove);
+        el.removeEventListener("pointerleave", onLeave);
+        idle.forEach((tween) => tween.kill());
+      };
     },
     { scope: atlasRef, dependencies: [prefersReducedMotion] },
   );
@@ -110,11 +184,26 @@ export default function AboutSection() {
         activeId
       ];
 
+      if (prefersReducedMotion) {
+        gsap.set(".atlas__needle", { rotate: bearing });
+        return;
+      }
+
+      // Overshoots and settles. A magnetised needle does not arrive politely,
+      // and the overshoot is what sells the dial as a physical reading.
       gsap.to(".atlas__needle", {
         rotate: bearing,
-        duration: prefersReducedMotion ? 0 : 0.7,
-        ease: "power3.out",
+        duration: 1.15,
+        ease: "elastic.out(1, 0.55)",
       });
+
+      // A ping leaves the hub every time the bearing changes, so a selection
+      // registers in the instrument and not only in the panel below.
+      gsap.fromTo(
+        ".atlas__ping",
+        { scale: 0.2, opacity: 0.55 },
+        { scale: 1, opacity: 0, duration: 1.1, ease: "power2.out" },
+      );
     },
     { scope: atlasRef, dependencies: [activeId, prefersReducedMotion] },
   );
@@ -154,20 +243,42 @@ export default function AboutSection() {
             <span className="atlas__cardinal atlas__cardinal--east">E</span>
             <span className="atlas__cardinal atlas__cardinal--south">S</span>
             <span className="atlas__cardinal atlas__cardinal--west">W</span>
-            <div className="atlas__terrain" aria-hidden="true">
-              <span />
-              <span />
-              <span />
+            {/* Everything that tilts sits on one plate, so the parts keep
+                their depth relative to each other instead of each tilting
+                about its own centre. */}
+            <div className="atlas__plate" aria-hidden="true">
+              <div className="atlas__bezel">
+                {TICKS.map((tick) => (
+                  <span
+                    key={tick}
+                    className={`atlas__tick${tick % 5 === 0 ? " atlas__tick--major" : ""}`}
+                    style={{ transform: `rotate(${tick * 6}deg)` }}
+                  />
+                ))}
+              </div>
+              <div className="atlas__terrain">
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="atlas__rings">
+                <span />
+                <span />
+                <span />
+              </div>
+              <span className="atlas__sweep" />
+              {/* The wedge that says the instrument is still sampling. */}
+              <span className="atlas__radar" />
+              <span className="atlas__ping" />
+              {/* The mount carries the hunt (a CSS animation), the needle
+                  carries the bearing (GSAP). Separate elements, so the two
+                  rotations compose instead of overwriting each other. */}
+              <span className="atlas__needle-mount">
+                <span className="atlas__needle">
+                  <i />
+                </span>
+              </span>
             </div>
-            <div className="atlas__rings" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </div>
-            <span className="atlas__sweep" aria-hidden="true" />
-            <span className="atlas__needle" aria-hidden="true">
-              <i />
-            </span>
 
             {LAYERS.map((layer, i) => (
               <button

@@ -644,6 +644,16 @@
   font-variant-numeric: tabular-nums;
   font-family: var(--font-jetbrains), monospace;
 }
+/* A figure that has not observed its full window says so under itself, rather
+   than letting the column header speak for data that does not exist yet. */
+.ctable__qualifier {
+  display: block;
+  font-style: normal;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  color: var(--c-ink-3, var(--c-ink-2));
+  margin-top: 0.1rem;
+}
 .ctable__wrap {
   overflow-x: auto;
   background: var(--c-surface);

@@ -18,12 +18,13 @@ import {
   uptimeSummary,
 } from "@/lib/monitor/store";
 import {
+  HEALTH_LABEL,
+  coverageLabel,
   formatDuration,
   formatMetric,
   formatRelative,
   formatUptime,
   metricLevel,
-  HEALTH_LABEL,
 } from "@/lib/monitor/format";
 import type { Metric } from "@/lib/monitor/types";
 import Status from "@/components/console/Status";
@@ -135,7 +136,7 @@ export default async function SitePage({
 
       <div className="tile-grid">
         <StatTile
-          label="Uptime / 24h"
+          label={`Uptime / ${coverageLabel("24h", day.observedSeconds, day.coverage)}`}
           value={day.samples > 0 ? formatUptime(day.upRatio) : "—"}
           delta={
             day.samples > 0 && previousDay.samples > 0
@@ -146,7 +147,7 @@ export default async function SitePage({
           goodDirection="up"
         />
         <StatTile
-          label="Uptime / 30d"
+          label={`Uptime / ${coverageLabel("30d", month.observedSeconds, month.coverage)}`}
           value={month.samples > 0 ? formatUptime(month.upRatio) : "—"}
         />
         <StatTile

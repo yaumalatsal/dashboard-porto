@@ -463,6 +463,19 @@ export function uptimeSummary(
 
   const samples = row?.samples ?? 0;
 
+  // How much of the window actually holds data. A newly added application has
+  // hours of history, not the thirty days the caller asked for, and a caller
+  // that cannot tell the difference will print the wrong label.
+  const bounds = sql(
+    `SELECT MIN(ts) AS first, MAX(ts) AS last FROM samples
+     WHERE site_id = ? AND ts >= ? AND ts < ?`,
+  ).get(siteId, since, until) as { first: number | null; last: number | null };
+
+  const observedSeconds =
+    bounds?.first != null && bounds?.last != null
+      ? Math.min(windowSeconds, (bounds.last - bounds.first) / 1000)
+      : 0;
+
   return {
     siteId,
     windowSeconds,
@@ -471,6 +484,8 @@ export function uptimeSummary(
     latencyP50: row?.p50 ?? null,
     latencyP95: row?.p95 ?? null,
     latencyP99: row?.p99 ?? null,
+    observedSeconds,
+    coverage: windowSeconds > 0 ? observedSeconds / windowSeconds : 0,
   };
 }
 

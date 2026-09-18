@@ -16,7 +16,7 @@ import Link from "next/link";
 import { loadConfig } from "@/lib/monitor/config";
 import { currentSnapshots } from "@/lib/monitor/poller";
 import { recentEvents, recentIncidents, series, uptimeSummary } from "@/lib/monitor/store";
-import { formatRelative, formatUptime, HEALTH_LABEL } from "@/lib/monitor/format";
+import { coverageLabel, formatRelative, formatUptime, HEALTH_LABEL } from "@/lib/monitor/format";
 import { worstHealth } from "@/lib/monitor/types";
 import Status from "@/components/console/Status";
 import AutoRefresh from "@/components/console/AutoRefresh";
@@ -68,6 +68,16 @@ export default async function ConsolePage({
       : null;
   };
 
+  // A mean cannot claim a longer window than its shortest-watched member.
+  const fleetObserved =
+    observed.length > 0
+      ? Math.min(...observed.map((r) => r.current.observedSeconds))
+      : 0;
+  const fleetCoverage =
+    observed.length > 0
+      ? Math.min(...observed.map((r) => r.current.coverage))
+      : 0;
+
   const uptimeNow = mean((r) => r.current.upRatio);
   const uptimeBefore = mean((r) =>
     r.previous.samples > 0 ? r.previous.upRatio : null,
@@ -100,7 +110,7 @@ export default async function ConsolePage({
   if (worstUptime && worstUptime.current.upRatio < 0.999) {
     actions.push({
       level: "warn",
-      text: `${worstUptime.config?.label} has the lowest uptime: ${formatUptime(worstUptime.current.upRatio)} over ${range.label}.`,
+      text: `${worstUptime.config?.label} has the lowest uptime: ${formatUptime(worstUptime.current.upRatio)} over ${coverageLabel(range.label, worstUptime.current.observedSeconds, worstUptime.current.coverage)}.`,
     });
   }
   if (
@@ -157,6 +167,14 @@ export default async function ConsolePage({
           }
           deltaSuffix={` pts vs. previous ${range.label}`}
           goodDirection="up"
+          footer={
+            fleetCoverage < 0.9 ? (
+              <span className="kpi__note">
+                {coverageLabel(range.label, fleetObserved, fleetCoverage)}, not the
+                full {range.label}
+              </span>
+            ) : undefined
+          }
         />
         <Kpi
           label="Response p95"
@@ -271,6 +289,11 @@ export default async function ConsolePage({
                   </td>
                   <td className="ctable__num">
                     {current.samples > 0 ? formatUptime(current.upRatio) : "—"}
+                    {current.samples > 0 && current.coverage < 0.9 && (
+                      <em className="ctable__qualifier">
+                        {coverageLabel(range.label, current.observedSeconds, current.coverage)}
+                      </em>
+                    )}
                   </td>
                   <td className="ctable__num">
                     {current.latencyP95 !== null ? `${current.latencyP95} ms` : "—"}

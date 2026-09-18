@@ -110,7 +110,7 @@ export default async function ProjectsPage() {
           <p className="console__note" style={{ marginTop: 0 }}>{group.note}</p>
 
           <div className="project-grid">
-            {group.rows.map(({ project, access, health, upRatio, studyViews }) => (
+            {group.rows.map(({ project, access, health, upRatio, uptimeWindow, studyViews }) => (
               <Link
                 key={project.slug}
                 href={`/console/projects/${project.slug}`}
@@ -136,7 +136,7 @@ export default async function ProjectsPage() {
                     <dd>{studyViews > 0 ? compact(studyViews) : "—"}</dd>
                   </div>
                   <div>
-                    <dt>Uptime / 30d</dt>
+                    <dt>Uptime / {uptimeWindow}</dt>
                     <dd>{upRatio !== null ? formatUptime(upRatio) : "not measured"}</dd>
                   </div>
                 </dl>

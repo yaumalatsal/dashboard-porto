@@ -220,4 +220,16 @@ export type UptimeSummary = {
   latencyP50: number | null;
   latencyP95: number | null;
   latencyP99: number | null;
+  /**
+   * Seconds of the window that were actually watched, from the first stored
+   * sample to the last.
+   *
+   * Without this, a figure computed over one day of history was labelled as
+   * thirty days: a freshly added application read "100.000% / 30D" when the
+   * console had known about it since yesterday. The ratio was true; the
+   * window it claimed was not.
+   */
+  observedSeconds: number;
+  /** observedSeconds / windowSeconds. Below 1 means the figure is partial. */
+  coverage: number;
 };

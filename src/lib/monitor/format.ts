@@ -83,6 +83,13 @@ export function formatRelative(ts: number): string {
 
 export function formatUptime(ratio: number): string {
   const pct = ratio * 100;
+
+  // A ratio of exactly one has no fractional part to report. "100.000%" spent
+  // three digits saying zero and read as a suspiciously precise claim rather
+  // than the plain fact that no check failed.
+  if (pct >= 100) return "100%";
+  if (pct <= 0) return "0%";
+
   // Three decimals below 99.9% would be noise; above it, they are the story.
   if (pct >= 99.9) return `${pct.toFixed(3)}%`;
   if (pct >= 99) return `${pct.toFixed(2)}%`;
@@ -129,3 +136,33 @@ export const HEALTH_TOKEN: Record<Health, string> = {
   down: "critical",
   unknown: "muted",
 };
+
+/**
+ * What window a figure may honestly claim.
+ *
+ * Returns the nominal label when the data covers most of it, and the span
+ * actually observed when it does not. "100.000% / 30D" over one day of
+ * history is not a rounding problem, it is a false claim, and the fix is to
+ * say what was measured rather than what was asked for.
+ */
+export function coverageLabel(
+  nominal: string,
+  observedSeconds: number,
+  coverage: number,
+): string {
+  if (coverage >= 0.9) {
+    return nominal;
+  }
+
+  const hours = observedSeconds / 3600;
+
+  if (hours < 1) {
+    return `${Math.max(1, Math.round(observedSeconds / 60))}m observed`;
+  }
+
+  if (hours < 48) {
+    return `${Math.round(hours)}h observed`;
+  }
+
+  return `${Math.round(hours / 24)}d observed`;
+}

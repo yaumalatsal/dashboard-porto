@@ -602,6 +602,11 @@ button.astrolabe-scene__core:hover {
 .atlas__node { appearance: none; cursor: pointer; font: inherit; transition: color 220ms ease, border-color 220ms ease, background 220ms ease, transform 220ms ease; }
 .atlas__node:hover { transform: translateY(-1px); }
 .atlas__node--active { border-color: var(--copper); background: rgba(169, 84, 50, 0.16); color: var(--ember); }
+/* The selected node keeps a slow pulse, so the dial has a heartbeat even when
+   nobody is touching it. */
+.atlas__node--active::after { content: ""; position: absolute; inset: -1px; border: 1px solid var(--copper); opacity: 0.6; animation: atlas-node-pulse 2.6s ease-out infinite; pointer-events: none; }
+@keyframes atlas-node-pulse { 0% { transform: scale(1); opacity: 0.55; } 70%, 100% { transform: scale(1.35); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .atlas__node--active::after { animation: none; opacity: 0.4; } .atlas__radar { display: none; } }
 .atlas__node:focus-visible { outline: 1px solid var(--copper); outline-offset: 3px; }
 
 .layer-read { display: grid; grid-template-columns: 1fr 1.1fr; gap: 1.5rem 4rem; margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px solid var(--line-light); align-items: start; }
@@ -625,6 +630,18 @@ button.astrolabe-scene__core:hover {
 .atlas::before, .atlas::after { content: ""; position: absolute; background: rgba(42, 33, 26, 0.13); }
 .atlas::before { left: 50%; top: 0; bottom: 0; width: 1px; }
 .atlas::after { top: 50%; left: 0; right: 0; height: 1px; }
+.atlas__plate { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
+.atlas__bezel { position: absolute; inset: 1.5%; border-radius: 50%; transform: translateZ(6px); }
+.atlas__tick { position: absolute; left: 50%; top: 0; width: 1px; height: 4%; margin-left: -0.5px; background: rgba(253, 248, 225, 0.22); transform-origin: 50% 1250%; }
+.atlas__tick--major { height: 7%; width: 1.5px; margin-left: -0.75px; background: rgba(216, 155, 78, 0.5); transform-origin: 50% 714.29%; }
+/* The sampling wedge. A cone rather than a line, so the leading edge is bright
+   and the tail fades, which is what a sweep actually looks like. */
+.atlas__radar { position: absolute; inset: 12%; z-index: 2; border-radius: 50%; transform: translateZ(40px); background: conic-gradient(from -2deg, rgba(224, 168, 92, 0.22) 0deg, rgba(216, 155, 78, 0.1) 18deg, rgba(216, 155, 78, 0.035) 52deg, transparent 104deg); -webkit-mask-image: radial-gradient(circle closest-side, transparent 9%, rgba(0, 0, 0, 0.6) 20%, #000 46%, rgba(0, 0, 0, 0.5) 88%, transparent 100%); mask-image: radial-gradient(circle closest-side, transparent 9%, rgba(0, 0, 0, 0.6) 20%, #000 46%, rgba(0, 0, 0, 0.5) 88%, transparent 100%); filter: blur(3px); pointer-events: none; will-change: transform; }
+/* A thin bright line on the leading edge, which is what makes a sweep read as
+   a sweep rather than a stationary smudge. */
+.atlas__radar::before { content: ""; position: absolute; left: 50%; top: 4%; bottom: 50%; width: 1px; background: linear-gradient(to bottom, transparent, rgba(240, 204, 124, 0.55)); }
+/* Leaves the hub when the bearing changes. */
+.atlas__ping { position: absolute; left: 50%; top: 50%; z-index: 2; width: 62%; aspect-ratio: 1; margin: -31% 0 0 -31%; border: 1px solid var(--copper); border-radius: 50%; opacity: 0; pointer-events: none; transform: translateZ(52px); }
 .atlas__terrain { position: absolute; inset: 8%; opacity: 0.62; transform: translateZ(18px); transform-style: preserve-3d; }
 .atlas__terrain span { position: absolute; border: 1px solid rgba(71, 126, 122, 0.38); border-radius: 48% 52% 43% 57% / 56% 42% 58% 44%; }
 .atlas__terrain span:nth-child(1) { inset: 8% 16% 28% 4%; transform: rotate(-11deg); }
@@ -636,7 +653,9 @@ button.astrolabe-scene__core:hover {
 .atlas__rings span:nth-child(3) { inset: 47%; background: var(--ember); border: 0; }
 .atlas__sweep { position: absolute; inset: 25%; border: 1px solid rgba(83, 98, 75, 0.48); border-left-color: transparent; border-radius: 50%; box-shadow: 0.3rem 0.35rem 0 rgba(83, 98, 75, 0.08); transform: translateZ(48px); will-change: transform, opacity; }
 .atlas__sweep::after { content: ""; position: absolute; left: 50%; top: -0.28rem; width: 0.5rem; aspect-ratio: 1; border-radius: 50%; background: var(--forest); }
-.atlas__needle { position: absolute; left: 50%; top: 50%; z-index: 3; width: 42%; height: 0.28rem; background: #8b4e2e; box-shadow: 0.25rem 0.3rem 0 rgba(92, 71, 51, 0.16); transform: translateZ(64px); transform-origin: left center; will-change: transform; }
+.atlas__needle-mount { position: absolute; left: 50%; top: 50%; z-index: 3; width: 42%; height: 0.28rem; transform: translateZ(64px); transform-origin: left center; animation: atlas-needle-hunt 5.2s ease-in-out infinite alternate; will-change: transform; }
+@keyframes atlas-needle-hunt { from { transform: translateZ(64px) rotate(-0.9deg); } to { transform: translateZ(64px) rotate(0.9deg); } }
+.atlas__needle { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: #8b4e2e; box-shadow: 0.25rem 0.3rem 0 rgba(92, 71, 51, 0.16); transform-origin: left center; will-change: transform; }
 .atlas__needle::after { content: ""; position: absolute; right: -0.7rem; top: -0.34rem; width: 0; height: 0; border-top: 0.5rem solid transparent; border-bottom: 0.5rem solid transparent; border-left: 0.9rem solid #8b4e2e; }
 .atlas__needle i { position: absolute; left: -0.52rem; top: -0.42rem; width: 1.1rem; aspect-ratio: 1; border: 0.2rem solid #8b4e2e; border-radius: 50%; background: #e09952; }
 .atlas__node { position: absolute; z-index: 4; padding: 0.38rem 0.58rem; background: rgba(10, 15, 20, 0.85); border: 1px solid var(--line-dark); box-shadow: 0 0 0.5rem rgba(216, 155, 78, 0.15); font-family: var(--font-label); font-size: 0.62rem; text-transform: uppercase; color: var(--ink); will-change: transform, opacity; }
@@ -2144,6 +2163,13 @@ body:has(.astrolabe-scene.is-reading)::after {
   .credential { grid-template-columns: 5.5rem minmax(0, 1fr); gap: 1rem; }
 }
 
+:root {
+  --hero-portrait-w: min(40vw, 36rem);
+  --hero-portrait-gutter: 4vw;
+  --hero-head-right: calc(var(--hero-portrait-gutter) + 0.56 * var(--hero-portrait-w));
+  --hero-head-rise: calc(0.2125 * var(--hero-portrait-w));
+}
+
 /* ── Hero portrait ────────────────────────────────────────────────────────
    Sits inside the instrument, not beside it. The astrolabe used to hold the
    centre of the hero on its own, which made it a second subject competing
@@ -2156,10 +2182,10 @@ body:has(.astrolabe-scene.is-reading)::after {
 
 .hero-portrait {
   position: absolute;
-  right: 4vw;
+  right: var(--hero-portrait-gutter);
   top: 50%;
   z-index: 1;
-  width: min(40vw, 36rem);
+  width: var(--hero-portrait-w);
   transform: translateY(-50%);
   pointer-events: none;
   will-change: transform, opacity;
@@ -2210,23 +2236,214 @@ body:has(.astrolabe-scene.is-reading)::after {
    and the instrument stayed at full strength in front of the portrait. Only
    the focused state, where the instrument IS the subject, is excluded. */
 .astrolabe-scene:not(.has-focus) {
+  --hero-instrument-w: min(54rem, 62vw);
   left: auto;
-  right: 4vw;
-  top: 50%;
-  width: min(42rem, 48vw);
-  height: min(42rem, 48vw);
+  /* Concentric with the head, like the reticle and the portrait. */
+  right: calc(var(--hero-head-right) - var(--hero-instrument-w) / 2);
+  top: calc(50% - var(--hero-head-rise));
+  width: var(--hero-instrument-w);
+  height: var(--hero-instrument-w);
   transform: translateY(-50%);
-  opacity: 0.16;
+  /* Low enough not to compete with the face, high enough to be a presence.
+     At 0.16 it read as a smudge; the reticle in front of it now carries the
+     legible detail, so this can go back to being weight and texture. */
+  opacity: 0.3;
   z-index: 1;
-  filter: saturate(0.5) brightness(0.8);
+  filter: saturate(0.62) brightness(0.86);
+  /* A hole where the face is. The instrument is stacked below the portrait,
+     but it is a fixed element in its own stacking context and was painting its
+     rings straight across the eyes. Removing the middle of it makes the thing
+     a frame around the head by construction, not by stacking order. */
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 19%, rgba(0, 0, 0, 0.55) 30%, #000 40%, rgba(0, 0, 0, 0.5) 68%, transparent 84%);
+  mask-image: radial-gradient(circle at 50% 50%, transparent 19%, rgba(0, 0, 0, 0.55) 30%, #000 40%, rgba(0, 0, 0, 0.5) 68%, transparent 84%);
 }
 
 /* Above the instrument, which is now backdrop. */
 .hero-portrait { z-index: 3; }
 
+/* ── Hero frame ───────────────────────────────────────────────────────────
+   Four brackets, nothing else. The hero was a headline on the left and a face
+   on the right with open black between them, and nothing said the two halves
+   belonged to one composition. An edge does that without adding a box. */
+
+.hero-frame { position: absolute; inset: 5.2rem var(--page-pad) 0.9rem; z-index: 2; pointer-events: none; }
+.hero-frame__corner { position: absolute; width: 1.1rem; height: 1.1rem; border: 1px solid rgba(216, 155, 78, 0.28); }
+.hero-frame__corner--tl { left: 0; top: 0; border-right: 0; border-bottom: 0; }
+.hero-frame__corner--tr { right: 0; top: 0; border-left: 0; border-bottom: 0; }
+.hero-frame__corner--bl { left: 0; bottom: 0; border-right: 0; border-top: 0; }
+.hero-frame__corner--br { right: 0; bottom: 0; border-left: 0; border-top: 0; }
+
+/* ── Hero reticle ─────────────────────────────────────────────────────────
+   Concentric with the head, at the scale of the head. The astrolabe behind the
+   portrait had to be dimmed almost to nothing to stop it competing with the
+   face, which solved the competition by deleting one side of the composition.
+   This puts an instrument back at the right size to frame a subject instead of
+   rival it, and it keeps turning, so the hero is never a still image. */
+
+.hero-reticle {
+  position: absolute;
+  /* Concentric with the head: half its own width to the left of that point. */
+  --hero-reticle-w: calc(0.74 * var(--hero-portrait-w));
+  right: calc(var(--hero-head-right) - var(--hero-reticle-w) / 2);
+  top: calc(50% - var(--hero-head-rise));
+  z-index: 2;
+  width: var(--hero-reticle-w);
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.hero-reticle__ring { position: absolute; inset: 0; border-radius: 50%; will-change: transform; }
+.hero-reticle__ring--outer { border: 1px solid rgba(216, 155, 78, 0.42); }
+.hero-reticle__ring--inner {
+  inset: 17%;
+  border: 1px dashed rgba(140, 196, 194, 0.2);
+}
+.hero-reticle__ring--outer i {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 2.6%;
+  margin-left: -0.5px;
+  background: rgba(253, 248, 225, 0.45);
+  transform-origin: 50% 1923%;
+}
+.hero-reticle__ring--outer i.is-major {
+  height: 5.2%;
+  background: rgba(240, 204, 124, 0.8);
+  transform-origin: 50% 961.5%;
+}
+/* The sampling wedge: bright leading edge, fading tail. */
+.hero-reticle__scan {
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(216, 155, 78, 0.14) 0deg, rgba(216, 155, 78, 0.04) 22deg, transparent 54deg);
+  -webkit-mask-image: radial-gradient(circle, transparent 30%, #000 34%);
+  mask-image: radial-gradient(circle, transparent 30%, #000 34%);
+  will-change: transform;
+}
+.hero-reticle__crosshair { position: absolute; inset: -3%; pointer-events: none; }
+.hero-reticle__crosshair::before, .hero-reticle__crosshair::after {
+  content: "";
+  position: absolute;
+  width: 1.4rem;
+  height: 1.4rem;
+  border: 1px solid rgba(240, 204, 124, 0.6);
+}
+.hero-reticle__crosshair::before { left: 8%; top: 8%; border-right: 0; border-bottom: 0; }
+.hero-reticle__crosshair::after { right: 8%; bottom: 8%; border-left: 0; border-top: 0; }
+
+/* ── Hero readout ─────────────────────────────────────────────────────────
+   The first screen reports the fleet it is part of, measured by the same store
+   the console reads. This is the answer to "can this person build a dashboard
+   for our services": the landing page is already one, and this page is one of
+   the applications in the count. */
+
+.hero-readout {
+  position: absolute;
+  left: var(--page-pad);
+  right: var(--page-pad);
+  bottom: 5.5rem;
+  z-index: 4;
+  border-top: 1px solid rgba(216, 155, 78, 0.22);
+  will-change: transform, opacity;
+}
+.hero-readout__link {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  gap: 1.5rem;
+  align-items: end;
+  padding: 1rem 0 0;
+  color: inherit;
+  text-decoration: none;
+}
+.hero-readout__stat { display: grid; gap: 0.2rem; will-change: transform, opacity; }
+.hero-readout__stat em {
+  font-family: var(--font-label);
+  font-size: 0.55rem;
+  font-style: normal;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(253, 248, 225, 0.42);
+}
+.hero-readout__stat strong {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.hero-readout__stat strong i { font-style: normal; font-size: 0.9rem; color: rgba(253, 248, 225, 0.45); }
+.hero-readout__stat small {
+  font-family: var(--font-label);
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+  color: rgba(253, 248, 225, 0.38);
+}
+.hero-readout__go {
+  align-self: center;
+  font-family: var(--font-label);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ember);
+  transition: transform 220ms ease;
+}
+.hero-readout__link:hover .hero-readout__go { transform: translateX(3px); }
+.hero-readout__link:focus-visible { outline: 1px solid var(--copper); outline-offset: 6px; }
+
+/* State is carried by the rule above the figures, not by recolouring them —
+   a number stays legible, and the status survives grayscale as a position. */
+.hero-readout--degraded { border-top-color: rgba(216, 155, 78, 0.6); }
+.hero-readout--down { border-top-color: rgba(200, 76, 62, 0.75); }
+.hero-readout--unknown { border-top-color: rgba(253, 248, 225, 0.18); }
+
+@media (max-width: 1100px) {
+  .hero-readout__link { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; }
+  .hero-readout__go { grid-column: 1 / -1; justify-self: start; }
+  .hero-readout__stat strong { font-size: 1.4rem; }
+}
+@media (max-width: 900px) {
+  /* The portrait re-centres at 42% on narrow screens, so the shared point
+     moves with it. Overriding the two variables keeps all three layers
+     concentric without restating each layer's position. */
+  .hero-reticle {
+    --hero-reticle-w: min(74vw, 22rem);
+    right: 50%;
+    top: calc(42% - 0.2125 * min(62vw, 22rem));
+    transform: translate(50%, -50%);
+  }
+  .hero-readout { bottom: 4.5rem; }
+}
+/* On a phone the four stats with their captions are tall enough to run into
+   the paragraph above them. The captions go, the figures stay: the labels and
+   the numbers are the part that carries information, and the header already
+   has its own link to the console. */
+@media (max-width: 700px) {
+  .hero-readout__link { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem 1.25rem; padding-top: 0.7rem; }
+  .hero-readout__stat small { display: none; }
+  .hero-readout__stat strong { font-size: 1.1rem; }
+  .hero-readout__stat em { font-size: 0.5rem; letter-spacing: 0.1em; }
+  .hero-readout__go { display: none; }
+  /* Enough contrast for the name to stay legible where it crosses the face.
+     Applied to the image, not the container: GSAP animates the container's
+     opacity inline on entry, and an inline style wins over this rule. */
+  .hero-portrait img { opacity: 0.68; }
+}
+@media (max-width: 560px) {
+  .hero-frame { inset: 4.4rem 1rem 0.9rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-reticle__scan { display: none; }
+}
+
 @media (max-width: 900px) {
   .hero-portrait { right: 50%; top: 42%; width: min(62vw, 22rem); transform: translate(50%, -50%); }
-  .astrolabe-scene:not(.has-focus) { right: 50%; width: min(30rem, 86vw); height: min(30rem, 86vw); transform: translate(50%, -50%); opacity: 0.12; }
+  .hero-frame { inset: 1.6rem 1.2rem; }
+  .astrolabe-scene:not(.has-focus) { --hero-instrument-w: min(34rem, 96vw); right: 50%; top: calc(42% - 0.2125 * min(62vw, 22rem)); width: var(--hero-instrument-w); height: var(--hero-instrument-w); transform: translate(50%, -50%); opacity: 0.22; }
 }
 
 @media (prefers-reduced-motion: reduce) {

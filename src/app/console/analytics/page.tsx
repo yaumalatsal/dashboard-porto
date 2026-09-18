@@ -11,7 +11,7 @@ import Link from "next/link";
 import { loadConfig } from "@/lib/monitor/config";
 import { currentSnapshots } from "@/lib/monitor/poller";
 import { series, uptimeSummary } from "@/lib/monitor/store";
-import { formatUptime } from "@/lib/monitor/format";
+import { coverageLabel, formatUptime } from "@/lib/monitor/format";
 import Status from "@/components/console/Status";
 import Sparkline from "@/components/console/Sparkline";
 import AutoRefresh from "@/components/console/AutoRefresh";
@@ -56,6 +56,16 @@ export default async function AnalyticsPage({
       ? observed.reduce((sum, r) => sum + r.summary.upRatio, 0) / observed.length
       : null;
 
+  // A mean cannot claim a longer window than its shortest-watched member.
+  const fleetObserved =
+    observed.length > 0
+      ? Math.min(...observed.map((r) => r.summary.observedSeconds))
+      : 0;
+  const fleetCoverage =
+    observed.length > 0
+      ? Math.min(...observed.map((r) => r.summary.coverage))
+      : 0;
+
   // Slowest app by p95 — the one worth looking at first.
   const slowest = observed
     .filter((r) => r.summary.latencyP95 !== null)
@@ -86,7 +96,7 @@ export default async function AnalyticsPage({
             {fleetUptime !== null ? formatUptime(fleetUptime) : "—"}
           </div>
           <div className="hero-figure__label">
-            Fleet uptime / {range.label}
+            Fleet uptime / {coverageLabel(range.label, fleetObserved, fleetCoverage)}
           </div>
         </div>
         <div className="hero-figure__aside">
@@ -148,6 +158,11 @@ export default async function AnalyticsPage({
                   </td>
                   <td className="ctable__num">
                     {summary.samples > 0 ? formatUptime(summary.upRatio) : "—"}
+                    {summary.samples > 0 && summary.coverage < 0.9 && (
+                      <em className="ctable__qualifier">
+                        {coverageLabel(range.label, summary.observedSeconds, summary.coverage)}
+                      </em>
+                    )}
                   </td>
                   <td className="ctable__num">
                     {summary.latencyP50 !== null ? `${summary.latencyP50} ms` : "—"}
@@ -213,7 +228,7 @@ export default async function AnalyticsPage({
               </div>
               <p className="chart__sub">
                 {summary.samples > 0
-                  ? `${formatUptime(summary.upRatio)} uptime · ${summary.samples.toLocaleString("en-US")} samples`
+                  ? `${formatUptime(summary.upRatio)} uptime over ${coverageLabel(range.label, summary.observedSeconds, summary.coverage)} · ${summary.samples.toLocaleString("en-US")} samples`
                   : "No samples yet"}
               </p>
               <PanelChart points={points.map((p) => p.latencyP50)} />

@@ -14,7 +14,7 @@ import Link from "next/link";
 import { loadConfig } from "@/lib/monitor/config";
 import { currentSnapshots } from "@/lib/monitor/poller";
 import { uptimeSummary } from "@/lib/monitor/store";
-import { formatUptime, HEALTH_LABEL } from "@/lib/monitor/format";
+import { coverageLabel, formatUptime, HEALTH_LABEL } from "@/lib/monitor/format";
 import SectionLabel from "@/components/ui/SectionLabel";
 
 export default function OperationsSection() {
@@ -40,6 +40,18 @@ export default function OperationsSection() {
       ? observed.reduce((sum, row) => sum + row.uptime.upRatio, 0) /
         observed.length
       : null;
+
+  // The fleet figure can only claim the window its shortest-watched member has
+  // actually been watched for. An application added yesterday drags the honest
+  // label down to a day, which is the truth about the average.
+  const fleetObserved =
+    observed.length > 0
+      ? Math.min(...observed.map((row) => row.uptime.observedSeconds))
+      : 0;
+  const fleetCoverage =
+    observed.length > 0
+      ? Math.min(...observed.map((row) => row.uptime.coverage))
+      : 0;
 
   return (
     <div
@@ -71,7 +83,7 @@ export default function OperationsSection() {
                 {formatUptime(fleetUptime)}
               </span>
               <span className="operations-figure__label">
-                Fleet uptime / 30 days
+                Fleet uptime / {coverageLabel("30 days", fleetObserved, fleetCoverage)}
               </span>
             </div>
           )}
@@ -94,7 +106,7 @@ export default function OperationsSection() {
                 </span>
                 <span className="operations-row__metric">
                   {uptime.samples > 0 ? formatUptime(uptime.upRatio) : "—"}
-                  <em>30d</em>
+                  <em>{coverageLabel("30d", uptime.observedSeconds, uptime.coverage)}</em>
                 </span>
                 <span className="operations-row__metric">
                   {snapshot.latencyMs !== null ? `${snapshot.latencyMs} ms` : "—"}
