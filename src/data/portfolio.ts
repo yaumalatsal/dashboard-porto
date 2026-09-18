@@ -191,9 +191,10 @@ export const projects: ProjectData[] = [
     response: "Give each area the same structure.",
     result: "The agency reads its performance data. It does not rebuild it.",
     monitor: {
-      access: "client-network",
+      access: "public",
+      siteId: "simaksi",
       note:
-        "The agency runs this system on its own network. I cannot open it to the public.",
+        "I run a public instance of this system. The figures below come from it, not from the agency.",
     },
   },
   {
@@ -241,9 +242,10 @@ export const projects: ProjectData[] = [
     response: "Put each permit step where a supervisor can read it.",
     result: "The plant sees which hot work it permits, and when.",
     monitor: {
-      access: "client-network",
+      access: "public",
+      siteId: "hotwork",
       note:
-        "The plant runs this system inside the works. The permit records belong to the plant.",
+        "I run a public instance of this system. The figures below come from it, not from the plant.",
     },
   },
   {
@@ -281,9 +283,10 @@ export const projects: ProjectData[] = [
     response: "Make the daily action update the record.",
     result: "Staff read the status. They do not walk to check it.",
     monitor: {
-      access: "client-network",
+      access: "public",
+      siteId: "baringan",
       note:
-        "The hospital runs this system on its own network. The records belong to the hospital.",
+        "I run a public instance of this system. The figures below come from it, not from the hospital.",
     },
   },
   {
@@ -415,9 +418,10 @@ export const projects: ProjectData[] = [
     response: "Build the incubation steps, not the lesson list.",
     result: "The platform has the shape of the subject it teaches.",
     monitor: {
-      access: "not-deployed",
+      access: "public",
+      siteId: "bisa-lms",
       note:
-        "This is an academic project. No public instance runs at this time.",
+        "I run a public instance of this platform. The figures below come from it.",
     },
   },
   {

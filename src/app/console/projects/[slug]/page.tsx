@@ -79,6 +79,21 @@ export default async function ProjectDashboardPage({
     else groups.set(key, [metric]);
   }
 
+  /**
+   * Split the application's own metric groups into subject and substrate.
+   *
+   * "Permits awaiting approval" is what the system is for; "PHP 8.4.25" is
+   * what it happens to run on. A reader deciding whether this person can build
+   * the dashboard they need cares about the first and skims the second, so the
+   * two are rendered separately rather than interleaved in adapter order.
+   */
+  const RUNTIME_GROUPS = ["runtime", "app", "system", "server"];
+  const isRuntime = (group: string) =>
+    RUNTIME_GROUPS.includes(group.trim().toLowerCase());
+
+  const domainGroups = [...groups.entries()].filter(([g]) => !isRuntime(g));
+  const runtimeGroups = [...groups.entries()].filter(([g]) => isRuntime(g));
+
   const hasStudyTraffic = reach.studyViews.views > 0;
 
   /**
@@ -121,9 +136,24 @@ export default async function ProjectDashboardPage({
             {project.description}
           </p>
         </div>
-        <span className={`access-badge access-badge--${access.tone}`}>
-          {access.label}
-        </span>
+        <div className="board-head__actions">
+          <span className={`access-badge access-badge--${access.tone}`}>
+            {access.label}
+          </span>
+          {/* The whole point of the page for someone judging the work: get
+              them into the running system in one click, from the top, rather
+              than after scrolling past the charts. */}
+          {live?.url && (
+            <a
+              className="open-live"
+              href={live.url}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Open the live system ↗
+            </a>
+          )}
+        </div>
       </div>
 
       <dl className="project-meta">
@@ -350,6 +380,38 @@ export default async function ProjectDashboardPage({
         </aside>
       </section>
 
+      {/* What the system is for. Placed directly under the hero because for a
+          reader judging the work, this is the work -- the numbers this
+          dashboard exists to put in front of someone. */}
+      {domainGroups.length > 0 && (
+        <section className="console__section">
+          <div className="console__section-head">
+            <h2>What this dashboard tracks</h2>
+            <span className="panel__meta">live, from the application itself</span>
+          </div>
+          <div className="chart-grid">
+            {domainGroups.map(([group, metrics]) => (
+              <div key={group} className="metric-group">
+                <h3>{group}</h3>
+                {metrics.map((metric) => (
+                  <div
+                    key={metric.key}
+                    className={`metric-row metric-row--${metricLevel(metric)}`}
+                  >
+                    <span className="metric-row__label" title={metric.label}>
+                      {metric.label}
+                    </span>
+                    <span className="metric-row__value">
+                      {formatMetric(metric)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* 4 — Drilldown. The live panels exist only when there is live data. */}
       {live && (
         <>
@@ -402,21 +464,19 @@ export default async function ProjectDashboardPage({
             </section>
           )}
 
-          {groups.size > 0 && (
+
+          {runtimeGroups.length > 0 && (
             <section className="console__section">
               <div className="console__section-head">
-                <h2>Metrics</h2>
-                <span className="panel__meta">reported by the application</span>
+                <h2>Runtime</h2>
+                <span className="panel__meta">what it runs on</span>
               </div>
               <div className="chart-grid">
-                {[...groups.entries()].map(([group, metrics]) => (
+                {runtimeGroups.map(([group, metrics]) => (
                   <div key={group} className="metric-group">
                     <h3>{group}</h3>
                     {metrics.map((metric) => (
-                      <div
-                        key={metric.key}
-                        className={`metric-row metric-row--${metricLevel(metric)}`}
-                      >
+                      <div key={metric.key} className="metric-row">
                         <span className="metric-row__label" title={metric.label}>
                           {metric.label}
                         </span>

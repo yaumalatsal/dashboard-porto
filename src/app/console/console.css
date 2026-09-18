@@ -1942,3 +1942,34 @@
 .board-head--project {
   align-items: flex-start;
 }
+
+/* The header's right-hand cluster: state badge, then the way in. */
+.board-head__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+/* Deliberately the only filled control on the page. Everything else here is
+   a reading surface; this is the one thing to do. */
+.open-live {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-half);
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: var(--c-ember);
+  color: var(--c-page);
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.16s, transform 0.16s;
+}
+.open-live:hover {
+  background: var(--c-copper);
+  transform: translateY(-1px);
+}
