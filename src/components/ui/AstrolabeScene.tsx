@@ -1,15 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
-import Image from "next/image";
-import Link from "next/link";
-import { ArrowUpRight, ChevronDown, ChevronUp, RotateCcw, X } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { gsap } from "@/lib/gsap-config";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useUiStore, type AstrolabeSection } from "@/stores/uiStore";
-import { capabilities, experiences, profile, projects, socialLinks } from "@/data/portfolio";
+import { profile } from "@/data/portfolio";
 import {
   celestialMapCoordinates,
   celestialStar,
@@ -59,17 +56,14 @@ const stars: OrreryStar[] = [
 
 const rimGripPositions = ["north", "east", "south", "west"] as const;
 
-const missionMedia: Record<AstrolabeSection, { src: string; label: string; title: string }> = {
-  hero: { src: "/images/projects/nexus-control.png", label: "Start", title: "Portfolio" },
-  about: { src: "/images/projects/chronoscape.png", label: "About", title: "How I work" },
-  work: { src: "/images/projects/field-console.png", label: "Project", title: "Operations Console" },
-  skills: { src: "/images/projects/astrolabe.png", label: "Skills", title: "Build, deploy, connect, explain" },
-  operations: { src: "/images/projects/field-console.png", label: "Live systems", title: "The systems I run now" },
-  experience: { src: "/images/projects/chronoscape-field-guide.png", label: "Experience", title: "Where I worked" },
-  credentials: { src: "/images/projects/embervault-field-guide.png", label: "Education", title: "Education and certificates" },
-  contact: { src: "/images/projects/ironclad.png", label: "Contact", title: "How to reach me" },
-  pisces: { src: "/images/projects/chronoscape-field-guide.png", label: "Star map", title: "The second map" },
-};
+/**
+ * The reading overlay that used to open on a star was removed.
+ *
+ * A star click and a header link both scroll to the section now, so nothing
+ * ever set `focusedPoint` to a star id and the panel could not open. It also
+ * held the only references to the template artwork for the fictional projects,
+ * which is why those images went with it.
+ */
 
 /** The instrument tips this far before the case starts hiding its own face. */
 const PITCH_LIMIT = 82;
@@ -87,168 +81,6 @@ function normaliseYaw(yaw: number): number {
  */
 const SPHERE_FRAME_FRACTION = 2.45 / 5.15;
 
-function OrreryMapDetail({
-  star,
-  onClose,
-  onNext,
-  onPrev,
-  hasNext,
-  hasPrev,
-}: {
-  star: OrreryStar;
-  onClose: () => void;
-  onNext?: () => void;
-  onPrev?: () => void;
-  hasNext?: boolean;
-  hasPrev?: boolean;
-}) {
-  const media = missionMedia[star.id];
-
-  return (
-    <section className={`orrery-detail orrery-detail--${star.id}`} aria-labelledby={`orrery-detail-${star.id}`}>
-      <button className="orrery-detail__close orrery-detail__stagger-1" type="button" onClick={onClose} aria-label="Return to the Aries map">
-        <X aria-hidden="true" />
-      </button>
-      <header className="orrery-detail__header orrery-detail__stagger-1">
-        <p>Level {star.level} / {star.name} / {star.designation}</p>
-        <span>{star.status}</span>
-      </header>
-
-      {star.id === "hero" && (
-        <div className="orrery-detail__intro orrery-detail__stagger-2">
-          <p>Origin coordinate</p>
-          <h2 id="orrery-detail-hero">{profile.name}</h2>
-          <strong>{profile.role}</strong>
-          <p>{profile.tagline}</p>
-          <dl>
-            <div><dt>Base</dt><dd>Jakarta</dd></div>
-            <div><dt>Practice</dt><dd>Design + Systems</dd></div>
-          </dl>
-        </div>
-      )}
-
-      {star.id === "about" && (
-        <div className="orrery-detail__practice orrery-detail__stagger-2">
-          <p>The Practice</p>
-          <h2 id="orrery-detail-about">Making terrain legible.</h2>
-          <p>{profile.bio}</p>
-          <ul aria-label="Practice layers">
-            <li><span>01</span>Experience</li>
-            <li><span>02</span>Software</li>
-            <li><span>03</span>Infrastructure</li>
-          </ul>
-        </div>
-      )}
-
-      {star.id === "work" && (
-        <div className="orrery-detail__work orrery-detail__stagger-2">
-          <p>Field Records</p>
-          <h2 id="orrery-detail-work">Selected systems</h2>
-          <div className="orrery-detail__projects">
-            {projects.map((project) => (
-              <Link key={project.slug} href={`/work/${project.slug}`} data-cursor="link">
-                <span>{project.number}</span>
-                <strong>{project.title}</strong>
-                <small>{project.category}</small>
-                <ArrowUpRight aria-hidden="true" />
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {star.id === "skills" && (
-        <div className="orrery-detail__skills orrery-detail__stagger-2">
-          <p>Capabilities</p>
-          <h2 id="orrery-detail-skills">Four working layers</h2>
-          <div className="orrery-detail__capabilities">
-            {capabilities.map((capability) => (
-              <article key={capability.title}>
-                <span>{capability.number}</span>
-                <strong>{capability.title}</strong>
-                <small>{capability.skills.slice(0, 3).join(" / ")}</small>
-              </article>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {star.id === "contact" && (
-        <div className="orrery-detail__contact orrery-detail__stagger-2">
-          <p>Correspondence</p>
-          <h2 id="orrery-detail-contact">Bring me the difficult map.</h2>
-          <p>Available for immersive products, internal platforms, and systems that cross design and infrastructure.</p>
-          <a className="orrery-detail__email" href={`mailto:${profile.email}`} data-cursor="link">
-            {profile.email}<ArrowUpRight aria-hidden="true" />
-          </a>
-          <div className="orrery-detail__socials">
-            {socialLinks.map((social) => <a key={social.label} href={social.href} target="_blank" rel="noreferrer">{social.label}</a>)}
-          </div>
-        </div>
-      )}
-
-      {star.id === "experience" && (
-        <div className="orrery-detail__experience orrery-detail__stagger-2">
-          <p>Field Journal</p>
-          <h2 id="orrery-detail-experience">Beyond the workbench.</h2>
-          <p>Organisations joined, conferences spoken at, and communities shaped outside the daily practice.</p>
-          <div className="orrery-detail__experiences">
-            {experiences.map((entry) => (
-              <article key={entry.title}>
-                <span>{entry.number}</span>
-                <strong>{entry.title}</strong>
-                <em>{entry.role}</em>
-                <small>{entry.type} · {entry.year}</small>
-              </article>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {star.id === "pisces" && (
-        <div className="orrery-detail__pisces orrery-detail__stagger-2">
-          <p>The Knot</p>
-          <h2 id="orrery-detail-pisces">Binding the threads.</h2>
-          <p>This is a newly charted constellation mapping the connection between disparate systems, binding them into a unified whole.</p>
-        </div>
-      )}
-
-      <figure className="orrery-detail__media orrery-detail__stagger-3">
-        <div className="orrery-detail__image">
-          <Image src={media.src} alt={media.title} fill priority sizes="(max-width: 767px) 88vw, 42vw" />
-          <span className="orrery-detail__reticle" aria-hidden="true"><i /><i /></span>
-        </div>
-        <figcaption><span>{media.label}</span><strong>{media.title}</strong></figcaption>
-      </figure>
-
-      {/* Chapter Step Controls */}
-      <div className="orrery-detail__nav-controls orrery-detail__stagger-3">
-        {hasPrev && (
-          <button
-            type="button"
-            className="orrery-detail__nav-btn"
-            onClick={onPrev}
-            aria-label="Previous Chapter"
-          >
-            <ChevronUp aria-hidden="true" />
-            <span>Prev Chapter</span>
-          </button>
-        )}
-        {hasNext && (
-          <button
-            type="button"
-            className="orrery-detail__nav-btn"
-            onClick={onNext}
-            aria-label="Next Chapter"
-          >
-            <span>Next Chapter</span>
-            <ChevronDown aria-hidden="true" />
-          </button>
-        )}
-      </div>
-    </section>
-  );
-}
 
 export default function AstrolabeScene() {
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -1058,18 +890,6 @@ export default function AstrolabeScene() {
           Turn the instrument. <span>Select a star to go to that section.</span>
         </p>
       </div>
-
-      {selectedStar && focusPhase === "reading" && createPortal(
-        <OrreryMapDetail
-          star={selectedStar}
-          onClose={closeMapPoint}
-          onNext={stepToNextStar}
-          onPrev={stepToPrevStar}
-          hasNext={stars.findIndex((s) => s.id === focusedPoint) < stars.length - 1}
-          hasPrev={stars.findIndex((s) => s.id === focusedPoint) > 0}
-        />,
-        document.body,
-      )}
     </div>
   );
 }

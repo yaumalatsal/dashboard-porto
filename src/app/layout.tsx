@@ -39,18 +39,23 @@ export const metadata: Metadata = {
     "network infrastructure",
   ],
   authors: [{ name: profile.name }],
+  /**
+   * The share card is built at exactly 1200x630, the size every platform crops
+   * to. The previous card was a 2.5 MB screenshot of the WebGL scene, which is
+   * slow to fetch for a preview and carried no name, role or contact.
+   */
   openGraph: {
     title: `${profile.name} | ${profile.role}`,
     description: profile.tagline,
     type: "website",
     locale: "en_US",
-    images: ["/images/hero-field-guide.png"],
+    images: ["/images/og-card.png"],
   },
   twitter: {
     card: "summary_large_image",
     title: `${profile.name} | ${profile.role}`,
     description: profile.tagline,
-    images: ["/images/hero-field-guide.png"],
+    images: ["/images/og-card.png"],
   },
 };
 

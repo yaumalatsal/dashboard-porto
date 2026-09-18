@@ -37,10 +37,28 @@ export default function AstrolabeNavigator({ children }: { children: ReactNode }
     const handleHashChange = () => {
       const hash = window.location.hash;
       const matched = hashToSection[hash];
-      if (matched) {
-        setActiveSection(matched);
-        setFocusedPoint(matched === "hero" ? null : matched);
+      if (!matched) return;
+
+      setActiveSection(matched);
+
+      /**
+       * The hash scrolls. It does not focus the instrument.
+       *
+       * Setting `focusedPoint` here drove the old overlay, which opened a
+       * reading panel over the star. Since a star click and a header link both
+       * scroll, a deep link such as /#work did both at once: the page scrolled
+       * to the section and the instrument entered its focused state behind it,
+       * with a panel mounted that nobody could see. One hash, one behaviour.
+       */
+      setFocusedPoint(null);
+
+      if (matched === "hero") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
       }
+      document
+        .getElementById(matched)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
 
     handleHashChange();
