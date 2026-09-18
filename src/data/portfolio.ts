@@ -575,6 +575,15 @@ export type ExperienceEntry = {
 export const experiences: ExperienceEntry[] = [
   {
     number: "I",
+    title: "PT Ragam Tangguh Fortindo",
+    role: "IT Staff",
+    type: "work",
+    year: "2026 — Present",
+    description:
+      "I maintain the hardware and the network of the company. I also built the IT ticketing system that the staff use to report a fault and follow its repair.",
+  },
+  {
+    number: "II",
     title: "Balai Besar Kekarantinaan Kesehatan Surabaya",
     role: "Developer and Network Support",
     type: "work",
@@ -583,7 +592,7 @@ export const experiences: ExperienceEntry[] = [
       "I designed and built the web system that holds the performance data of all the work areas. I also installed the new network hardware at the site.",
   },
   {
-    number: "II",
+    number: "III",
     title: "PT. Smelting Gresik",
     role: "IT and Web Development",
     type: "work",
@@ -592,7 +601,7 @@ export const experiences: ExperienceEntry[] = [
       "I developed the Hot Work Permit system for the plant. I also maintained the IT equipment, installed new hardware, and kept the plant network stable and secure.",
   },
   {
-    number: "III",
+    number: "IV",
     title: "CLEAN Research Group, State University of Malang",
     role: "Member",
     type: "community",
@@ -601,7 +610,7 @@ export const experiences: ExperienceEntry[] = [
       "I wrote three papers about education technology with the group. The papers cover a virtual entrepreneurship laboratory and learning websites. I also made a Scrum case study of the SISINTA project management system.",
   },
   {
-    number: "IV",
+    number: "V",
     title: "Workshop Elektro UM (WSE)",
     role: "Secretary, Products and Services Division",
     type: "organization",
@@ -610,7 +619,7 @@ export const experiences: ExperienceEntry[] = [
       "I managed the administration, the documents and the coordination for the division. I taught the Internet of Things session at Workshop at School 2023. I also organised the Line Tracer Design Contest and the PESC UM writing competition.",
   },
   {
-    number: "V",
+    number: "VI",
     title: "PT. Weiss Tech Sidoarjo",
     role: "IT Support",
     type: "work",

@@ -593,6 +593,34 @@ button.astrolabe-scene__core:hover {
 .about-copy p { max-width: 39rem; color: rgba(253, 248, 225, 0.65); }
 .about-copy__body { padding-top: 1rem; border-top: 1px solid var(--line-dark); }
 .about-copy__lead { font-size: 1.2rem; color: var(--ink) !important; }
+
+/* ── About: the dial is now a control ─────────────────────────────────────
+   The three labels were static text beside a decorative dial, with their
+   meaning in a separate row underneath. They are buttons now, and one panel
+   below answers for whichever is selected. */
+
+.atlas__node { appearance: none; cursor: pointer; font: inherit; transition: color 220ms ease, border-color 220ms ease, background 220ms ease, transform 220ms ease; }
+.atlas__node:hover { transform: translateY(-1px); }
+.atlas__node--active { border-color: var(--copper); background: rgba(169, 84, 50, 0.16); color: var(--ember); }
+.atlas__node:focus-visible { outline: 1px solid var(--copper); outline-offset: 3px; }
+
+.layer-read { display: grid; grid-template-columns: 1fr 1.1fr; gap: 1.5rem 4rem; margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px solid var(--line-light); align-items: start; }
+.layer-read__head { grid-column: 1; }
+.layer-read__index { display: block; margin-bottom: 0.7rem; font-family: var(--font-label); font-size: 0.55rem; letter-spacing: 0.18em; color: rgba(253, 248, 225, 0.42); }
+.layer-read__head h3 { margin: 0 0 0.35rem; font-family: var(--font-display); font-size: 3rem; font-weight: 400; line-height: 1; }
+.layer-read__caption { font-family: var(--font-label); font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ember); }
+.layer-read__summary { grid-column: 2; grid-row: 1; margin: 0; font-size: 1.05rem; line-height: 1.75; color: rgba(253, 248, 225, 0.72); }
+.layer-read__detail { grid-column: 2; margin: 0; padding: 0; list-style: none; display: grid; gap: 0.6rem; }
+.layer-read__detail li { position: relative; padding-left: 1.1rem; font-size: 0.92rem; color: rgba(253, 248, 225, 0.58); }
+.layer-read__detail li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 0.32rem; aspect-ratio: 1; border-radius: 50%; background: var(--copper); }
+
+@media (max-width: 900px) {
+  .layer-read { grid-template-columns: 1fr; gap: 1.5rem; margin-top: 3rem; }
+  .layer-read__head, .layer-read__summary, .layer-read__detail { grid-column: 1; }
+  .layer-read__summary { grid-row: auto; }
+  .layer-read__head h3 { font-size: 2.2rem; }
+}
+
 .atlas { position: relative; justify-self: center; width: min(44rem, 72vw); aspect-ratio: 1; overflow: hidden; border: 0.8rem solid rgba(216, 155, 78, 0.26); border-radius: 50%; background: rgba(10, 15, 20, 0.4); box-shadow: 0 0 2rem rgba(216, 155, 78, 0.14); perspective: 1200px; transform-style: preserve-3d; }
 .atlas::before, .atlas::after { content: ""; position: absolute; background: rgba(42, 33, 26, 0.13); }
 .atlas::before { left: 50%; top: 0; bottom: 0; width: 1px; }
@@ -618,10 +646,6 @@ button.astrolabe-scene__core:hover {
 .atlas__caption { position: absolute; left: 1rem; bottom: 0.8rem; margin: 0; font-family: var(--font-label); font-size: 0.55rem; color: rgba(253, 248, 225, 0.5); text-transform: uppercase; }
 @keyframes atlas-turn { to { transform: rotate(360deg); } }
 @keyframes atlas-turn-reverse { to { transform: rotate(-360deg); } }
-.about-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 6rem; border-top: 1px solid var(--line-dark); }
-.about-stats > div { display: grid; gap: 0.35rem; padding: 1.4rem 1rem 0 0; border-right: 1px solid var(--line-dark); }
-.about-stats strong { font-family: var(--font-display); font-size: 2.2rem; font-weight: 400; color: var(--copper); }
-.about-stats span { font-family: var(--font-label); font-size: 0.62rem; text-transform: uppercase; color: rgba(253, 248, 225, 0.55); }
 
 /* Projects */
 .projects-section { position: relative; padding-bottom: var(--section-pad); background: transparent; color: var(--ink); scroll-margin-top: 5rem; }
@@ -713,31 +737,66 @@ button.astrolabe-scene__core:hover {
 .skills-heading { display: grid; grid-template-columns: 1fr 22rem; gap: 4rem; align-items: end; margin-bottom: 5rem; }
 .skills-heading h2 { margin: 0; font-family: var(--font-display); font-size: 5.4rem; line-height: 0.9; font-weight: 400; }
 .skills-heading p { margin: 0 0 0.4rem; color: rgba(253, 248, 225, 0.62); }
-.skill-ledger { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--line-light); }
-.skill-ledger::before, .skill-ledger::after { content: ""; position: absolute; z-index: 2; pointer-events: none; background: rgba(253, 248, 225, 0.24); }
-.skill-ledger::before { left: 50%; top: -2.5rem; bottom: -2.5rem; width: 1px; }.skill-ledger::after { top: 50%; left: -2.5rem; right: -2.5rem; height: 1px; }
-.skill-ledger__hub { position: absolute; left: 50%; top: 50%; z-index: 3; display: grid; place-items: center; width: 5.5rem; aspect-ratio: 1; border: 1px solid var(--copper); border-radius: 50%; background: var(--ivory-soft); transform: translate(-50%, -50%); }
-.skill-ledger__hub::before { content: ""; position: absolute; inset: 0.75rem; border: 1px solid rgba(253, 248, 225, 0.28); border-top-color: transparent; border-radius: 50%; transform: rotate(var(--trace-angle)); }.skill-ledger__hub i { width: 0.55rem; aspect-ratio: 1; background: var(--copper); border-radius: 50%; }
-.skill-ledger__bearing { position: absolute; z-index: 4; padding: 0.22rem 0.38rem; background: var(--ivory-soft); font-family: var(--font-label); font-size: 0.48rem; line-height: 1; color: rgba(253, 248, 225, 0.56); text-transform: uppercase; }
-.skill-ledger__bearing--north { left: 50%; top: -0.35rem; transform: translate(-50%, -50%); }.skill-ledger__bearing--east { right: -0.35rem; top: 50%; transform: translate(50%, -50%) rotate(90deg); }.skill-ledger__bearing--south { left: 50%; bottom: -0.35rem; transform: translate(-50%, 50%); }.skill-ledger__bearing--west { left: -0.35rem; top: 50%; transform: translate(-50%, -50%) rotate(-90deg); }
-.skill-graph { position: absolute; left: 50%; top: 50%; z-index: 0; width: min(35rem, 56%); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; }
-.skill-graph__orbit { position: absolute; border: 1px solid rgba(169, 84, 50, 0.28); border-radius: 50%; }.skill-graph__orbit--outer { inset: 4%; border-top-color: transparent; }.skill-graph__orbit--inner { inset: 24%; border-color: rgba(83, 98, 75, 0.34); border-right-color: transparent; }
-.skill-graph__link { position: absolute; left: 50%; top: 50%; width: 43%; height: 1px; background: rgba(253, 248, 225, 0.22); transform-origin: left center; }.skill-graph__link::after { content: ""; position: absolute; right: 0; top: -0.22rem; width: 0.45rem; aspect-ratio: 1; border-radius: 50%; background: var(--copper); }
-.skill-graph__link--one { transform: rotate(-135deg); }.skill-graph__link--two { transform: rotate(-45deg); }.skill-graph__link--three { transform: rotate(45deg); }.skill-graph__link--four { transform: rotate(135deg); }
-.skill-graph__node { position: absolute; z-index: 2; display: grid; place-items: center; width: 2.8rem; aspect-ratio: 1; border: 1px solid rgba(169, 84, 50, 0.58); border-radius: 50%; background: rgba(10, 15, 20, 0.92); font-family: var(--font-label); font-size: 0.5rem; color: var(--copper); transition: background-color 240ms ease, color 240ms ease, transform 240ms ease; }.skill-graph__node::before { content: ""; position: absolute; inset: 0.42rem; border: 1px solid rgba(253, 248, 225, 0.18); border-radius: 50%; }
-.skill-graph__node--one { left: 12%; top: 12%; }.skill-graph__node--two { right: 12%; top: 12%; }.skill-graph__node--three { left: 12%; bottom: 12%; }.skill-graph__node--four { right: 12%; bottom: 12%; }
-.skill-graph__pulse { position: absolute; left: 46%; top: 46%; width: 8%; aspect-ratio: 1; border-radius: 50%; background: var(--ember); }.skill-graph__pulse::after { content: ""; position: absolute; inset: -0.8rem; border: 1px solid rgba(169, 84, 50, 0.48); border-radius: 50%; animation: graph-pulse 2.4s ease-out infinite; }
-.skill-ledger:has(.skill-row:nth-of-type(1):hover) .skill-graph__node--one, .skill-ledger:has(.skill-row:nth-of-type(2):hover) .skill-graph__node--two, .skill-ledger:has(.skill-row:nth-of-type(3):hover) .skill-graph__node--three, .skill-ledger:has(.skill-row:nth-of-type(4):hover) .skill-graph__node--four { background: var(--copper); color: var(--paper); transform: scale(1.12); }
-.skill-row { position: relative; z-index: 1; }
+
+/* ── Skills: four layers on one spine ─────────────────────────────────────
+   Replaces a 2x2 bordered grid. Boxes made the four layers read as four
+   separate practices; the claim is that one job crosses all of them, so they
+   hang off a single vertical line instead. */
+
+.layers { position: relative; display: grid; gap: 4.5rem; padding-left: 5.5rem; }
+
+/* The spine. Drawn behind the markers, running the full height. */
+.layer-spine { position: absolute; left: 2rem; top: 0.6rem; bottom: 0.6rem; width: 1px; background: var(--line-light); }
+.layer-spine__run { position: absolute; inset: 0; background: linear-gradient(180deg, var(--copper), rgba(169, 84, 50, 0.15)); transform-origin: top; }
+
+.layer { position: relative; display: grid; grid-template-columns: auto 1fr; gap: 2rem; outline: none; transition: opacity 260ms ease; }
+/* Dim the rest only while one is engaged, so the group still reads as one. */
+.layers--focused .layer { opacity: 0.42; }
+.layers--focused .layer--active { opacity: 1; }
+.layer:focus-visible { outline: 1px solid var(--copper); outline-offset: 1.5rem; }
+
+/* The marker sits on the spine, not beside it. */
+.layer__marker { position: absolute; left: -4.5rem; top: 0.1rem; display: grid; place-items: center; width: 3rem; aspect-ratio: 1; border: 1px solid var(--line-light); border-radius: 50%; background: var(--paper); transition: border-color 260ms ease, transform 260ms ease; }
+.layer--active .layer__marker { border-color: var(--copper); transform: scale(1.08); }
+.layer__numeral { font-family: var(--font-label); font-size: 0.62rem; letter-spacing: 0.08em; color: rgba(253, 248, 225, 0.66); }
+.layer--active .layer__numeral { color: var(--ember); }
+
+/* Two columns, echoing the heading above it: the sentence on the left, the
+   tools on the right. A single stacked column left the right 40% of a wide
+   screen empty, because five chips never fill 1440px. */
+.layer__body { grid-column: 2; min-width: 0; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); column-gap: 4rem; align-items: start; }
+.layer__body h3 { grid-column: 1 / -1; margin: 0 0 0.9rem; font-family: var(--font-display); font-size: 2.5rem; font-weight: 400; line-height: 1; }
+.layer__body > p { grid-column: 1; margin: 0; max-width: 46ch; color: rgba(253, 248, 225, 0.62); line-height: 1.7; }
+
+/* Tools: a mark and a name, wrapping freely. Chips are the same shape whether
+   the tool has a brand or not, so a row of practices does not look broken
+   next to a row of products. */
+.tools { grid-column: 2; display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.tool { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.7rem 0.4rem 0.45rem; border: 1px solid var(--line-dark); border-radius: 999px; background: rgba(253, 248, 225, 0.02); transition: border-color 200ms ease, background 200ms ease, transform 200ms ease; }
+.tool:hover { border-color: var(--copper); background: rgba(169, 84, 50, 0.08); transform: translateY(-1px); }
+
+.tool__mark { display: grid; place-items: center; width: 1.35rem; aspect-ratio: 1; flex: none; }
+/* currentColor, so a single rule themes every mark and none of them shout in
+   their own brand colour against this palette. */
+.tool__mark svg { width: 100%; height: 100%; fill: rgba(253, 248, 225, 0.72); transition: fill 200ms ease; }
+.tool:hover .tool__mark svg { fill: var(--ember); }
+.tool__mark em { font-family: var(--font-label); font-size: 0.55rem; font-style: normal; letter-spacing: 0.02em; color: rgba(253, 248, 225, 0.5); }
+.tool:hover .tool__mark em { color: var(--ember); }
+
+.tool__name { font-family: var(--font-label); font-size: 0.6rem; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(253, 248, 225, 0.78); white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .layers { padding-left: 3.5rem; gap: 3rem; }
+  .layer-spine { left: 1.25rem; }
+  .layer__marker { left: -3.1rem; width: 2.4rem; }
+  .layer { grid-template-columns: 1fr; gap: 0; }
+  .layer__body { grid-column: 1; grid-template-columns: 1fr; }
+  .layer__body > p { grid-column: 1; margin-bottom: 1.25rem; }
+  .tools { grid-column: 1; }
+  .layer__body h3 { font-size: 2rem; }
+}
+
 @keyframes graph-pulse { 0% { opacity: 0.8; transform: scale(0.5); } 100% { opacity: 0; transform: scale(1.7); } }
-.skill-row { display: grid; grid-template-columns: 3rem 1fr; gap: 1.5rem; align-content: start; min-height: 22rem; padding: 3rem; transition: background-color 240ms ease; }
-.skill-row:nth-of-type(2n - 1) { border-right: 1px solid var(--line-light); }.skill-row:nth-of-type(-n + 2) { border-bottom: 1px solid var(--line-light); }
-.skill-row:hover { background: rgba(253, 248, 225, 0.05); }
-.skill-row__number { font-family: var(--font-label); font-size: 0.6rem; color: #d89156; }
-.skill-row h3 { margin: 0 0 0.35rem; font-family: var(--font-display); font-size: 2rem; font-weight: 400; }
-.skill-row p { max-width: 29rem; margin: 0; color: rgba(253, 248, 225, 0.62); }
-.skill-row ul { grid-column: 2; display: flex; flex-wrap: wrap; align-content: start; gap: 0.45rem 1.2rem; margin: 1rem 0 0; padding: 0; list-style: none; font-family: var(--font-label); font-size: 0.6rem; text-transform: uppercase; color: rgba(253, 248, 225, 0.7); }
-.skill-row li::before { content: "/"; color: var(--copper); margin-right: 0.45rem; }
 
 /* Experience Section */
 .experience-section { position: relative; padding-block: var(--section-pad); background: transparent; color: var(--ink); scroll-margin-top: 5rem; }
@@ -810,7 +869,6 @@ button.astrolabe-scene__core:hover {
   .projects-intro h2, .contact-grid h2 { font-size: 4.4rem; }
   .project-chapter, .project-chapter:nth-child(even) { grid-template-columns: 1fr; gap: 2rem; }
   .project-chapter__heading { grid-template-columns: 1fr 1.25fr; }
-  .skill-row { min-height: 20rem; padding: 2.25rem; }
   .site-footer__seal { font-size: 15rem; }
 }
 
@@ -836,7 +894,6 @@ button.astrolabe-scene__core:hover {
   .about-grid, .about-copy, .projects-intro, .skills-heading, .contact-grid { grid-template-columns: 1fr; gap: 3rem; }
   .about-copy h2, .projects-intro h2, .skills-heading h2, .contact-grid h2 { font-size: 3rem; }
   .about-grid { gap: 3.5rem; }.atlas { width: min(100%, 25rem); }
-  .about-stats { grid-template-columns: 1fr; margin-top: 4rem; }.about-stats > div { border-right: 0; border-bottom: 1px solid var(--line-dark); padding-block: 1rem; }
   .chapter-portal { height: auto; margin-bottom: var(--section-pad); }
   .chapter-portal__stage { position: relative; height: 82svh; min-height: 38rem; perspective: none; }
   .chapter-portal__stage::before { inset: 0.75rem; }
@@ -858,8 +915,6 @@ button.astrolabe-scene__core:hover {
   .project-chapter__depth-frame { display: none; }.project-chapter__foreground { opacity: 0.1; mix-blend-mode: normal; }
   .project-chapter__index { right: 1.4rem; top: 1rem; font-size: 3.5rem; }.project-chapter__actions { left: 1rem; right: 1rem; bottom: 1rem; }.project-chapter__cta, .project-chapter__toggle { font-size: 0.56rem; }
   .project-record dl { grid-template-columns: 1fr; gap: 1.8rem; padding-top: 2rem; }
-  .skill-ledger { grid-template-columns: 1fr; }.skill-ledger::before, .skill-ledger::after, .skill-ledger__hub, .skill-ledger__bearing, .skill-graph { display: none; }
-  .skill-row { grid-template-columns: 2rem 1fr; gap: 1rem; min-height: 0; padding: 2rem 1rem; border-right: 0 !important; border-bottom: 1px solid var(--line-light) !important; }.skill-row:last-child { border-bottom: 0 !important; }.skill-row ul { grid-column: 2; }
   .contact-grid { min-height: 0; }.contact-copy { padding-top: 1rem; }.contact-email { font-size: 1.15rem; }
   .contact-instrument { right: -11rem; top: 34%; width: 28rem; opacity: 0.7; }
   .contact-note { margin-top: 4rem; }
