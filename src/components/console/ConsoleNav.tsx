@@ -11,6 +11,7 @@ const links = [
   { href: "/console/traffic", label: "Traffic" },
   { href: "/console/logs", label: "Log" },
   { href: "/console/incidents", label: "Incidents" },
+  { href: "/console/integrate", label: "Integrate" },
 ];
 
 export default function ConsoleNav() {

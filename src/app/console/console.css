@@ -1973,3 +1973,72 @@
   background: var(--c-copper);
   transform: translateY(-1px);
 }
+
+/* Published demo credentials.
+   Styled as an aside rather than an alert: it is an invitation, not a
+   warning, and it must not compete with the status colours above it. */
+.demo-key {
+  margin: var(--s-3) 0 0;
+  padding: var(--s-2) var(--s-3);
+  border: 1px dashed var(--c-rule);
+  border-radius: 10px;
+  background: var(--c-surface);
+}
+.demo-key__tag {
+  display: block;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c-copper);
+  margin-bottom: var(--s-1);
+}
+.demo-key dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-4);
+  margin: 0 0 var(--s-1);
+}
+.demo-key dt {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+.demo-key dd {
+  margin: 2px 0 0;
+}
+.demo-key code {
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.8rem;
+  color: var(--c-ink);
+  /* Selectable as one token: this exists to be copied. */
+  user-select: all;
+}
+.demo-key p {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--c-muted);
+}
+
+/* A config snippet shown as evidence, so it has to be readable rather than
+   decorative: real monospace, real scrolling, no wrapping that would break
+   the JSON across lines and make it look longer than it is. */
+.code-block {
+  margin: var(--s-2) 0 0;
+  padding: var(--s-3);
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule-soft);
+  border-radius: 10px;
+  overflow-x: auto;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.74rem;
+  line-height: 1.7;
+  color: var(--c-ink-2);
+  white-space: pre;
+}
+.code-block code {
+  font: inherit;
+  color: inherit;
+}

@@ -80,6 +80,25 @@ export type ProjectMonitor = {
    * dashboard is public. A relative path stays on this site.
    */
   dashboardUrl?: string;
+  /**
+   * A read-only account on the public instance.
+   *
+   * Two of these systems put a login in front of the dashboard. Nobody
+   * evaluating the work will write and ask for a password -- they close the
+   * tab. Publishing a viewer account is what turns "I built this" into
+   * something a reader can check.
+   *
+   * Never a real account, and never one that can write. The seeders create
+   * these specifically to be published.
+   */
+  demo?: {
+    /** Where to sign in, if it is not the application root. */
+    url?: string;
+    /** What the field is called -- "Email", "Nomor Induk". */
+    label: string;
+    username: string;
+    password: string;
+  };
   /** One line that tells the visitor why the access state is what it is. */
   note: string;
 };
@@ -285,6 +304,11 @@ export const projects: ProjectData[] = [
     monitor: {
       access: "public",
       siteId: "baringan",
+      demo: {
+        label: "Email",
+        username: "demo@baringan.test",
+        password: "demo1234",
+      },
       note:
         "I run a public instance of this system. The figures below come from it, not from the hospital.",
     },
@@ -420,6 +444,11 @@ export const projects: ProjectData[] = [
     monitor: {
       access: "public",
       siteId: "bisa-lms",
+      demo: {
+        label: "Nomor Induk",
+        username: "22601001",
+        password: "demo1234",
+      },
       note:
         "I run a public instance of this platform. The figures below come from it.",
     },

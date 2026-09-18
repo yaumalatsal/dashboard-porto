@@ -156,6 +156,30 @@ export default async function ProjectDashboardPage({
         </div>
       </div>
 
+      {project.monitor.demo && (
+        <div className="demo-key">
+          <span className="demo-key__tag">Sign in and look around</span>
+          <dl>
+            <div>
+              <dt>{project.monitor.demo.label}</dt>
+              <dd>
+                <code>{project.monitor.demo.username}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Password</dt>
+              <dd>
+                <code>{project.monitor.demo.password}</code>
+              </dd>
+            </div>
+          </dl>
+          <p>
+            A read-only account on the public instance. It holds demonstration
+            data, not the data of any client.
+          </p>
+        </div>
+      )}
+
       <dl className="project-meta">
         <div>
           <dt>Client</dt>
