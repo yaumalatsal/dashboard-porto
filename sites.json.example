@@ -6,8 +6,14 @@
       "url": "https://yourday.duckdns.org",
       "blurb": "Learning management system — courses, submissions, grading",
       "adapter": "monitor-api",
-      "tags": ["production", "lms"],
-      "auth": { "header": "X-Monitor-Token", "env": "MONITOR_API_TOKEN" },
+      "tags": [
+        "production",
+        "lms"
+      ],
+      "auth": {
+        "header": "X-Monitor-Token",
+        "env": "MONITOR_API_TOKEN"
+      },
       "probes": [
         {
           "name": "health",
@@ -22,6 +28,33 @@
         {
           "name": "metrics",
           "url": "https://yourday.duckdns.org/api/monitor/metrics",
+          "intervalSeconds": 300
+        }
+      ]
+    },
+    {
+      "id": "simaksi",
+      "label": "SIMAKSI",
+      "url": "https://simaksi.yaumalatsal.com",
+      "blurb": "Performance data system for the Surabaya Health Quarantine Centre",
+      "adapter": "monitor-api",
+      "tags": [
+        "production",
+        "laravel"
+      ],
+      "auth": {
+        "header": "X-Monitor-Token",
+        "env": "SIMAKSI_MONITOR_TOKEN"
+      },
+      "probes": [
+        {
+          "name": "health",
+          "url": "https://simaksi.yaumalatsal.com/api/health",
+          "intervalSeconds": 30
+        },
+        {
+          "name": "metrics",
+          "url": "https://simaksi.yaumalatsal.com/api/monitor/metrics",
           "intervalSeconds": 300
         }
       ]
