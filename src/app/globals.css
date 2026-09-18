@@ -2143,3 +2143,110 @@ body:has(.astrolabe-scene.is-reading)::after {
   .credentials-grid { gap: 3rem; }
   .credential { grid-template-columns: 5.5rem minmax(0, 1fr); gap: 1rem; }
 }
+
+/* ── Hero portrait ────────────────────────────────────────────────────────
+   Sits inside the instrument, not beside it. The astrolabe used to hold the
+   centre of the hero on its own, which made it a second subject competing
+   with the name; framing a face is a job it can do without rivalling the
+   copy.
+
+   No background removal. A radial mask centred on the head dissolves the
+   shoulders and the original red backdrop into the page, so the edge is a
+   gradient rather than a cut-out and nothing has to be traced by hand. */
+
+.hero-portrait {
+  position: absolute;
+  right: 4vw;
+  top: 50%;
+  z-index: 1;
+  width: min(40vw, 36rem);
+  transform: translateY(-50%);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.hero-portrait img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Centred on the head, which sits upper-left of the source frame. The
+     inner stop stays opaque over the face; everything past it falls away. */
+  -webkit-mask-image: radial-gradient(ellipse 52% 46% at 44% 31%, #000 46%, rgba(0, 0, 0, 0.55) 62%, transparent 78%);
+  mask-image: radial-gradient(ellipse 52% 46% at 44% 31%, #000 46%, rgba(0, 0, 0, 0.55) 62%, transparent 78%);
+  /* Graded toward the page's copper rather than left on its original red,
+     so it belongs to this palette instead of importing another one. */
+  /* Lifted and warmed. The source is deliberately under-exposed, which
+     reads as murk rather than mood once it sits on a dark page. */
+  filter: saturate(0.72) contrast(1.12) brightness(1.22) sepia(0.16) hue-rotate(-6deg);
+}
+
+/* A slow ember bloom behind the head, tying the face to the instrument's
+   own glow rather than letting it float on flat black. */
+.hero-portrait__halo {
+  position: absolute;
+  left: 44%;
+  top: 31%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(5, 7, 10, 0.92) 30%, rgba(5, 7, 10, 0.55) 52%, transparent 68%),
+    radial-gradient(circle, rgba(216, 155, 78, 0.2), rgba(169, 84, 50, 0.08) 48%, transparent 72%);
+  width: 96%;
+  transform: translate(-50%, -50%);
+  animation: portrait-bloom 9s ease-in-out infinite;
+}
+
+@keyframes portrait-bloom {
+  0%, 100% { opacity: 0.75; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+}
+
+/* The instrument becomes the halo behind the face rather than the subject.
+   It keeps its size and all its detail; it stops being the thing the eye
+   lands on first.
+
+   Targeted without :not(.has-full-3d) on purpose — the WebGL build carries
+   that class in normal operation, so excluding it meant this never applied
+   and the instrument stayed at full strength in front of the portrait. Only
+   the focused state, where the instrument IS the subject, is excluded. */
+.astrolabe-scene:not(.has-focus) {
+  left: auto;
+  right: 4vw;
+  top: 50%;
+  width: min(42rem, 48vw);
+  height: min(42rem, 48vw);
+  transform: translateY(-50%);
+  opacity: 0.16;
+  z-index: 1;
+  filter: saturate(0.5) brightness(0.8);
+}
+
+/* Above the instrument, which is now backdrop. */
+.hero-portrait { z-index: 3; }
+
+@media (max-width: 900px) {
+  .hero-portrait { right: 50%; top: 42%; width: min(62vw, 22rem); transform: translate(50%, -50%); }
+  .astrolabe-scene:not(.has-focus) { right: 50%; width: min(30rem, 86vw); height: min(30rem, 86vw); transform: translate(50%, -50%); opacity: 0.12; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-portrait__halo { animation: none; }
+}
+
+/* The instrument is backdrop in the hero now, not navigation, so its controls
+   no longer describe anything the reader can usefully do. They stay in the
+   markup for the focused state, where the instrument IS the subject; here
+   they are hidden and made unreachable, including by keyboard, so nothing
+   receives focus that a sighted reader cannot see. */
+.astrolabe-scene:not(.has-focus) .orrery__instruction,
+.astrolabe-scene:not(.has-focus) .orrery-map-switch,
+.astrolabe-scene:not(.has-focus) .orrery__reset {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Nor should it swallow drags meant for the page behind it. */
+.astrolabe-scene:not(.has-focus) .astrolabe-scene__instrument {
+  pointer-events: none;
+}
