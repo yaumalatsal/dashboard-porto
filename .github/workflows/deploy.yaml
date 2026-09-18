@@ -114,6 +114,7 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL || 'http://localhost:3000' }}
           MONITOR_API_TOKEN: ${{ secrets.MONITOR_API_TOKEN }}
           CONSOLE_ADMIN_TOKEN: ${{ secrets.CONSOLE_ADMIN_TOKEN }}
+          SIMAKSI_MONITOR_TOKEN: ${{ secrets.SIMAKSI_MONITOR_TOKEN }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/var/www/dashboard-porto' }}
@@ -122,7 +123,7 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
-          envs: SITE_URL,MONITOR_API_TOKEN,CONSOLE_ADMIN_TOKEN,GHCR_USER,GHCR_TOKEN,DEPLOY_PATH
+          envs: SITE_URL,MONITOR_API_TOKEN,CONSOLE_ADMIN_TOKEN,SIMAKSI_MONITOR_TOKEN,GHCR_USER,GHCR_TOKEN,DEPLOY_PATH
           script_stop: true
           script: |
             set -euo pipefail
@@ -144,6 +145,7 @@ jobs:
             SITE_URL=${SITE_URL}
             MONITOR_API_TOKEN=${MONITOR_API_TOKEN}
             CONSOLE_ADMIN_TOKEN=${CONSOLE_ADMIN_TOKEN}
+            SIMAKSI_MONITOR_TOKEN=${SIMAKSI_MONITOR_TOKEN}
             ENVFILE
 
             docker compose pull

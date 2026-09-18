@@ -26,6 +26,8 @@ services:
       # Tokens for monitored apps are referenced by name from sites.json
       # (`auth.env`), so the config file itself never contains a secret.
       - MONITOR_API_TOKEN=${MONITOR_API_TOKEN:-}
+      # SIMAKSI has its own token; sites.json references it by name.
+      - SIMAKSI_MONITOR_TOKEN=${SIMAKSI_MONITOR_TOKEN:-}
       # Unset by default: the console's write endpoints are open. Set it to
       # require X-Console-Token on POST /api/monitor/sites and DELETE.
       - CONSOLE_ADMIN_TOKEN=${CONSOLE_ADMIN_TOKEN:-}
