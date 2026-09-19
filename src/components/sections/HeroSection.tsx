@@ -159,6 +159,20 @@ export default function HeroSection({ readout }: { readout: HeroReadout | null }
           </h1>
           <p className="hero-copy__statement" data-hero-line>{profile.tagline}</p>
           <p className="hero-copy__subhead" data-hero-detail>{profile.bio}</p>
+
+          {/* The only thing the hero asked a reader to do was scroll. These are
+              the two things a person who came here to evaluate me actually
+              wants: the work, and the document their process needs. */}
+          <div className="hero-actions" data-hero-detail>
+            <a href="#work" className="hero-action hero-action--primary" data-cursor="link">
+              View selected work
+              <span aria-hidden="true">→</span>
+            </a>
+            <Link href="/resume" className="hero-action" data-cursor="link">
+              Résumé
+            </Link>
+          </div>
+          <p className="hero-availability" data-hero-detail>{profile.availability}.</p>
         </div>
 
         {/* The portrait sits inside the instrument rather than beside it. The
@@ -166,13 +180,14 @@ export default function HeroSection({ readout }: { readout: HeroReadout | null }
             second subject competing with the name; framing a face is a job it
             can do without rivalling the copy.
 
-            Masked rather than cut out: a radial fade centred on the head
-            dissolves the shoulders and the original red backdrop into the
-            page, so the edge is a gradient and nothing is traced by hand. */}
+            A real cutout now, not a radial mask over the original red
+            backdrop. The mask was a rectangle of fading photograph, which
+            could not be laid over type without dimming it; an alpha edge can.
+            That is what makes the crowded phone and tablet layouts possible. */}
         <div className="hero-portrait" data-hero-portrait aria-hidden="true">
           <span className="hero-portrait__halo" />
           <Image
-            src="/images/portrait.png"
+            src="/images/portrait-cutout.png"
             alt=""
             width={517}
             height={578}

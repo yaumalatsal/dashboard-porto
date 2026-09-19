@@ -690,7 +690,7 @@ button.astrolabe-scene__core:hover {
 .projects-intro { display: grid; grid-template-columns: 1fr 24rem; gap: 4rem; align-items: end; margin-bottom: 8rem; }
 .projects-intro h2 { margin: 0; font-family: var(--font-display); font-size: 6rem; line-height: 0.9; font-weight: 400; }
 .projects-intro p { margin: 0 0 0.55rem; color: rgba(253, 248, 225, 0.55); }
-.projects-list { display: grid; gap: 13rem; }
+.projects-list { display: grid; gap: 8rem; }
 .project-chapter { display: grid; grid-template-columns: 1fr; gap: 2rem; perspective: 1400px; }
 .project-chapter:nth-child(even) { grid-template-columns: 1fr; }
 .project-chapter:nth-child(even) .project-chapter__meta, .project-chapter:nth-child(even) .project-chapter__body { grid-column: 1; grid-row: auto; }
@@ -891,9 +891,14 @@ button.astrolabe-scene__core:hover {
   .site-footer__seal { font-size: 15rem; }
 }
 
+@media (max-width: 1024px) {
+  .site-nav__links { display: none; }
+  .site-nav__menu { display: flex; }
+}
+
 @media (max-width: 767px) {
   :root { --section-pad: 5.5rem; --page-pad: 1.25rem; }
-  .site-nav__links { display: none; }.site-nav__menu { display: flex; }.site-nav__wordmark small { display: none; }
+  .site-nav__wordmark small { display: none; }
   .scroll-progress, .cursor-layer, .journey-frame { display: none; }
   .hero-shell { height: auto; }
   .hero-stage { position: relative; height: 96svh; min-height: 40rem; }
@@ -2195,15 +2200,15 @@ body:has(.astrolabe-scene.is-reading)::after {
   display: block;
   width: 100%;
   height: auto;
-  /* Centred on the head, which sits upper-left of the source frame. The
-     inner stop stays opaque over the face; everything past it falls away. */
-  -webkit-mask-image: radial-gradient(ellipse 52% 46% at 44% 31%, #000 46%, rgba(0, 0, 0, 0.55) 62%, transparent 78%);
-  mask-image: radial-gradient(ellipse 52% 46% at 44% 31%, #000 46%, rgba(0, 0, 0, 0.55) 62%, transparent 78%);
-  /* Graded toward the page's copper rather than left on its original red,
-     so it belongs to this palette instead of importing another one. */
-  /* Lifted and warmed. The source is deliberately under-exposed, which
-     reads as murk rather than mood once it sits on a dark page. */
-  filter: saturate(0.72) contrast(1.12) brightness(1.22) sepia(0.16) hue-rotate(-6deg);
+  /* No mask. The file carries its own alpha now, so the edge is the subject's
+     edge and the shoulders fall away into the page instead of into a circle.
+     Graded toward the page's copper rather than left on its original red, and
+     lifted: the source is deliberately under-exposed, which reads as murk
+     rather than mood once it sits on a dark page. */
+  filter: saturate(0.78) contrast(1.1) brightness(1.4) sepia(0.14) hue-rotate(-6deg);
+  /* A soft floor under the shoulders, so the cutout does not end on a line. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 76%, transparent 97%);
+  mask-image: linear-gradient(to bottom, #000 76%, transparent 97%);
 }
 
 /* A slow ember bloom behind the head, tying the face to the instrument's
@@ -2260,6 +2265,41 @@ body:has(.astrolabe-scene.is-reading)::after {
 
 /* Above the instrument, which is now backdrop. */
 .hero-portrait { z-index: 3; }
+
+/* ── Hero actions ─────────────────────────────────────────────────────────
+   Two of them, and a line of fact underneath. "Move down the page" stays as
+   atmosphere at the foot of the stage; it is not a way to evaluate somebody. */
+
+.hero-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 2rem; }
+.hero-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.6rem;
+  padding: 0 1.15rem;
+  border: 1px solid rgba(216, 155, 78, 0.45);
+  border-radius: 2rem;
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background 220ms ease, border-color 220ms ease, transform 220ms ease;
+}
+.hero-action span { transition: transform 220ms ease; }
+.hero-action:hover { border-color: var(--ember); transform: translateY(-1px); }
+.hero-action:hover span { transform: translateX(3px); }
+.hero-action:focus-visible { outline: 1px solid var(--copper); outline-offset: 3px; }
+.hero-action--primary { background: rgba(169, 84, 50, 0.22); border-color: var(--copper); color: var(--ember); }
+.hero-action--primary:hover { background: rgba(169, 84, 50, 0.34); }
+.hero-availability {
+  margin: 0.9rem 0 0;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  color: rgba(253, 248, 225, 0.68);
+}
 
 /* ── Hero frame ───────────────────────────────────────────────────────────
    Four brackets, nothing else. The hero was a headline on the left and a face
@@ -2407,15 +2447,6 @@ body:has(.astrolabe-scene.is-reading)::after {
   .hero-readout__stat strong { font-size: 1.4rem; }
 }
 @media (max-width: 900px) {
-  /* The portrait re-centres at 42% on narrow screens, so the shared point
-     moves with it. Overriding the two variables keeps all three layers
-     concentric without restating each layer's position. */
-  .hero-reticle {
-    --hero-reticle-w: min(74vw, 22rem);
-    right: 50%;
-    top: calc(42% - 0.2125 * min(62vw, 22rem));
-    transform: translate(50%, -50%);
-  }
   .hero-readout { bottom: 4.5rem; }
 }
 /* On a phone the four stats with their captions are tall enough to run into
@@ -2428,10 +2459,6 @@ body:has(.astrolabe-scene.is-reading)::after {
   .hero-readout__stat strong { font-size: 1.1rem; }
   .hero-readout__stat em { font-size: 0.5rem; letter-spacing: 0.1em; }
   .hero-readout__go { display: none; }
-  /* Enough contrast for the name to stay legible where it crosses the face.
-     Applied to the image, not the container: GSAP animates the container's
-     opacity inline on entry, and an inline style wins over this rule. */
-  .hero-portrait img { opacity: 0.68; }
 }
 @media (max-width: 560px) {
   .hero-frame { inset: 4.4rem 1rem 0.9rem; }
@@ -2441,9 +2468,7 @@ body:has(.astrolabe-scene.is-reading)::after {
 }
 
 @media (max-width: 900px) {
-  .hero-portrait { right: 50%; top: 42%; width: min(62vw, 22rem); transform: translate(50%, -50%); }
   .hero-frame { inset: 1.6rem 1.2rem; }
-  .astrolabe-scene:not(.has-focus) { --hero-instrument-w: min(34rem, 96vw); right: 50%; top: calc(42% - 0.2125 * min(62vw, 22rem)); width: var(--hero-instrument-w); height: var(--hero-instrument-w); transform: translate(50%, -50%); opacity: 0.22; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2466,4 +2491,262 @@ body:has(.astrolabe-scene.is-reading)::after {
 /* Nor should it swallow drags meant for the page behind it. */
 .astrolabe-scene:not(.has-focus) .astrolabe-scene__instrument {
   pointer-events: none;
+}
+
+/* ── Small type ───────────────────────────────────────────────────────────
+   Anything carrying a fact is set at 0.75rem or larger and at an opacity a
+   reader does not have to lean into. Below that size and contrast the label
+   is decoration, and these labels are not decoration: they say what the
+   number beside them means. */
+
+.hero-copy__eyebrow { font-size: 0.75rem; color: rgba(253, 248, 225, 0.72); }
+.hero-availability { font-size: 0.75rem; color: rgba(253, 248, 225, 0.72); }
+.hero-readout__stat em { font-size: 0.75rem; color: rgba(253, 248, 225, 0.68); }
+.hero-readout__stat small { font-size: 0.75rem; color: rgba(253, 248, 225, 0.66); }
+.hero-readout__go { font-size: 0.75rem; }
+.hero-scroll { font-size: 0.75rem; color: rgba(253, 248, 225, 0.72); }
+.operations-row__metric em { font-size: 0.75rem; color: rgba(253, 248, 225, 0.66); }
+.atlas__node { font-size: 0.75rem; }
+.atlas__caption { font-size: 0.75rem; color: rgba(253, 248, 225, 0.66); }
+.layer-read__index, .layer-read__caption { font-size: 0.75rem; }
+.about-copy p { color: rgba(253, 248, 225, 0.75); }
+.hero-copy__subhead { color: rgba(253, 248, 225, 0.78); }
+
+/* ── Hero: tablet ─────────────────────────────────────────────────────────
+   768 to 1024 had no layout of its own. It took the desktop composition with
+   a 32vw copy column, which made the tagline about 290px tall, and the ≤900
+   rule that centres the portrait, which then landed on top of it. The two
+   rules were written for different screens and met here.
+
+   The tablet keeps the desktop arrangement — copy left, subject right — at
+   tablet proportions. Because every layer derives its position from the two
+   variables below, setting them is the whole layout. */
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  :root {
+    --hero-portrait-w: min(44vw, 22rem);
+    --hero-portrait-gutter: 1.5vw;
+  }
+  .hero-copy { top: 9vh; width: 46vw; }
+  .hero-title { font-size: clamp(2.2rem, 5.4vw, 3.4rem); white-space: normal; }
+  .hero-copy__statement { font-size: clamp(1.15rem, 2.6vw, 1.6rem); }
+  .hero-copy__subhead { max-width: 100%; font-size: 0.86rem; }
+  .hero-actions { margin-top: 1.4rem; }
+  .astrolabe-scene:not(.has-focus) { --hero-instrument-w: min(40rem, 68vw); opacity: 0.26; }
+  .hero-readout { bottom: 5rem; }
+  .hero-readout__link { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+  .hero-readout__go { display: none; }
+  .hero-readout__stat strong { font-size: 1.3rem; }
+}
+
+/* ── Hero: phone ──────────────────────────────────────────────────────────
+   One column. The subject sits behind the copy on purpose — there is no room
+   for it anywhere else — so it moves right and down out of the headline, and
+   a scrim runs under the text. The portrait is a cutout now, which is what
+   makes laying type over it survivable at all. */
+
+@media (max-width: 767px) {
+  :root {
+    --hero-portrait-w: min(58vw, 19rem);
+    --hero-portrait-gutter: -8vw;
+  }
+  .hero-portrait { top: 46%; }
+  .hero-portrait img { opacity: 0.8; }
+  .hero-reticle {
+    --hero-reticle-w: calc(0.78 * var(--hero-portrait-w));
+    top: calc(46% - var(--hero-head-rise));
+  }
+  .astrolabe-scene:not(.has-focus) {
+    --hero-instrument-w: min(30rem, 92vw);
+    top: calc(46% - var(--hero-head-rise));
+    opacity: 0.2;
+  }
+  /* Dark under the headline, clear over the face. */
+  .hero-copy::before {
+    content: "";
+    position: absolute;
+    inset: -1.5rem -30% -1.5rem -1.5rem;
+    z-index: -1;
+    background: linear-gradient(
+      100deg,
+      rgba(8, 5, 16, 0.94) 0%,
+      rgba(8, 5, 16, 0.86) 42%,
+      rgba(8, 5, 16, 0.42) 74%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+  .hero-copy { isolation: isolate; }
+  .hero-actions { margin-top: 1.25rem; }
+  .hero-action { min-height: 2.4rem; padding: 0 0.95rem; font-size: 0.7rem; }
+}
+
+/* ========================================================== audit fit === */
+/* --- audit fit --- */
+
+/* The instrument is a fixed element wider than a tablet, and its absolutely
+   positioned subtree was extending the document's scrollable width: 780px
+   inside a 768px window, so the whole page could be dragged sideways. body
+   already carried overflow-x: hidden, which did nothing, because the overflow
+   escapes to the root element.
+
+   clip rather than hidden: hidden on the root would make it a scroll
+   container, which breaks position: sticky underneath it and fights Lenis.
+   clip only clips. */
+html {
+  overflow-x: clip;
+}
+
+/* ── Hero copy, on a laptop ───────────────────────────────────────────────
+   The copy column grew by two buttons and a line of availability, which put
+   its foot 30px into the readout at 1440x900. It starts higher and the
+   readout sits a little lower. */
+.hero-copy { top: 11vh; }
+
+@media (min-width: 1025px) and (max-height: 940px) {
+  .hero-copy { top: 7.5vh; }
+  .hero-copy__subhead { font-size: 0.88rem; line-height: 1.55; }
+  .hero-actions { margin-top: 1.4rem; }
+  .hero-availability { margin-top: 0.7rem; }
+}
+
+/* ── Hero, on a phone ─────────────────────────────────────────────────────
+   Everything readable moves into normal flow. The copy and the readout were
+   both absolutely positioned against the stage, which is how the copy came to
+   sit 95px on top of the readout once the actions were added — two elements
+   pinned to opposite edges of a box too short to hold both.
+
+   In flow they cannot overlap by construction. The portrait, the reticle and
+   the instrument stay absolute behind them: they are the backdrop, and a
+   backdrop is the one thing that may share space with the text. */
+@media (max-width: 767px) {
+  .hero-shell { height: auto; }
+  .hero-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: auto;
+    min-height: 100svh;
+    padding: 7rem var(--page-pad) 2.25rem;
+  }
+
+  .hero-copy,
+  .hero-readout,
+  .hero-scroll {
+    position: static;
+    width: 100%;
+    inset: auto;
+  }
+
+  .hero-copy { z-index: 3; }
+  .hero-readout { margin-top: 2rem; z-index: 3; }
+  .hero-scroll { margin-top: 1.5rem; }
+  .hero-frame { display: none; }
+
+  /* The scrim is drawn by the stage now that the copy is in flow, so it can
+     cover the whole text column rather than one absolutely placed box. */
+  .hero-copy::before {
+    inset: -1.25rem -1.5rem;
+  }
+}
+
+/* A phone in landscape has no room for a full-height stage. */
+@media (max-width: 900px) and (max-height: 520px) {
+  .hero-stage { min-height: auto; padding-top: 5.5rem; }
+}
+
+/* ── Also built ───────────────────────────────────────────────────────────
+   The archive is a list, not a gallery. One row each, the facts that let a
+   reader decide whether to open it, and a link to the record. */
+
+.archive { margin-top: 7rem; padding-top: 2.5rem; border-top: 1px solid var(--line-dark); }
+.archive__head { display: grid; gap: 0.6rem; margin-bottom: 1.75rem; }
+.archive__head h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 400;
+}
+.archive__head p { margin: 0; max-width: 34rem; color: rgba(253, 248, 225, 0.72); font-size: 0.95rem; }
+.archive__list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.archive__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: baseline;
+  padding: 1.15rem 0.25rem;
+  border-bottom: 1px solid var(--line-dark);
+  color: inherit;
+  text-decoration: none;
+  transition: background 200ms ease, padding-left 200ms ease;
+}
+.archive__item:hover { background: rgba(216, 155, 78, 0.06); padding-left: 0.75rem; }
+.archive__item:focus-visible { outline: 1px solid var(--copper); outline-offset: -1px; }
+.archive__title { font-family: var(--font-display); font-size: 1.22rem; }
+.archive__meta, .archive__stack {
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: rgba(253, 248, 225, 0.66);
+}
+.archive__item svg { align-self: center; color: var(--ember); }
+
+@media (max-width: 860px) {
+  .archive { margin-top: 4.5rem; }
+  .archive__item { grid-template-columns: minmax(0, 1fr) auto; gap: 0.3rem 1rem; }
+  .archive__meta { grid-column: 1; }
+  .archive__stack { grid-column: 1; }
+  .archive__item svg { grid-column: 2; grid-row: 1 / span 3; }
+}
+
+/* ── Résumé in the header ─────────────────────────────────────────────────
+   A quiet text link beside the console pill, not a second pill: two outlined
+   buttons in the corner read as a toolbar and pull attention off the work. */
+
+.site-nav__actions { display: inline-flex; align-items: center; gap: 0.25rem; }
+.site-nav__resume {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.42rem 0.75rem;
+  font-family: var(--font-label);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(253, 248, 225, 0.78);
+  white-space: nowrap;
+  transition: color 200ms ease;
+}
+.site-nav__resume:hover { color: var(--ember); }
+.site-nav__resume:focus-visible { outline: 1px solid var(--copper); outline-offset: 2px; }
+.site-nav__actions .site-nav__console { margin-left: 0.5rem; }
+
+/* ── Hero subject, on a phone ─────────────────────────────────────────────
+   Pushed further right and shrunk so the face clears the text column instead
+   of sitting under the middle of the name, and the copy's measure is capped
+   so the two occupy different halves of a 390px screen. */
+
+@media (max-width: 767px) {
+  :root {
+    --hero-portrait-w: min(50vw, 16rem);
+    --hero-portrait-gutter: -15vw;
+  }
+  .hero-portrait { top: 44%; }
+  .hero-portrait img { opacity: 0.9; filter: saturate(0.78) contrast(1.12) brightness(1.5) sepia(0.14) hue-rotate(-6deg); }
+  .hero-title { font-size: clamp(1.8rem, 8.2vw, 2.4rem); }
+  .hero-copy__statement { max-width: 15.5rem; }
+  .hero-copy__subhead { max-width: 17.5rem; }
+  .hero-reticle { top: calc(44% - var(--hero-head-rise)); }
+  .astrolabe-scene:not(.has-focus) { top: calc(44% - var(--hero-head-rise)); }
+}
+
+/* The header résumé link belongs to the desktop bar only; below that the
+   burger menu carries it.
+
+   Held by specificity, not by source order: the build merges duplicate media
+   queries, so a `@media (max-width: 1024px)` written last can be hoisted into
+   an identical block written earlier and end up ahead of the rule it was
+   meant to override. Two classes beat one wherever it lands. */
+@media (max-width: 1024px) {
+  .site-nav__inner .site-nav__resume { display: none; }
 }

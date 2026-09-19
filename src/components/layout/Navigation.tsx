@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useLenis } from "lenis/react";
 import { useUiStore, type AstrolabeSection } from "@/stores/uiStore";
@@ -28,6 +29,13 @@ const links = allLinks.filter(
 
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const pathname = usePathname();
+
+  // The sections only exist on the homepage. On a case study the same links
+  // pointed at "#about", found no such element and stopped — the click was
+  // swallowed and the header looked broken. Off the homepage they become real
+  // navigations to "/#about" and the browser does the rest.
+  const onHomepage = pathname === "/";
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const lenis = useLenis();
   const isMenuOpen = useUiStore((state) => state.isMenuOpen);
@@ -76,6 +84,13 @@ export default function Navigation() {
    * the page; `scrollIntoView` is the fallback.
    */
   const navigate = (event: React.MouseEvent<HTMLAnchorElement>, section: AstrolabeSection) => {
+    // Away from the homepage there is nothing here to scroll to. Let the link
+    // behave as a link.
+    if (!onHomepage) {
+      setMenuOpen(false);
+      return;
+    }
+
     event.preventDefault();
     setMenuOpen(false);
     setHoveredPoint(null);
@@ -103,7 +118,12 @@ export default function Navigation() {
     <>
       <nav className={`site-nav${isScrolled ? " site-nav--scrolled" : ""}`} aria-label="Primary navigation">
         <div className="site-nav__inner">
-          <a className="site-nav__brand" href="#hero" onClick={(event) => navigate(event, "hero")} data-cursor="link">
+          <a
+            className="site-nav__brand"
+            href={onHomepage ? "#hero" : "/"}
+            onClick={(event) => navigate(event, "hero")}
+            data-cursor="link"
+          >
             <span className="site-nav__sigil" aria-hidden="true" />
             <span className="site-nav__wordmark">{profile.shortName} <small>Portfolio</small></span>
           </a>
@@ -112,7 +132,7 @@ export default function Navigation() {
             {links.map((link, index) => (
               <a
                 key={link.href}
-                href={link.href}
+                href={onHomepage ? link.href : `/${link.href}`}
                 onClick={(event) => navigate(event, link.section)}
                 onPointerEnter={preview(link.section)}
                 onPointerLeave={preview(null)}
@@ -127,9 +147,14 @@ export default function Navigation() {
             ))}
           </div>
 
-          <Link href="/console" className="site-nav__console" data-cursor="link">
-            Console <span aria-hidden="true">↗</span>
-          </Link>
+          <div className="site-nav__actions">
+            <Link href="/resume" className="site-nav__resume" data-cursor="link">
+              Résumé
+            </Link>
+            <Link href="/console" className="site-nav__console" data-cursor="link">
+              Console <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
 
           <button
             ref={menuButtonRef}
@@ -150,11 +175,19 @@ export default function Navigation() {
         <p className="mobile-nav__eyebrow">Contents</p>
         <div className="mobile-nav__links">
           {links.map((link, index) => (
-            <a key={link.href} href={link.href} onClick={(event) => navigate(event, link.section)} tabIndex={isMenuOpen ? 0 : -1}>
+            <a
+              key={link.href}
+              href={onHomepage ? link.href : `/${link.href}`}
+              onClick={(event) => navigate(event, link.section)}
+              tabIndex={isMenuOpen ? 0 : -1}
+            >
               <span>0{index + 1}</span>{link.label}
             </a>
           ))}
         </div>
+        <Link href="/resume" className="mobile-nav__console" tabIndex={isMenuOpen ? 0 : -1}>
+          Résumé
+        </Link>
         <Link href="/console" className="mobile-nav__console" tabIndex={isMenuOpen ? 0 : -1}>
           Console <span aria-hidden="true">↗</span>
         </Link>

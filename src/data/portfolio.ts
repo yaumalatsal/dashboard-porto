@@ -138,14 +138,39 @@ export const ACCESS: Record<
 
 /**
  * `TODO(you)` marks a fact that no source gives. The marker stays in the data
- * above so it is visible to the person who must supply it, but a visitor must
- * never see it, so every public surface renders it through this.
+ * above so it is visible to the person who must supply it. A visitor sees
+ * neither the marker nor a stand-in for it.
+ *
+ * An earlier version rendered "Not recorded", which reads as an unfinished
+ * page rather than a considered one. A fact that is not known is left out:
+ * the row goes, the field goes, the whole card goes if nothing in it is known.
  */
-export function stated(value: string): string {
-  return value.startsWith("TODO(") ? "Not recorded" : value;
+export function isStated(value: string | undefined | null): value is string {
+  return typeof value === "string" && value.length > 0 && !value.startsWith("TODO(");
 }
 
+/** The value, or null when no source gives it. Callers must render nothing. */
+export function stated(value: string | undefined | null): string | null {
+  return isStated(value) ? value : null;
+}
+
+/** Only the metrics that have a value. An empty result means: show no list. */
+export function statedMetrics<T extends { value: string }>(metrics: readonly T[]): T[] {
+  return metrics.filter((m) => isStated(m.value));
+}
+
+/**
+ * How much of the homepage a project gets.
+ *
+ * Seven projects at equal weight made the Projects section more than half the
+ * height of the page, and gave a reader no way to tell which work matters.
+ * Four carry a full chapter. The rest are listed, and their case studies are
+ * unchanged — they are one click away, not hidden.
+ */
+export type ProjectTier = "flagship" | "archive";
+
 export type ProjectData = {
+  tier: ProjectTier;
   number: string;
   slug: string;
   title: string;
@@ -171,11 +196,10 @@ export type ProjectData = {
   monitor: ProjectMonitor;
 };
 
-const PLACEHOLDER = "/images/projects/placeholder.svg";
-
 export const projects: ProjectData[] = [
   {
     number: "01",
+    tier: "flagship",
     slug: "performance-data-centre",
     title: "Institutional Performance Data System",
     category: "Government Systems / Laravel",
@@ -222,6 +246,7 @@ export const projects: ProjectData[] = [
   },
   {
     number: "02",
+    tier: "flagship",
     slug: "hotwork-permit",
     title: "Hot Work Permit System",
     category: "Industrial Safety / Laravel",
@@ -273,6 +298,7 @@ export const projects: ProjectData[] = [
   },
   {
     number: "03",
+    tier: "flagship",
     slug: "warehouse-management-system",
     title: "Warehouse Management System",
     category: "Enterprise Logistics / Next.js",
@@ -331,6 +357,7 @@ export const projects: ProjectData[] = [
   },
   {
     number: "04",
+    tier: "flagship",
     slug: "pinglab",
     title: "Adaptive Learning Platform",
     category: "Adaptive Systems / Laravel & AI",
@@ -377,6 +404,7 @@ export const projects: ProjectData[] = [
   },
   {
     number: "05",
+    tier: "archive",
     slug: "online-attendance",
     title: "Staff Attendance System",
     category: "Workforce Systems / Laravel",
@@ -420,6 +448,7 @@ export const projects: ProjectData[] = [
   },
   {
     number: "06",
+    tier: "archive",
     slug: "business-incubation-elearning",
     title: "Business Incubation Learning Platform",
     category: "Education Technology / Laravel",
@@ -466,6 +495,7 @@ export const projects: ProjectData[] = [
   },
   {
     number: "07",
+    tier: "archive",
     slug: "fiber-optic-game",
     title: "Fiber Optic Training Game",
     category: "Simulation / Roblox",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { RotateCcw } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { gsap } from "@/lib/gsap-config";
@@ -113,7 +113,10 @@ export default function AstrolabeScene() {
   const [discOrientation, setDiscOrientation] = useState({ x: 42, y: 0 });
   const [focusPhase, setFocusPhase] = useState<FocusPhase>("idle");
   const [isPointerInside, setIsPointerInside] = useState(false);
-  const [activeConstellation, setActiveConstellation] = useState<ConstellationId>("aries");
+  const [pickedConstellation, setPickedConstellation] = useState<{
+    at: AstrolabeSection | null;
+    id: ConstellationId;
+  } | null>(null);
   /** The "select a star" cue has done its job once a chapter has actually been opened. */
   const [hasOpenedChapter, setHasOpenedChapter] = useState(false);
   const pathname = usePathname();
@@ -135,11 +138,50 @@ export default function AstrolabeScene() {
   const setActiveSection = useUiStore((state) => state.setActiveSection);
   const setFocusedPoint = useUiStore((state) => state.setFocusedPoint);
   const setHoveredPoint = useUiStore((state) => state.setHoveredPoint);
+  const activeSection = useUiStore((state) => state.activeSection);
+
+  /** What the scrolled-to section implies, before any choice by the reader. */
+  const sectionStar = stars.find((candidate) => candidate.id === activeSection);
+  const activeConstellation: ConstellationId =
+    pickedConstellation && pickedConstellation.at === activeSection
+      ? pickedConstellation.id
+      : sectionStar
+        ? constellationIdForStar(sectionStar)
+        : "aries";
   const selectedStar = stars.find((star) => star.id === focusedPoint) ?? null;
   // A star lights up whether you point at it on the instrument or at its entry in the
   // header — one highlighted coordinate, two ways in.
   const activeHoverId = hoveredId ?? navHoveredPoint;
   const hoveredStar = stars.find((star) => star.id === activeHoverId) ?? null;
+
+  // These write to the DOM through refs and read no state, so they are
+  // declared before every effect that calls them and memoised once.
+  const updateSpinCss = useCallback(() => {
+    if (sceneRef.current) {
+      sceneRef.current.style.setProperty("--spin-angle", `${discRotationRef.current.toFixed(2)}deg`);
+    }
+    document.documentElement.style.setProperty("--orbit-drift", `${(Math.sin((discRotationRef.current * 0.12 * Math.PI) / 180) * 2.5).toFixed(3)}deg`);
+  }, []);
+
+  /** Turns the sphere's current attitude into the coordinates the instrument is reading. */
+  const updateReadout = useCallback((rotateX: number, rotateY: number) => {
+    if (!readoutRef.current) return;
+    const hours = (normaliseYaw(-rotateY) / 360) * 24;
+    const declination = Math.round(gsap.utils.clamp(-89, 89, rotateX));
+    readoutRef.current.textContent = `RA ${String(Math.floor(hours)).padStart(2, "0")}h ${String(Math.floor((hours % 1) * 60)).padStart(2, "0")}m / DEC ${declination >= 0 ? "+" : "−"}${String(Math.abs(declination)).padStart(2, "0")}°`;
+  }, []);
+
+  const rotateGlobe = useCallback(
+    (rotateX: number, rotateY: number) => {
+      const previous = manualRotationRef.current;
+      manualRotationRef.current = { x: rotateX, y: rotateY };
+      discRotationRef.current += (rotateY - previous.y) * 0.055 - (rotateX - previous.x) * 0.035;
+      updateSpinCss();
+      updateReadout(rotateX, rotateY);
+      sceneRef.current?.querySelector(".celestial-clock-3d")?.setAttribute("data-globe-rotation", `${rotateX.toFixed(2)},${rotateY.toFixed(2)}`);
+    },
+    [updateSpinCss, updateReadout],
+  );
 
   useEffect(() => {
     updateReadout(manualRotationRef.current.x, manualRotationRef.current.y);
@@ -164,31 +206,7 @@ export default function AstrolabeScene() {
       if (discInertiaFrameRef.current !== null) cancelAnimationFrame(discInertiaFrameRef.current);
       if (globeInertiaFrameRef.current !== null) cancelAnimationFrame(globeInertiaFrameRef.current);
     };
-  }, [prefersReducedMotion, isDragging, isDiscDragging, focusedPoint]);
-
-  const updateSpinCss = () => {
-    if (sceneRef.current) {
-      sceneRef.current.style.setProperty("--spin-angle", `${discRotationRef.current.toFixed(2)}deg`);
-    }
-    document.documentElement.style.setProperty("--orbit-drift", `${(Math.sin((discRotationRef.current * 0.12 * Math.PI) / 180) * 2.5).toFixed(3)}deg`);
-  };
-
-  /** Turns the sphere's current attitude into the coordinates the instrument is reading. */
-  const updateReadout = (rotateX: number, rotateY: number) => {
-    if (!readoutRef.current) return;
-    const hours = (normaliseYaw(-rotateY) / 360) * 24;
-    const declination = Math.round(gsap.utils.clamp(-89, 89, rotateX));
-    readoutRef.current.textContent = `RA ${String(Math.floor(hours)).padStart(2, "0")}h ${String(Math.floor((hours % 1) * 60)).padStart(2, "0")}m / DEC ${declination >= 0 ? "+" : "−"}${String(Math.abs(declination)).padStart(2, "0")}°`;
-  };
-
-  const rotateGlobe = (rotateX: number, rotateY: number) => {
-    const previous = manualRotationRef.current;
-    manualRotationRef.current = { x: rotateX, y: rotateY };
-    discRotationRef.current += (rotateY - previous.y) * 0.055 - (rotateX - previous.x) * 0.035;
-    updateSpinCss();
-    updateReadout(rotateX, rotateY);
-    sceneRef.current?.querySelector(".celestial-clock-3d")?.setAttribute("data-globe-rotation", `${rotateX.toFixed(2)},${rotateY.toFixed(2)}`);
-  };
+  }, [prefersReducedMotion, isDragging, isDiscDragging, focusedPoint, updateReadout]);
 
   const markInteracted = () => {
     hasInteractedRef.current = true;
@@ -627,7 +645,7 @@ export default function AstrolabeScene() {
 
   const focusStar = (star: ClockStar) => {
     setHoveredId(null);
-    setActiveConstellation(constellationIdForStar(star));
+    setPickedConstellation({ at: activeSection, id: constellationIdForStar(star) });
     setFocusPhase("targeting");
 
     const mapCoordinates = celestialMapCoordinates(star);
@@ -709,7 +727,6 @@ export default function AstrolabeScene() {
   const returnToMapRef = useRef(returnToMap);
   const openMapPointRef = useRef(openMapPoint);
   const closeMapPointRef = useRef(closeMapPoint);
-  const lastScrollStepTimeRef = useRef(0);
 
   useEffect(() => {
     handleZoomRef.current = handleZoom;
@@ -757,13 +774,11 @@ export default function AstrolabeScene() {
   }, [focusedPoint]);
 
   // Smoothly align celestial globe with the section currently in scroll view
-  const activeSection = useUiStore((state) => state.activeSection);
   useEffect(() => {
     if (focusedPoint || isDragging || isDiscDragging) return;
     const star = stars.find((candidate) => candidate.id === activeSection);
     if (!star) return;
 
-    setActiveConstellation(constellationIdForStar(star));
     const coords = celestialMapCoordinates(star);
     const targetY = -coords.longitude;
     const targetX = coords.latitude;
@@ -779,7 +794,7 @@ export default function AstrolabeScene() {
         },
       });
     }
-  }, [activeSection, focusedPoint, isDragging, isDiscDragging, prefersReducedMotion]);
+  }, [activeSection, focusedPoint, isDragging, isDiscDragging, prefersReducedMotion, rotateGlobe]);
 
   // Handle zoom when user wheels directly over the 3D instrument surface
   useEffect(() => {
@@ -849,7 +864,7 @@ export default function AstrolabeScene() {
               disabled={Boolean(selectedStar)}
               onClick={() => {
                 setHoveredId(null);
-                setActiveConstellation(constellation);
+                setPickedConstellation({ at: activeSection, id: constellation });
               }}
             >
               {constellation}

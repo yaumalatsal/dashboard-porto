@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Activity, ArrowLeft, ArrowUpRight, CheckCircle2, Cpu, ShieldCheck } from "lucide-react";
 import SectionLabel from "@/components/ui/SectionLabel";
-import { ACCESS, projects, stated } from "@/data/portfolio";
+import { ACCESS, projects, stated, statedMetrics } from "@/data/portfolio";
 
 export async function generateStaticParams() {
   return projects.map((project) => ({
@@ -58,10 +58,12 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
               <span className="case-study-meta-label">Client</span>
               <span className="case-study-meta-value">{project.client}</span>
             </div>
-            <div>
-              <span className="case-study-meta-label">Year</span>
-              <span className="case-study-meta-value">{stated(project.year)}</span>
-            </div>
+            {stated(project.year) && (
+              <div>
+                <span className="case-study-meta-label">Year</span>
+                <span className="case-study-meta-value">{stated(project.year)}</span>
+              </div>
+            )}
             <div>
               <span className="case-study-meta-label">Role</span>
               <span className="case-study-meta-value">{project.role}</span>
@@ -116,17 +118,21 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
             </div>
 
             <aside className="case-study-sidebar">
-              <div className="sidebar-card">
-                <h3><Cpu size={18} /> Outcome Markers</h3>
-                <div className="metrics-list">
-                  {project.metrics.map((m) => (
-                    <div key={m.label} className="metric-item" data-instrument-trace>
-                      <span className="metric-value">{stated(m.value)}</span>
-                      <span className="metric-label">{m.label}</span>
-                    </div>
-                  ))}
+              {/* The whole card goes when nothing in it is known. A heading
+                  over three empty rows is worse than no heading. */}
+              {statedMetrics(project.metrics).length > 0 && (
+                <div className="sidebar-card">
+                  <h3><Cpu size={18} /> Outcome Markers</h3>
+                  <div className="metrics-list">
+                    {statedMetrics(project.metrics).map((m) => (
+                      <div key={m.label} className="metric-item" data-instrument-trace>
+                        <span className="metric-value">{m.value}</span>
+                        <span className="metric-label">{m.label}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="sidebar-card">
                 <h3><ShieldCheck size={18} /> Tech Stack</h3>

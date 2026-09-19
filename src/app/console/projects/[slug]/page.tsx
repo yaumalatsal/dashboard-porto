@@ -188,7 +188,7 @@ export default async function ProjectDashboardPage({
         </div>
         <div>
           <dt>Year</dt>
-          <dd>{stated(project.year)}</dd>
+          <dd>{stated(project.year) ?? "—"}</dd>
         </div>
         <div>
           <dt>Role</dt>
@@ -293,7 +293,7 @@ export default async function ProjectDashboardPage({
             />
             <Kpi
               label="Delivered"
-              value={stated(project.year)}
+              value={stated(project.year) ?? "—"}
               footer={<span className="kpi__note">stated, not measured</span>}
             />
           </>
@@ -584,7 +584,7 @@ export default async function ProjectDashboardPage({
                 <div key={metric.label} className="metric-row">
                   <span className="metric-row__label">{metric.label}</span>
                   <span className="metric-row__value">
-                    {stated(metric.value)}
+                    {stated(metric.value) ?? "—"}
                   </span>
                 </div>
               ))}

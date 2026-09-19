@@ -7,7 +7,7 @@ import { useId, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { gsap } from "@/lib/gsap-config";
-import type { ProjectData } from "@/data/portfolio";
+import { stated, statedMetrics, type ProjectData } from "@/data/portfolio";
 
 /**
  * Next's image optimizer rejects SVG with a 400 unless `dangerouslyAllowSVG` is
@@ -103,7 +103,9 @@ export default function ProjectCard({ project, index }: { project: ProjectData; 
         <p className="project-chapter__folio">Folio {project.number}</p>
         <p className="project-chapter__category">{project.category}</p>
         <span className="project-chapter__rule" aria-hidden="true" />
-        <p className="project-chapter__year">{project.year}</p>
+        {stated(project.year) && (
+          <p className="project-chapter__year">{stated(project.year)}</p>
+        )}
         <p className="project-chapter__outcome">{project.outcome}</p>
       </div>
 
@@ -187,14 +189,16 @@ export default function ProjectCard({ project, index }: { project: ProjectData; 
 
         <div id={recordId} className={`project-record${isRecordOpen ? " is-open" : ""}`} aria-hidden={!isRecordOpen}>
           <div className="project-record__inner">
-            <dl>
-              {project.metrics.map((m) => (
-                <div key={m.label}>
-                  <dt>{m.label}</dt>
-                  <dd>{m.value}</dd>
-                </div>
-              ))}
-            </dl>
+            {statedMetrics(project.metrics).length > 0 && (
+              <dl>
+                {statedMetrics(project.metrics).map((m) => (
+                  <div key={m.label}>
+                    <dt>{m.label}</dt>
+                    <dd>{m.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
             <Link href={`/work/${project.slug}`} className="project-record__contact" data-cursor="link" tabIndex={isRecordOpen ? 0 : -1}>
               Read the Full Field Record <ArrowUpRight aria-hidden="true" size={14} />
             </Link>
