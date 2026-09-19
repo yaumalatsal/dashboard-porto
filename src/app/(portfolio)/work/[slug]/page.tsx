@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!project) return { title: "Project Not Found" };
 
   return {
-    title: `${project.title} - Field Record`,
+    title: `${project.title} - Case study`,
     description: project.description,
   };
 }
@@ -100,13 +100,13 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
               <h2>Brief</h2>
               <p className="lead-text">{project.overview}</p>
 
-              <h2>Observation</h2>
+              <h2>What I found</h2>
               <p>{project.challenge}</p>
 
-              <h2>Response</h2>
+              <h2>What I built</h2>
               <p>{project.solution}</p>
 
-              <h2>System Notes</h2>
+              <h2>Architecture</h2>
               <ul className="architecture-list">
                 {project.architecture.map((item, idx) => (
                   <li key={idx}>
@@ -122,7 +122,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                   over three empty rows is worse than no heading. */}
               {statedMetrics(project.metrics).length > 0 && (
                 <div className="sidebar-card">
-                  <h3><Cpu size={18} /> Outcome Markers</h3>
+                  <h3><Cpu size={18} /> Facts</h3>
                   <div className="metrics-list">
                     {statedMetrics(project.metrics).map((m) => (
                       <div key={m.label} className="metric-item" data-instrument-trace>
@@ -147,7 +147,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                   the card says up front what that dashboard can measure, so a
                   reader is never sent to a page of empty charts. */}
               <div className="sidebar-card">
-                <h3><Activity size={18} /> Live Dashboard</h3>
+                <h3><Activity size={18} /> Monitoring</h3>
                 <p className="sidebar-note">{project.monitor.note}</p>
                 <Link
                   href={`/console/projects/${project.slug}`}
@@ -170,7 +170,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
         <div className="section-shell">
           <div className="next-project-card">
             <div>
-              <span className="next-label">Next Field Record</span>
+              <span className="next-label">Next project</span>
               <h3 className="next-title">{nextProject.title}</h3>
               <p className="next-desc">{nextProject.description}</p>
             </div>

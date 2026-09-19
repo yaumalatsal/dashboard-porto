@@ -78,8 +78,9 @@ export default function SkillsSection() {
             Four layers.
           </h2>
           <p>
-            The tools change with the job. The standard does not change. I make
-            clear decisions and I build systems that last.
+            The tools change with the job. This is what I have used in work that
+            shipped, not what I have read about. Where a layer is thin, it is
+            thin here too.
           </p>
         </div>
 

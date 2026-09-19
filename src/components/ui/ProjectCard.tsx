@@ -100,7 +100,7 @@ export default function ProjectCard({ project, index }: { project: ProjectData; 
       id={`project-${project.slug}`}
     >
       <div className="project-chapter__meta" data-project-copy>
-        <p className="project-chapter__folio">Folio {project.number}</p>
+        <p className="project-chapter__folio">{project.number}</p>
         <p className="project-chapter__category">{project.category}</p>
         <span className="project-chapter__rule" aria-hidden="true" />
         {stated(project.year) && (
@@ -170,7 +170,7 @@ export default function ProjectCard({ project, index }: { project: ProjectData; 
               data-cursor="link"
               data-cursor-label="Read"
             >
-              <span>Open Field Record</span> <ArrowUpRight size={16} />
+              <span>Open the case study</span> <ArrowUpRight size={16} />
             </Link>
             <button
               type="button"
@@ -200,7 +200,7 @@ export default function ProjectCard({ project, index }: { project: ProjectData; 
               </dl>
             )}
             <Link href={`/work/${project.slug}`} className="project-record__contact" data-cursor="link" tabIndex={isRecordOpen ? 0 : -1}>
-              Read the Full Field Record <ArrowUpRight aria-hidden="true" size={14} />
+              Read the case study <ArrowUpRight aria-hidden="true" size={14} />
             </Link>
           </div>
         </div>

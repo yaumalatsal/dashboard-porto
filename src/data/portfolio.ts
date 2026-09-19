@@ -45,7 +45,7 @@ export const profile = {
   availability: "I am open to a full-time role and to freelance work",
   heroSummary:
     "I design the full path: the interface, the data, the deployment, the server, and the network that connects them.",
-  bio: "I build web systems for organisations that must depend on them. My clients include an industrial smelter, a government health agency and a logistics enterprise. I started in computer networks, so I design the full path. I write the interface, the database behind it, and I run the server below both.",
+  bio: "I build web systems for organisations that depend on them. My clients include an industrial smelter, a government health agency and a logistics enterprise. I started in computer networks, so I design the full path. I write the interface, the database behind it, and I run the server below both.",
   practiceLead:
     "I work across three linked layers. I design the experience, the software rules, and the infrastructure that keeps both available.",
   practiceSummary:
@@ -259,7 +259,7 @@ export const projects: ProjectData[] = [
     ],
     observation: "The data existed. It was not in one place or in one shape.",
     response: "Give each area the same structure.",
-    result: "The agency reads its performance data. It does not rebuild it.",
+    result: "Every area reports into the same fields, so comparing two of them is a query.",
     monitor: {
       access: "public",
       siteId: "simaksi",
@@ -312,7 +312,7 @@ export const projects: ProjectData[] = [
     ],
     observation: "Nobody can check a paper permit at the moment it matters.",
     response: "Put each permit step where a supervisor can read it.",
-    result: "The plant sees which hot work it permits, and when.",
+    result: "Each permit carries its approval chain, a PDF and a QR code.",
     monitor: {
       access: "public",
       siteId: "hotwork",
@@ -341,9 +341,9 @@ export const projects: ProjectData[] = [
     overview:
       "Logistics teams must track inventory across different warehouses. This system connects multiple facilities into one web dashboard. Staff switch between locations, audit stock deliveries and check physical bin rack occupancy.",
     challenge:
-      "Inventory across separate buildings caused blind spots. Staff had no live view of free rack slots and pending order shipments.",
+      "Inventory sat in separate buildings with no single view of it. Staff could not see free rack slots or pending shipments in one place.",
     solution:
-      "I built an enterprise warehouse dashboard in Next.js. The system tracks item movement, calculates rack capacity, and logs order dispatches.",
+      "I built a multi-warehouse dashboard in Next.js. The system tracks item movement, calculates rack capacity, and logs order dispatches.",
     architecture: [
       "Next.js application with multi-facility workspace routing",
       "Dynamic bin rack location occupancy calculation",
@@ -365,7 +365,7 @@ export const projects: ProjectData[] = [
     ],
     observation: "Separate warehouses create slow counts and lost items.",
     response: "Unify facility routing and rack audits in one dashboard.",
-    result: "Staff audit stock and rack space with zero delay.",
+    result: "Stock counts and rack occupancy change as movements are recorded.",
     monitor: {
       access: "public",
       dashboardUrl: "https://wms-qom.my.id",
@@ -415,9 +415,9 @@ export const projects: ProjectData[] = [
       { label: "Method", value: "Adaptive fading" },
       { label: "Status", value: "Live production" },
     ],
-    observation: "One lesson does not fit every student.",
+    observation: "A fixed lesson gives the same help to a student who needs none.",
     response: "Remove the help as the student learns.",
-    result: "The student moves from assisted work to independent mastery.",
+    result: "Guidance drops one level each time a student answers without it.",
     monitor: {
       access: "public",
       siteId: "pinglab",
@@ -463,7 +463,7 @@ export const projects: ProjectData[] = [
     ],
     observation: "A paper sheet is cheap until a person must add it up.",
     response: "Record the time at the door, in a form you can query.",
-    result: "The report builds itself.",
+    result: "The monthly report is a query over the recorded times.",
     monitor: {
       access: "client-network",
       note:
@@ -504,7 +504,7 @@ export const projects: ProjectData[] = [
     ],
     observation: "A business idea does not grow like a syllabus.",
     response: "Build the incubation steps, not the lesson list.",
-    result: "The platform has the shape of the subject it teaches.",
+    result: "The stages in the platform are the stages of the incubator, not chapters.",
     monitor: {
       access: "public",
       siteId: "bisa-lms",
@@ -535,7 +535,7 @@ export const projects: ProjectData[] = [
     overview:
       "A textbook teaches fiber optics with cross-sections and refraction diagrams. This game puts the learner inside the work. The player joins fibers and reads an OTDR trace. Roblox is a platform the audience already uses.",
     challenge:
-      "The principles of fiber optics are abstract on a whiteboard. Students lose attention quickly.",
+      "The principles of fiber optics are abstract on a whiteboard, and the work they describe is physical.",
     solution:
       "I wrote an interactive environment in Luau. The player acts on the equipment. The game holds the state of each task and shows the result.",
     architecture: [
@@ -549,9 +549,9 @@ export const projects: ProjectData[] = [
       { label: "Language", value: "Luau" },
       { label: "Players", value: "TODO(you)" },
     ],
-    observation: "A refraction diagram loses the room.",
-    response: "Put the learner inside the fiber.",
-    result: "Students learn the task where they already spend their time.",
+    observation: "A diagram of refraction does not show the task it describes.",
+    response: "Model the splice and the test as things the player does.",
+    result: "The player performs a splice and reads an OTDR trace.",
     monitor: {
       access: "no-endpoint",
       note:

@@ -65,9 +65,9 @@ export default function OperationsSection() {
 
         <div className="operations-intro">
           <h2 id="operations-title">
-            Not a claim.
+            What is running
             <br />
-            <em>A reading.</em>
+            <em>right now.</em>
           </h2>
           <p>
             These are the applications I have in production right now, polled

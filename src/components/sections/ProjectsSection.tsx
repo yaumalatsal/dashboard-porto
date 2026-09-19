@@ -18,6 +18,9 @@ const COUNT_WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven"
  */
 export default function ProjectsSection() {
   const flagship = projects.filter((project) => project.tier === "flagship");
+  // Counted, not written. A literal here would be wrong the first time a
+  // project changes tier, and a wrong number on a page about honesty is worse
+  // than no number.
   const archive = projects.filter((project) => project.tier === "archive");
 
   return (
@@ -26,9 +29,10 @@ export default function ProjectsSection() {
         <SectionLabel number="02" label="Projects" />
         <div className="projects-intro">
           <h2 id="work-title">
-            {COUNT_WORDS[projects.length] ?? projects.length} systems<br />that people use.
+            {COUNT_WORDS[projects.length] ?? projects.length} systems.<br />
+            <em>{COUNT_WORDS[flagship.length] ?? flagship.length} with a full record.</em>
           </h2>
-          <p>I built these systems for an industrial smelter, a government health agency, a logistics firm and private clients. Each system solves one operational problem.</p>
+          <p>I built these for an industrial smelter, a government health agency, a logistics firm and private clients. Each one addresses a single operational problem. Each card states whether the system is reachable from here, and the console measures the ones that are.</p>
         </div>
 
         <div className="projects-list">
