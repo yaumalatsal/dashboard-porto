@@ -587,12 +587,18 @@ button.astrolabe-scene__core:hover {
 /* About */
 .about-section { position: relative; padding-block: var(--section-pad); background: transparent; color: var(--ink); scroll-margin-top: 5rem; }
 .about-grid { display: grid; grid-template-columns: 1fr; gap: 5rem; }
-.about-copy { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr); gap: 7vw; align-items: end; }
+.about-copy { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(20rem, 0.85fr); gap: 7vw; align-items: start; }
 .about-copy h2 { max-width: 58rem; margin: 0; font-family: var(--font-display); font-size: 5.2rem; line-height: 0.98; font-weight: 400; }
 .about-copy h2 em { color: var(--copper); font-weight: 400; }
 .about-copy p { max-width: 39rem; color: rgba(253, 248, 225, 0.65); }
 .about-copy__body { padding-top: 1rem; border-top: 1px solid var(--line-dark); }
 .about-copy__lead { font-size: 1.2rem; color: var(--ink) !important; }
+.about-method { display: grid; gap: 0; margin: 2rem 0 0; padding: 0; list-style: none; border-bottom: 1px solid var(--line-dark); }
+.about-method li { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); gap: 0.8rem; align-items: start; padding: 0.9rem 0; border-top: 1px solid var(--line-dark); }
+.about-method li > span { padding-top: 0.15rem; font-family: var(--font-label); font-size: 0.68rem; letter-spacing: 0.12em; color: var(--copper); }
+.about-method li > div { display: grid; gap: 0.2rem; }
+.about-method strong { font-family: var(--font-display); font-size: 1.2rem; font-weight: 400; color: var(--ink); }
+.about-method small { font-size: 0.78rem; line-height: 1.5; color: rgba(253, 248, 225, 0.62); }
 
 /* ── About: the dial is now a control ─────────────────────────────────────
    The three labels were static text beside a decorative dial, with their
@@ -2169,7 +2175,7 @@ body:has(.astrolabe-scene.is-reading)::after {
 }
 
 :root {
-  --hero-portrait-w: min(40vw, 36rem);
+  --hero-portrait-w: min(34vw, 31rem);
   --hero-portrait-gutter: 4vw;
   --hero-head-right: calc(var(--hero-portrait-gutter) + 0.56 * var(--hero-portrait-w));
   --hero-head-rise: calc(0.2125 * var(--hero-portrait-w));
@@ -2241,7 +2247,7 @@ body:has(.astrolabe-scene.is-reading)::after {
    and the instrument stayed at full strength in front of the portrait. Only
    the focused state, where the instrument IS the subject, is excluded. */
 .astrolabe-scene:not(.has-focus) {
-  --hero-instrument-w: min(54rem, 62vw);
+  --hero-instrument-w: min(48rem, 56vw);
   left: auto;
   /* Concentric with the head, like the reticle and the portrait. */
   right: calc(var(--hero-head-right) - var(--hero-instrument-w) / 2);
@@ -2252,7 +2258,7 @@ body:has(.astrolabe-scene.is-reading)::after {
   /* Low enough not to compete with the face, high enough to be a presence.
      At 0.16 it read as a smudge; the reticle in front of it now carries the
      legible detail, so this can go back to being weight and texture. */
-  opacity: 0.3;
+  opacity: 0.24;
   z-index: 1;
   filter: saturate(0.62) brightness(0.86);
   /* A hole where the face is. The instrument is stacked below the portrait,
@@ -2524,15 +2530,15 @@ body:has(.astrolabe-scene.is-reading)::after {
 
 @media (min-width: 768px) and (max-width: 1024px) {
   :root {
-    --hero-portrait-w: min(44vw, 22rem);
-    --hero-portrait-gutter: 1.5vw;
+    --hero-portrait-w: min(40vw, 20rem);
+    --hero-portrait-gutter: -1vw;
   }
-  .hero-copy { top: 9vh; width: 46vw; }
+  .hero-copy { top: 9vh; width: 48vw; }
   .hero-title { font-size: clamp(2.2rem, 5.4vw, 3.4rem); white-space: normal; }
   .hero-copy__statement { font-size: clamp(1.15rem, 2.6vw, 1.6rem); }
   .hero-copy__subhead { max-width: 100%; font-size: 0.86rem; }
   .hero-actions { margin-top: 1.4rem; }
-  .astrolabe-scene:not(.has-focus) { --hero-instrument-w: min(40rem, 68vw); opacity: 0.26; }
+  .astrolabe-scene:not(.has-focus) { --hero-instrument-w: min(38rem, 64vw); opacity: 0.18; }
   .hero-readout { bottom: 5rem; }
   .hero-readout__link { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
   .hero-readout__go { display: none; }
@@ -2601,7 +2607,8 @@ html {
    The copy column grew by two buttons and a line of availability, which put
    its foot 30px into the readout at 1440x900. It starts higher and the
    readout sits a little lower. */
-.hero-copy { top: 11vh; }
+.hero-copy { top: 11vh; width: min(27rem, 34vw); }
+.hero-copy__subhead { max-width: 27rem; }
 
 @media (min-width: 1025px) and (max-height: 940px) {
   .hero-copy { top: 7.5vh; }
@@ -2728,16 +2735,26 @@ html {
 
 @media (max-width: 767px) {
   :root {
-    --hero-portrait-w: min(50vw, 16rem);
-    --hero-portrait-gutter: -15vw;
+    --hero-portrait-w: min(46vw, 14rem);
+    --hero-portrait-gutter: -12vw;
   }
-  .hero-portrait { top: 44%; }
-  .hero-portrait img { opacity: 0.9; filter: saturate(0.78) contrast(1.12) brightness(1.5) sepia(0.14) hue-rotate(-6deg); }
+  .hero-portrait { top: 29%; }
+  .hero-portrait img { opacity: 0.82; filter: saturate(0.78) contrast(1.12) brightness(1.5) sepia(0.14) hue-rotate(-6deg); }
   .hero-title { font-size: clamp(1.8rem, 8.2vw, 2.4rem); }
+  .hero-copy__eyebrow { max-width: 15rem; }
   .hero-copy__statement { max-width: 15.5rem; }
-  .hero-copy__subhead { max-width: 17.5rem; }
-  .hero-reticle { top: calc(44% - var(--hero-head-rise)); }
-  .astrolabe-scene:not(.has-focus) { top: calc(44% - var(--hero-head-rise)); }
+  .hero-copy__subhead { max-width: 100%; }
+  .hero-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .hero-action { justify-content: center; }
+  .hero-reticle { top: calc(29% - var(--hero-head-rise)); }
+  .astrolabe-scene:not(.has-focus) { top: calc(29% - var(--hero-head-rise)); opacity: 0.14; }
+}
+
+@media (min-width: 1025px) and (max-width: 1500px) {
+  .site-nav__inner { gap: 1.25rem; }
+  .site-nav__links { gap: 1.25rem; font-size: 0.64rem; }
+  .site-nav__links a { gap: 0.4rem; }
+  .site-nav__actions .site-nav__console { margin-left: 0.15rem; }
 }
 
 /* The header résumé link belongs to the desktop bar only; below that the

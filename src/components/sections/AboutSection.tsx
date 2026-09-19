@@ -1,7 +1,7 @@
 "use client";
 
 import SectionLabel from "@/components/ui/SectionLabel";
-import { profile } from "@/data/portfolio";
+import { practiceSteps, profile } from "@/data/portfolio";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap-config";
@@ -221,15 +221,22 @@ export default function AboutSection() {
         <div className="about-grid">
           <div className="about-copy">
             <h2 id="about-title">
-              Every system has a terrain. <em>I make it legible.</em>
+              The interface is the visible layer. <em>I design what supports it.</em>
             </h2>
             <div className="about-copy__body">
-              <p className="about-copy__lead">{profile.bio}</p>
-              <p>
-                The result may be an immersive story, a network observatory, or
-                a service platform. The method stays the same: observe, map,
-                simplify, build.
-              </p>
+              <p className="about-copy__lead">{profile.practiceLead}</p>
+              <p>{profile.practiceSummary}</p>
+              <ol className="about-method" aria-label="How I approach a system">
+                {practiceSteps.map((step) => (
+                  <li key={step.number}>
+                    <span>{step.number}</span>
+                    <div>
+                      <strong>{step.name}</strong>
+                      <small>{step.detail}</small>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </div>
           </div>
 

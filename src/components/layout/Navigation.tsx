@@ -98,7 +98,10 @@ export default function Navigation() {
     setFocusedPoint(null);
 
     if (section === "hero") {
-      if (lenis) lenis.scrollTo(0);
+      if (lenis) {
+        lenis.start();
+        lenis.scrollTo(0);
+      }
       else window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
@@ -106,7 +109,12 @@ export default function Navigation() {
     const target = document.getElementById(section);
     if (!target) return;
 
-    if (lenis) lenis.scrollTo(target, { offset: -72 });
+    if (lenis) {
+      // The mobile menu stops Lenis while it is open. React applies the menu
+      // state on the next render, so restart it here before asking it to move.
+      lenis.start();
+      lenis.scrollTo(target, { offset: -72 });
+    }
     else target.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 

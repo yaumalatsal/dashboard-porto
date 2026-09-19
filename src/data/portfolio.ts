@@ -43,8 +43,32 @@ export const profile = {
   phone: "+62 812 4960 2770",
   location: "Malang, Indonesia",
   availability: "I am open to a full-time role and to freelance work",
+  heroSummary:
+    "I design the full path: the interface, the data, the deployment, the server, and the network that connects them.",
   bio: "I build web systems for organisations that must depend on them. My clients include an industrial smelter, a government health agency and a logistics enterprise. I started in computer networks, so I design the full path. I write the interface, the database behind it, and I run the server below both.",
+  practiceLead:
+    "I work across three linked layers. I design the experience, the software rules, and the infrastructure that keeps both available.",
+  practiceSummary:
+    "I start with the real workflow and its constraints. I then build the smallest system that can run reliably.",
 } as const;
+
+export const practiceSteps = [
+  {
+    number: "01",
+    name: "Map",
+    detail: "Users, rules, data, and constraints.",
+  },
+  {
+    number: "02",
+    name: "Build",
+    detail: "The interface, application, and integrations.",
+  },
+  {
+    number: "03",
+    name: "Operate",
+    detail: "The deployment, server, and network.",
+  },
+] as const;
 
 /**
  * How a visitor can reach the live system, and what the console can measure.

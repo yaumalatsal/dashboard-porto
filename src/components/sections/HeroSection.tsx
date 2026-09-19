@@ -158,14 +158,14 @@ export default function HeroSection({ readout }: { readout: HeroReadout | null }
             ))}
           </h1>
           <p className="hero-copy__statement" data-hero-line>{profile.tagline}</p>
-          <p className="hero-copy__subhead" data-hero-detail>{profile.bio}</p>
+          <p className="hero-copy__subhead" data-hero-detail>{profile.heroSummary}</p>
 
           {/* The only thing the hero asked a reader to do was scroll. These are
               the two things a person who came here to evaluate me actually
               wants: the work, and the document their process needs. */}
           <div className="hero-actions" data-hero-detail>
             <a href="#work" className="hero-action hero-action--primary" data-cursor="link">
-              View selected work
+              Selected work
               <span aria-hidden="true">→</span>
             </a>
             <Link href="/resume" className="hero-action" data-cursor="link">
