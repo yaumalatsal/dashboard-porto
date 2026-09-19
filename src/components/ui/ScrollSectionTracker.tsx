@@ -5,12 +5,18 @@ import { useLenis } from "lenis/react";
 import { ScrollTrigger } from "@/lib/gsap-config";
 import { useUiStore, type AstrolabeSection } from "@/stores/uiStore";
 
+// All seven, in page order. Live Systems and Education were missing, so
+// scrolling through either left the active section reading as whatever came
+// before it — the header highlighted the wrong entry and, now, so would the
+// instrument that replaced the numbered labels.
 const sections: { id: AstrolabeSection; selector: string }[] = [
   { id: "hero", selector: "#hero" },
   { id: "about", selector: "#about" },
   { id: "work", selector: "#work" },
   { id: "skills", selector: "#skills" },
+  { id: "operations", selector: "#operations" },
   { id: "experience", selector: "#experience" },
+  { id: "credentials", selector: "#credentials" },
   { id: "contact", selector: "#contact" },
 ];
 

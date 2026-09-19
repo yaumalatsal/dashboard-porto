@@ -1,6 +1,5 @@
 "use client";
 
-import SectionLabel from "@/components/ui/SectionLabel";
 import { capabilities } from "@/data/portfolio";
 import { monogram, toolIcon } from "@/data/tool-icons";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -69,14 +68,9 @@ export default function SkillsSection() {
       aria-labelledby="skills-title"
     >
       <div className="section-shell">
-        <SectionLabel number="03" label="Skills" />
 
-        <div className="skills-heading">
-          <h2 id="skills-title">
-            One practice.
-            <br />
-            Four layers.
-          </h2>
+        <div className="skills-heading skills-heading--bare">
+          <h2 id="skills-title">One practice, four layers</h2>
           <p>
             The tools change with the job. This is what I have used in work that
             shipped, not what I have read about. Where a layer is thin, it is

@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowUpRight } from "lucide-react";
-import SectionLabel from "@/components/ui/SectionLabel";
 import { profile, socialLinks } from "@/data/portfolio";
 import { useMagnetic } from "@/hooks/useMagnetic";
 
@@ -21,11 +20,10 @@ export default function ContactSection() {
         <i />
       </div>
       <div className="section-shell">
-        <SectionLabel number="07" label="Contact" light />
         <div className="contact-grid">
           <div>
             <p className="contact-section__eyebrow">{profile.availability}</p>
-            <h2 id="contact-title">Where to<br /><em>reach me.</em></h2>
+            <h2 id="contact-title">Talk</h2>
           </div>
           <div className="contact-copy">
             <p>I take work on web applications, internal platforms and networks. I also take work that needs all three.</p>

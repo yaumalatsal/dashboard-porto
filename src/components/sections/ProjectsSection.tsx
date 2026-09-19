@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import ProjectCard from "@/components/ui/ProjectCard";
-import SectionLabel from "@/components/ui/SectionLabel";
 import { projects, stated } from "@/data/portfolio";
-
-const COUNT_WORDS = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
 
 /**
  * Four projects get a chapter. The rest get a line.
@@ -26,12 +23,13 @@ export default function ProjectsSection() {
   return (
     <div id="work" className="projects-section" tabIndex={-1} aria-labelledby="work-title">
       <div className="section-shell">
-        <SectionLabel number="02" label="Projects" />
-        <div className="projects-intro">
-          <h2 id="work-title">
-            {COUNT_WORDS[projects.length] ?? projects.length} systems.<br />
-            <em>{COUNT_WORDS[flagship.length] ?? flagship.length} with a full record.</em>
-          </h2>
+        <div className="projects-intro projects-intro--shout">
+          <h2 id="work-title">Work</h2>
+          <p className="projects-intro__count">
+            <span>{projects.length} systems</span>
+            <span>{flagship.length} with a full record</span>
+            <span>{projects.length - flagship.length} listed</span>
+          </p>
           <p>I built these for an industrial smelter, a government health agency, a logistics firm and private clients. Each one addresses a single operational problem. Each card states whether the system is reachable from here, and the console measures the ones that are.</p>
         </div>
 

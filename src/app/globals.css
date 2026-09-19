@@ -2767,3 +2767,350 @@ html {
 @media (max-width: 1024px) {
   .site-nav__inner .site-nav__resume { display: none; }
 }
+
+/* =================================================== instrument spine === */
+/* --- instrument spine --- */
+
+/* The astrolabe was on screen for one viewport and then gone, and every
+   section carried a numbered label instead — 01 through 07, identical seven
+   times, which is the part that read as generated. One docked instrument
+   replaces all seven: its bearing is the position. */
+
+/* Collapsed to fit the page gutter. At 1440 that gutter is 72px and the
+   expanded rail is 184px, so a rail that is always open sits on top of the
+   paragraph beside it. It shows the dial and the reading; the station names
+   arrive on hover, over the content, because a hover is transient and the
+   reader asked for it. */
+.spine {
+  position: fixed;
+  left: 0.55rem;
+  top: 50%;
+  z-index: 40;
+  display: grid;
+  gap: 0.7rem;
+  width: 2.9rem;
+  padding: 0.55rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 0.6rem;
+  transform: translateY(-50%) translateX(-1.5rem);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 600ms ease,
+    transform 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 320ms ease,
+    border-color 320ms ease,
+    visibility 0s linear 600ms;
+}
+
+/* Opened by the reader. */
+.spine--docked:hover,
+.spine--docked:focus-within {
+  width: 12rem;
+  /* Near-opaque with a blur behind it: at 0.94 the paragraph underneath was
+     legible through the station names. */
+  background: rgba(8, 5, 14, 0.985);
+  backdrop-filter: blur(6px);
+  border-color: rgba(216, 155, 78, 0.22);
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.55);
+}
+.spine--docked {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+/* ── The dial ─────────────────────────────────────────────────────────── */
+.spine__dial { position: relative; width: 2rem; aspect-ratio: 1; margin-left: 0.05rem; }
+.spine__ring {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(216, 155, 78, 0.34);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(10, 6, 18, 0.9), rgba(10, 6, 18, 0.55));
+}
+.spine__tick {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 16%;
+  margin-left: -0.5px;
+  background: rgba(253, 248, 225, 0.32);
+  transform-origin: 50% 312.5%;
+  transition: background 260ms ease, height 260ms ease;
+}
+.spine__tick.is-active { height: 26%; background: var(--ember); }
+.spine__needle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 42%;
+  height: 1.5px;
+  margin-top: -0.75px;
+  background: linear-gradient(90deg, rgba(216, 155, 78, 0.25), var(--ember));
+  transform-origin: left center;
+  /* Overshoots and settles, like the dial in the practice section. */
+  transition: transform 900ms cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+.spine__needle::after {
+  content: "";
+  position: absolute;
+  right: -0.18rem;
+  top: -0.14rem;
+  width: 0.36rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--ember);
+}
+.spine__hub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.4rem;
+  aspect-ratio: 1;
+  margin: -0.2rem 0 0 -0.2rem;
+  border-radius: 50%;
+  background: var(--copper);
+  box-shadow: 0 0 0 2px rgba(10, 6, 18, 0.9);
+}
+
+/* ── The reading ──────────────────────────────────────────────────────── */
+.spine__reading { display: grid; gap: 0.1rem; margin: 0; }
+.spine__reading strong,
+.spine__station-name {
+  opacity: 0;
+  transform: translateX(-0.35rem);
+  transition: opacity 240ms ease, transform 240ms ease;
+  white-space: nowrap;
+}
+.spine--docked:hover .spine__reading strong,
+.spine--docked:focus-within .spine__reading strong,
+.spine--docked:hover .spine__station-name,
+.spine--docked:focus-within .spine__station-name {
+  opacity: 1;
+  transform: translateX(0);
+}
+.spine__index {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--ember);
+}
+.spine__index i { font-style: normal; color: rgba(253, 248, 225, 0.4); }
+.spine__reading strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+/* ── The stations ─────────────────────────────────────────────────────── */
+.spine__stations { display: grid; gap: 0; margin: 0.35rem 0 0; padding: 0; list-style: none; }
+.spine__stations button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.22rem 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: rgba(253, 248, 225, 0.5);
+  transition: color 220ms ease;
+}
+.spine__stations button:hover,
+.spine__stations button.is-active { color: var(--ink); }
+.spine__stations button:focus-visible { outline: 1px solid var(--copper); outline-offset: 2px; }
+.spine__station-mark {
+  flex: none;
+  width: 0.55rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+  transition: width 260ms ease, opacity 260ms ease;
+}
+.spine__stations button.is-active .spine__station-mark { width: 1.5rem; opacity: 1; background: var(--ember); }
+.spine__station-name {
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+/* The rail needs room that a narrow window does not have, and the header's
+   menu already lists the same destinations there. */
+/* Below this the gutter cannot hold even the collapsed rail, and the header
+   menu already lists the same destinations. */
+@media (max-width: 1180px) {
+  .spine { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spine, .spine__needle, .spine__tick, .spine__station-mark { transition-duration: 1ms; }
+}
+
+/* ======================================================= page rhythm === */
+/* --- page rhythm --- */
+
+/* Every heading on this page sat between 5.2rem and 6.2rem, every section
+   used the same padding, and every one announced itself with a numbered
+   label and a two-part sentence. Seven equal beats in a row is the thing
+   that reads as machine-made: a person breaks their own grid.
+
+   Four sizes now, and they are far apart on purpose. */
+
+:root {
+  --shout: clamp(3.4rem, 13vw, 13rem);
+  --loud: clamp(2.6rem, 6vw, 6rem);
+  --mid: clamp(2.1rem, 3.8vw, 4.3rem);
+  --quiet: clamp(1.35rem, 2.2vw, 2rem);
+}
+
+/* ── SHOUT: the work, and the way to reach me ─────────────────────────── */
+
+.projects-intro--shout { display: grid; gap: 1.5rem; }
+.projects-intro--shout h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--shout);
+  font-weight: 400;
+  line-height: 0.8;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+/* The counts are data, so they are set as data. */
+.projects-intro__count {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.6rem;
+  margin: 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line-dark);
+  font-family: var(--font-label);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(253, 248, 225, 0.66);
+}
+.projects-intro__count span + span { position: relative; }
+.projects-intro__count span + span::before {
+  content: "";
+  position: absolute;
+  left: -0.85rem;
+  top: 0.35em;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--copper);
+}
+
+.contact-grid h2#contact-title {
+  font-size: var(--shout);
+  line-height: 0.78;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+/* ── MID: the opener ──────────────────────────────────────────────────── */
+.about-copy h2 { font-size: var(--mid); line-height: 1.02; }
+
+/* ── QUIET: experience ────────────────────────────────────────────────── */
+.experience-intro h2 {
+  max-width: 24rem;
+  font-size: var(--quiet);
+  line-height: 1.2;
+}
+
+/* ── LABEL-SIZED: the two sections that support rather than lead ──────── */
+
+/* Live systems is a readout, so its heading is set like one and the numbers
+   below it carry the section. */
+.operations-intro--readout { display: grid; gap: 0.9rem; max-width: 48rem; }
+.operations-intro--readout h2 {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+.operations-intro--readout h2::before {
+  content: "";
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.6rem;
+  border-radius: 50%;
+  background: var(--ember);
+  vertical-align: 0.1em;
+  animation: readout-live 2.4s ease-in-out infinite;
+}
+@keyframes readout-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+/* Education is supporting evidence. It reads like it. */
+.credentials-intro--quiet { display: grid; gap: 0.8rem; max-width: 42rem; }
+.credentials-intro--quiet h2 {
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(253, 248, 225, 0.72);
+}
+
+/* Skills starts with no preamble at all. The heading stays for the
+   accessible name and for a screen reader; the eye meets the layers. */
+.skills-heading--bare { display: grid; gap: 0.9rem; max-width: 44rem; }
+.skills-heading--bare h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.skills-heading--bare p { max-width: 36rem; }
+
+/* ── Space, unevenly ──────────────────────────────────────────────────── */
+
+/* Loud sections get room to be loud. Quiet ones are compressed, which is
+   what makes the loud ones land. */
+.projects-section { padding-top: calc(var(--section-pad) * 1.15); }
+.contact-section { padding-top: calc(var(--section-pad) * 1.3); }
+.skills-section { padding-block: calc(var(--section-pad) * 0.62); }
+.credentials-section { padding-block: calc(var(--section-pad) * 0.55); }
+.experience-section { padding-block: calc(var(--section-pad) * 0.8); }
+
+/* ── One section breaks the container ─────────────────────────────────── */
+
+/* Live systems runs edge to edge. It is the only thing on the page that is
+   literally true at the moment you read it, so it gets to leave the column
+   every other section shares. */
+.operations-section {
+  padding-block: calc(var(--section-pad) * 0.85);
+  border-block: 1px solid rgba(216, 155, 78, 0.22);
+  background: rgba(8, 5, 14, 0.72);
+}
+/* Wider than anything else on the page, with a gutter of its own. The
+   96rem shell is already the full width of a 1440px window, so matching it
+   broke nothing — the break has to come out of the page padding every other
+   section keeps. */
+.operations-section .section-shell {
+  width: 100%;
+  max-width: none;
+  padding-inline: clamp(1rem, 2.2vw, 2.25rem);
+}
+
+@media (max-width: 900px) {
+  .operations-section .section-shell { padding-inline: var(--page-pad); }
+}

@@ -46,7 +46,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
             <ArrowLeft size={16} /> Back to field records
           </Link>
 
-          <SectionLabel number={project.number} label={`Folio / ${project.category}`} />
+          <SectionLabel number={project.number} label={project.category} />
 
           <h1 id="case-study-title" className="case-study-title">
             {project.title}
@@ -180,7 +180,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
               data-cursor="link"
               data-cursor-label="Next"
             >
-              <span>Open Folio {nextProject.number}</span>
+              <span>Open case study {nextProject.number}</span>
               <ArrowUpRight size={18} />
             </Link>
           </div>

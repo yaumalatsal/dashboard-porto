@@ -15,7 +15,6 @@ import { loadConfig } from "@/lib/monitor/config";
 import { currentSnapshots } from "@/lib/monitor/poller";
 import { uptimeSummary } from "@/lib/monitor/store";
 import { coverageLabel, formatUptime, HEALTH_LABEL } from "@/lib/monitor/format";
-import SectionLabel from "@/components/ui/SectionLabel";
 
 export default function OperationsSection() {
   const { sites } = loadConfig();
@@ -61,14 +60,9 @@ export default function OperationsSection() {
       aria-labelledby="operations-title"
     >
       <div className="section-shell">
-        <SectionLabel number="04" label="Live Systems" />
 
-        <div className="operations-intro">
-          <h2 id="operations-title">
-            What is running
-            <br />
-            <em>right now.</em>
-          </h2>
+        <div className="operations-intro operations-intro--readout">
+          <h2 id="operations-title">What is running right now</h2>
           <p>
             These are the applications I have in production right now, polled
             every thirty seconds. The numbers below are measured, not written —

@@ -8,6 +8,7 @@ import ExperienceSection from "@/components/sections/ExperienceSection";
 import CredentialsSection from "@/components/sections/CredentialsSection";
 import ContactSection from "@/components/sections/ContactSection";
 import ScrollSectionTracker from "@/components/ui/ScrollSectionTracker";
+import InstrumentSpine from "@/components/ui/InstrumentSpine";
 import { heroReadout } from "@/lib/monitor/hero";
 
 /**
@@ -23,6 +24,7 @@ export default function Home() {
   return (
     <AstrolabeNavigator>
       <ScrollSectionTracker />
+      <InstrumentSpine />
       <HeroSection readout={heroReadout()} />
       <AboutSection />
       <ProjectsSection />

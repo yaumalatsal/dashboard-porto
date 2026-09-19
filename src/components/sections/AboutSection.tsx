@@ -1,6 +1,5 @@
 "use client";
 
-import SectionLabel from "@/components/ui/SectionLabel";
 import { practiceSteps, profile } from "@/data/portfolio";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useGSAP } from "@gsap/react";
@@ -216,7 +215,6 @@ export default function AboutSection() {
       aria-labelledby="about-title"
     >
       <div className="section-shell">
-        <SectionLabel number="01" label="The Practice" />
 
         <div className="about-grid">
           <div className="about-copy">

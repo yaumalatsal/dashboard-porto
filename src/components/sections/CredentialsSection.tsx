@@ -7,7 +7,6 @@
  * folded into the experience list where it would read as an afterthought.
  */
 
-import SectionLabel from "@/components/ui/SectionLabel";
 import { credentials, education, profile } from "@/data/portfolio";
 
 export default function CredentialsSection() {
@@ -21,14 +20,9 @@ export default function CredentialsSection() {
       aria-labelledby="credentials-title"
     >
       <div className="section-shell">
-        <SectionLabel number="06" label="Education" />
 
-        <div className="credentials-intro">
-          <h2 id="credentials-title">
-            I study networks.
-            <br />
-            <em>I also teach them.</em>
-          </h2>
+        <div className="credentials-intro credentials-intro--quiet">
+          <h2 id="credentials-title">I study networks. I also teach them.</h2>
           <p>
             I started with a vocational course in computer networks. Then I took a
             degree in informatics engineering education. For this reason I write

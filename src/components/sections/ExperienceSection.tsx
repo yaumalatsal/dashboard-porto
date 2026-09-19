@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef } from "react";
-import SectionLabel from "@/components/ui/SectionLabel";
 import { experiences } from "@/data/portfolio";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useGSAP } from "@gsap/react";
@@ -66,13 +65,9 @@ export default function ExperienceSection() {
       aria-labelledby="experience-title"
     >
       <div className="section-shell">
-        <SectionLabel number="05" label="Experience" />
 
         <div className="experience-intro">
-          <h2 id="experience-title">
-            Where I worked.<br />
-            <em>And what I did there.</em>
-          </h2>
+          <h2 id="experience-title">Where I worked, and what I did there</h2>
           <p>
             These are the employers and the university groups that I worked with. Each entry says what I did.
           </p>
