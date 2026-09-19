@@ -40,14 +40,13 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      # Reported, not enforced. AstrolabeScene.tsx carries pre-existing
-      # react-hooks errors (a setState inside an effect, an immutability
-      # violation) that live in the instrument's drag logic, where a careless
-      # change breaks the interaction. Make this a hard gate once that file is
-      # clean.
+      # A hard gate, as the note here asked for once AstrolabeScene.tsx was
+      # clean. Its two react-hooks errors are fixed: an effect called
+      # updateReadout before the const was initialised, and another pushed the
+      # active constellation into state from an effect body when it is
+      # derivable during render. The tree now reports zero problems.
       - name: Lint
         run: npm run lint
-        continue-on-error: true
 
       - name: Build
         env:
