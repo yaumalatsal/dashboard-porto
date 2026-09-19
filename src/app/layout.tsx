@@ -61,7 +61,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: "dark",
-  themeColor: "#05070a",
+  // The same value as `html { background }` and the manifest. Three different
+  // near-blacks were in play, and this is the one the browser chrome paints.
+  themeColor: "#0e0818",
   width: "device-width",
   initialScale: 1,
 };
