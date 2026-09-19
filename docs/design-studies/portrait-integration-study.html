@@ -1,0 +1,629 @@
+<section id="portrait-integration-study" aria-labelledby="pis-title">
+  <style>
+    #portrait-integration-study {
+      display: grid;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    #portrait-integration-study .pis-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    #portrait-integration-study .pis-head h2,
+    #portrait-integration-study .pis-head p {
+      margin: 0;
+    }
+
+    #portrait-integration-study .pis-head p {
+      max-width: 38rem;
+    }
+
+    #portrait-integration-study .pis-frame {
+      --pis-bg: #0e0818;
+      --pis-ink: #f4e5c2;
+      --pis-muted: rgba(244, 229, 194, 0.64);
+      --pis-gold: #efc967;
+      --pis-copper: #b67448;
+      --pis-teal: #73aaa7;
+      position: relative;
+      min-height: 33rem;
+      overflow: hidden;
+      border-radius: 0.35rem;
+      background:
+        radial-gradient(circle at 75% 44%, rgba(182, 116, 72, 0.12), transparent 30%),
+        linear-gradient(rgba(239, 201, 103, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(239, 201, 103, 0.04) 1px, transparent 1px),
+        var(--pis-bg);
+      background-size: auto, 5rem 5rem, 5rem 5rem, auto;
+      color: var(--pis-ink);
+      isolation: isolate;
+    }
+
+    #portrait-integration-study .pis-frame::before {
+      content: "";
+      position: absolute;
+      inset: 1rem;
+      z-index: 20;
+      border: 1px solid rgba(239, 201, 103, 0.14);
+      pointer-events: none;
+    }
+
+    #portrait-integration-study .pis-nav {
+      position: relative;
+      z-index: 22;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.35rem 2rem;
+      border-bottom: 1px solid rgba(239, 201, 103, 0.12);
+      font: 400 0.65rem/1 ui-monospace, monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--pis-muted);
+    }
+
+    #portrait-integration-study .pis-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: var(--pis-ink);
+      font: 400 1rem/1 Georgia, serif;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    #portrait-integration-study .pis-brand i {
+      position: relative;
+      width: 1rem;
+      aspect-ratio: 1;
+      border: 1px solid var(--pis-gold);
+      border-radius: 50%;
+    }
+
+    #portrait-integration-study .pis-brand i::before,
+    #portrait-integration-study .pis-brand i::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      background: var(--pis-gold);
+      transform: translate(-50%, -50%);
+    }
+
+    #portrait-integration-study .pis-brand i::before { width: 1px; height: 1.45rem; }
+    #portrait-integration-study .pis-brand i::after { width: 1.45rem; height: 1px; }
+
+    #portrait-integration-study .pis-stage {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(17rem, 0.82fr) minmax(26rem, 1.18fr);
+      align-items: center;
+      min-height: 27.5rem;
+      padding: 2.5rem 4.5rem 3.5rem;
+    }
+
+    #portrait-integration-study .pis-copy {
+      position: relative;
+      z-index: 12;
+      max-width: 23rem;
+    }
+
+    #portrait-integration-study .pis-kicker {
+      margin: 0 0 1rem;
+      color: var(--pis-gold);
+      font: 400 0.66rem/1.4 ui-monospace, monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    #portrait-integration-study .pis-copy h3 {
+      margin: 0;
+      color: var(--pis-ink);
+      font: 400 clamp(2.2rem, 4.8vw, 4.25rem)/0.96 Georgia, serif;
+      letter-spacing: -0.035em;
+    }
+
+    #portrait-integration-study .pis-copy h3 em {
+      color: var(--pis-gold);
+      font-weight: 400;
+    }
+
+    #portrait-integration-study .pis-copy-body {
+      max-width: 21rem;
+      margin: 1.25rem 0 0;
+      color: var(--pis-muted);
+      font: 400 0.84rem/1.65 Arial, sans-serif;
+    }
+
+    #portrait-integration-study .pis-depth-key {
+      display: grid;
+      gap: 0.55rem;
+      margin: 1.5rem 0 0;
+      padding: 1.1rem 0 0;
+      border-top: 1px solid rgba(239, 201, 103, 0.16);
+      list-style: none;
+      color: var(--pis-muted);
+      font: 400 0.62rem/1.35 ui-monospace, monospace;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    #portrait-integration-study .pis-depth-key li {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    #portrait-integration-study .pis-depth-key i {
+      display: block;
+      width: 2.4rem;
+      height: 1px;
+      background: var(--pis-copper);
+    }
+
+    #portrait-integration-study .pis-depth-key li:nth-child(2) i { background: var(--pis-ink); }
+    #portrait-integration-study .pis-depth-key li:nth-child(3) i { background: var(--pis-gold); }
+
+    #portrait-integration-study .pis-composite {
+      position: relative;
+      z-index: 4;
+      justify-self: center;
+      width: min(30rem, 47vw);
+      aspect-ratio: 1;
+      transform: translateX(2%);
+    }
+
+    #portrait-integration-study .pis-back-instrument,
+    #portrait-integration-study .pis-front-instrument {
+      position: absolute;
+      inset: 2%;
+      border-radius: 50%;
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 450ms ease;
+    }
+
+    #portrait-integration-study .pis-back-instrument {
+      z-index: 2;
+      border: 0.75rem solid rgba(182, 116, 72, 0.3);
+      box-shadow:
+        inset 0 0 0 1px rgba(239, 201, 103, 0.48),
+        inset 0 0 0 2.8rem rgba(182, 116, 72, 0.035),
+        0 0 3rem rgba(182, 116, 72, 0.12);
+    }
+
+    #portrait-integration-study .pis-back-instrument::before,
+    #portrait-integration-study .pis-back-instrument::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+    }
+
+    #portrait-integration-study .pis-back-instrument::before {
+      inset: 13%;
+      border: 1px dashed rgba(239, 201, 103, 0.52);
+    }
+
+    #portrait-integration-study .pis-back-instrument::after {
+      inset: 28%;
+      border: 1px solid rgba(115, 170, 167, 0.46);
+      border-right-color: transparent;
+    }
+
+    #portrait-integration-study .pis-axis {
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      top: 50%;
+      height: 1px;
+      z-index: 3;
+      background: rgba(239, 201, 103, 0.3);
+      transform: rotate(-14deg);
+      transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1), opacity 450ms ease;
+    }
+
+    #portrait-integration-study .pis-axis::after {
+      content: "";
+      position: absolute;
+      right: 12%;
+      top: -0.28rem;
+      width: 0.55rem;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--pis-copper);
+    }
+
+    #portrait-integration-study .pis-portrait-window {
+      position: absolute;
+      inset: 2%;
+      z-index: 5;
+      transition: clip-path 650ms cubic-bezier(0.16, 1, 0.3, 1), transform 650ms cubic-bezier(0.16, 1, 0.3, 1), filter 450ms ease;
+    }
+
+    #portrait-integration-study .pis-portrait {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 49%;
+      height: 80%;
+      transform: translate(-50%, -48%);
+      filter: drop-shadow(0 1.2rem 1rem rgba(0, 0, 0, 0.45));
+    }
+
+    #portrait-integration-study .pis-head-shape {
+      position: absolute;
+      left: 50%;
+      top: 9%;
+      z-index: 3;
+      width: 40%;
+      aspect-ratio: 0.82;
+      border-radius: 48% 52% 44% 48%;
+      background: linear-gradient(125deg, #c48768 5%, #61382f 42%, #15101a 78%);
+      transform: translateX(-50%) rotate(5deg);
+      box-shadow: -0.5rem -0.7rem 0 #17101a;
+    }
+
+    #portrait-integration-study .pis-head-shape::before {
+      content: "";
+      position: absolute;
+      left: -15%;
+      top: -17%;
+      width: 113%;
+      height: 50%;
+      border-radius: 54% 58% 28% 35%;
+      background: #09070e;
+      box-shadow: 0.55rem -0.22rem 0 #09070e;
+    }
+
+    #portrait-integration-study .pis-head-shape::after {
+      content: "";
+      position: absolute;
+      left: -8%;
+      top: 37%;
+      width: 72%;
+      height: 23%;
+      border-top: 1px solid rgba(239, 201, 103, 0.72);
+      border-bottom: 1px solid rgba(239, 201, 103, 0.38);
+      border-radius: 50%;
+      transform: rotate(-7deg);
+    }
+
+    #portrait-integration-study .pis-body-shape {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      z-index: 2;
+      width: 96%;
+      height: 65%;
+      overflow: hidden;
+      border-radius: 48% 48% 5% 5% / 30% 30% 4% 4%;
+      background: linear-gradient(100deg, #0b0910 12%, #291722 58%, #08060c 100%);
+      transform: translateX(-50%);
+    }
+
+    #portrait-integration-study .pis-projection {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent 0 1.55rem, rgba(239, 201, 103, 0.14) 1.55rem calc(1.55rem + 1px)),
+        linear-gradient(90deg, transparent 20%, rgba(239, 201, 103, 0.22) 50%, transparent 80%);
+      mix-blend-mode: screen;
+      transition: opacity 450ms ease;
+    }
+
+    #portrait-integration-study .pis-rim-light {
+      position: absolute;
+      left: 31%;
+      top: 6%;
+      z-index: 4;
+      width: 37%;
+      height: 77%;
+      opacity: 0;
+      border-right: 2px solid rgba(239, 201, 103, 0.68);
+      border-radius: 50%;
+      filter: blur(1px) drop-shadow(0 0 0.55rem rgba(239, 201, 103, 0.45));
+      transform: rotate(-4deg);
+      transition: opacity 450ms ease;
+    }
+
+    #portrait-integration-study .pis-front-instrument {
+      z-index: 8;
+      opacity: 0;
+      border-bottom: 0.8rem solid rgba(239, 201, 103, 0.6);
+      border-left: 0.36rem solid rgba(182, 116, 72, 0.5);
+      transform: rotate(-9deg);
+      clip-path: polygon(0 58%, 100% 58%, 100% 100%, 0 100%);
+      filter: drop-shadow(0 0.6rem 0.8rem rgba(0, 0, 0, 0.35));
+    }
+
+    #portrait-integration-study .pis-front-instrument::before {
+      content: "";
+      position: absolute;
+      left: 13%;
+      right: 13%;
+      bottom: 12%;
+      height: 1px;
+      background: rgba(239, 201, 103, 0.68);
+      transform: rotate(8deg);
+    }
+
+    #portrait-integration-study .pis-core {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 10;
+      width: 1rem;
+      aspect-ratio: 1;
+      border: 0.22rem solid rgba(239, 201, 103, 0.48);
+      border-radius: 50%;
+      background: var(--pis-copper);
+      transform: translate(-50%, -50%);
+      transition: opacity 450ms ease, transform 650ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #portrait-integration-study .pis-tag {
+      position: absolute;
+      z-index: 14;
+      padding-left: 0.55rem;
+      border-left: 1px solid var(--pis-gold);
+      color: var(--pis-muted);
+      font: 400 0.58rem/1.35 ui-monospace, monospace;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0;
+      transition: opacity 450ms ease, transform 650ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #portrait-integration-study .pis-tag--rear { left: 2%; top: 20%; }
+    #portrait-integration-study .pis-tag--subject { right: -2%; top: 37%; }
+    #portrait-integration-study .pis-tag--front { left: 7%; bottom: 12%; }
+
+    #portrait-integration-study .pis-composite[data-mode="floating"] .pis-back-instrument {
+      opacity: 0.42;
+      transform: translate(-2.5rem, -0.8rem) scale(1.06) rotate(-8deg);
+    }
+
+    #portrait-integration-study .pis-composite[data-mode="floating"] .pis-portrait-window {
+      transform: translate(2.2rem, 0.5rem) scale(0.96);
+      filter: drop-shadow(0 1.4rem 1rem rgba(0, 0, 0, 0.6));
+    }
+
+    #portrait-integration-study .pis-composite[data-mode="floating"] .pis-axis {
+      opacity: 0.24;
+      transform: translate(-2.5rem, -0.8rem) rotate(-14deg);
+    }
+
+    #portrait-integration-study .pis-composite[data-mode="floating"] .pis-core {
+      opacity: 0.35;
+      transform: translate(calc(-50% - 2.5rem), calc(-50% - 0.8rem));
+    }
+
+    #portrait-integration-study .pis-composite[data-mode="aperture"] .pis-back-instrument {
+      opacity: 0.85;
+      transform: scale(0.94);
+    }
+
+    #portrait-integration-study .pis-composite[data-mode="aperture"] .pis-portrait-window {
+      clip-path: circle(40% at 50% 48%);
+      transform: scale(0.94);
+    }
+
+    #portrait-integration-study .pis-composite[data-mode="aperture"] .pis-axis {
+      opacity: 0.65;
+    }
+
+    #portrait-integration-study .pis-composite[data-mode="aperture"] .pis-core {
+      opacity: 0.75;
+    }
+
+    #portrait-integration-study .pis-composite[data-mode="interlocked"] .pis-back-instrument {
+      opacity: 0.82;
+      transform: translateY(-0.35rem) scale(0.98) rotate(-5deg);
+    }
+
+    #portrait-integration-study .pis-composite[data-mode="interlocked"] .pis-portrait-window {
+      transform: translateY(0.2rem) scale(1.03);
+    }
+
+    #portrait-integration-study .pis-composite[data-mode="interlocked"] .pis-front-instrument,
+    #portrait-integration-study .pis-composite[data-mode="interlocked"] .pis-rim-light,
+    #portrait-integration-study .pis-composite[data-mode="interlocked"] .pis-projection,
+    #portrait-integration-study .pis-composite[data-mode="interlocked"] .pis-tag {
+      opacity: 1;
+    }
+
+    #portrait-integration-study .pis-composite[data-mode="interlocked"] .pis-tag--rear { transform: translate(-0.5rem, -0.2rem); }
+    #portrait-integration-study .pis-composite[data-mode="interlocked"] .pis-tag--subject { transform: translate(0.4rem, 0); }
+    #portrait-integration-study .pis-composite[data-mode="interlocked"] .pis-tag--front { transform: translate(-0.25rem, 0.3rem); }
+
+    #portrait-integration-study .pis-note {
+      min-height: 1.4rem;
+      margin: 0;
+    }
+
+    @media (max-width: 700px) {
+      #portrait-integration-study .pis-frame { min-height: 47rem; }
+      #portrait-integration-study .pis-nav { padding: 1.2rem 1.25rem; }
+      #portrait-integration-study .pis-nav > span:last-child { display: none; }
+      #portrait-integration-study .pis-stage {
+        grid-template-columns: 1fr;
+        align-content: start;
+        gap: 0.75rem;
+        min-height: 41rem;
+        padding: 2rem 1.25rem 3.5rem;
+      }
+      #portrait-integration-study .pis-copy { max-width: 20rem; }
+      #portrait-integration-study .pis-copy h3 { max-width: 19rem; }
+      #portrait-integration-study .pis-depth-key { max-width: 19rem; }
+      #portrait-integration-study .pis-composite {
+        justify-self: end;
+        width: min(23rem, 94vw);
+        margin: -0.25rem -4rem 0 0;
+      }
+      #portrait-integration-study .pis-tag--subject { right: 1%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #portrait-integration-study .pis-back-instrument,
+      #portrait-integration-study .pis-front-instrument,
+      #portrait-integration-study .pis-axis,
+      #portrait-integration-study .pis-portrait-window,
+      #portrait-integration-study .pis-core,
+      #portrait-integration-study .pis-tag { transition: none; }
+    }
+  </style>
+
+  <div class="pis-head">
+    <div>
+      <h2 id="pis-title">The portrait needs shared depth</h2>
+      <p class="text-muted">Compare three ways to make the portrait and astrolabe read as one composition before any scroll animation begins.</p>
+    </div>
+    <span class="viz-badge">Resting frame</span>
+  </div>
+
+  <div class="nav nav-pills" role="tablist" aria-label="Portrait integration approach">
+    <button class="nav-link" id="pis-floating-tab" type="button" role="tab" aria-controls="pis-panel" aria-selected="false" data-mode="floating">Floating cutout</button>
+    <button class="nav-link" id="pis-aperture-tab" type="button" role="tab" aria-controls="pis-panel" aria-selected="false" data-mode="aperture">Circular aperture</button>
+    <button class="nav-link active" id="pis-interlocked-tab" type="button" role="tab" aria-controls="pis-panel" aria-selected="true" data-mode="interlocked">Interlocked planes</button>
+  </div>
+
+  <div id="pis-panel" role="tabpanel" aria-labelledby="pis-interlocked-tab">
+    <div class="pis-frame" aria-label="Portrait and astrolabe integration study">
+      <div class="pis-nav">
+        <span class="pis-brand"><i aria-hidden="true"></i>Dzaki Yaumal</span>
+        <span>Portfolio / Web systems / Networks</span>
+      </div>
+
+      <div class="pis-stage">
+        <div class="pis-copy">
+          <p class="pis-kicker" id="pis-kicker">Recommended / one object</p>
+          <h3 id="pis-copy-title">Let the instrument <em>wrap around you.</em></h3>
+          <p class="pis-copy-body" id="pis-copy-body">A rear ring frames the head. A small foreground arc crosses the shoulders. Shared light and texture connect the middle plane to both.</p>
+          <ol class="pis-depth-key" id="pis-depth-key">
+            <li><i></i>Rear plate — behind the head</li>
+            <li><i></i>Portrait — stable subject</li>
+            <li><i></i>Front arc — over the shoulders</li>
+          </ol>
+        </div>
+
+        <div class="pis-composite" data-mode="interlocked" aria-hidden="true">
+          <div class="pis-back-instrument"></div>
+          <span class="pis-axis"></span>
+
+          <div class="pis-portrait-window">
+            <div class="pis-portrait">
+              <span class="pis-body-shape"><i class="pis-projection"></i></span>
+              <span class="pis-head-shape"></span>
+              <span class="pis-rim-light"></span>
+            </div>
+          </div>
+
+          <div class="pis-front-instrument"></div>
+          <span class="pis-core"></span>
+          <span class="pis-tag pis-tag--rear">01 / Rear ring</span>
+          <span class="pis-tag pis-tag--subject">02 / Portrait</span>
+          <span class="pis-tag pis-tag--front">03 / Front arc</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="pis-note text-small text-muted" id="pis-note" aria-live="polite">Best balance: the face stays unobstructed while the instrument visibly passes behind and in front of the body.</p>
+
+  <script>
+    (() => {
+      const root = document.getElementById("portrait-integration-study");
+      if (!root) return;
+
+      const validModes = ["floating", "aperture", "interlocked"];
+      const stored = window.openai?.widgetState?.modelContent || {};
+      const state = {
+        mode: validModes.includes(stored.integrationMode) ? stored.integrationMode : "interlocked",
+      };
+
+      const composite = root.querySelector(".pis-composite");
+      const tabs = [...root.querySelectorAll("[data-mode]")];
+      const panel = root.querySelector("#pis-panel");
+      const kicker = root.querySelector("#pis-kicker");
+      const title = root.querySelector("#pis-copy-title");
+      const body = root.querySelector("#pis-copy-body");
+      const depth = root.querySelector("#pis-depth-key");
+      const note = root.querySelector("#pis-note");
+
+      const modes = {
+        floating: {
+          kicker: "Diagnosis / two separate objects",
+          title: "The portrait is <em>sitting on top.</em>",
+          body: "The photograph and astrolabe have different centres, boundaries, lighting, and depth. Motion would only make that separation more obvious.",
+          note: "This is the current failure mode: a cutout near an instrument, rather than a person inside one visual system.",
+          depth: false,
+        },
+        aperture: {
+          kicker: "Alternative / instrument as lens",
+          title: "Make the astrolabe <em>the image boundary.</em>",
+          body: "The portrait appears only inside the circular opening. This creates immediate unity, but it can make the person feel contained or logo-like.",
+          note: "A clean option for a quieter portfolio, although it reduces the portrait's freedom and scale.",
+          depth: false,
+        },
+        interlocked: {
+          kicker: "Recommended / one object",
+          title: "Let the instrument <em>wrap around you.</em>",
+          body: "A rear ring frames the head. A small foreground arc crosses the shoulders. Shared light and texture connect the middle plane to both.",
+          note: "Best balance: the face stays unobstructed while the instrument visibly passes behind and in front of the body.",
+          depth: true,
+        },
+      };
+
+      function render() {
+        const selected = modes[state.mode];
+        composite.dataset.mode = state.mode;
+        kicker.textContent = selected.kicker;
+        title.innerHTML = selected.title;
+        body.textContent = selected.body;
+        note.textContent = selected.note;
+        depth.style.visibility = selected.depth ? "visible" : "hidden";
+        panel.setAttribute("aria-labelledby", `pis-${state.mode}-tab`);
+
+        tabs.forEach((tab) => {
+          const active = tab.dataset.mode === state.mode;
+          tab.classList.toggle("active", active);
+          tab.setAttribute("aria-selected", String(active));
+        });
+      }
+
+      function save() {
+        window.openai?.setWidgetState?.({
+          modelContent: { integrationMode: state.mode },
+          privateContent: null,
+        }).catch(() => {});
+      }
+
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          state.mode = tab.dataset.mode;
+          render();
+          save();
+        });
+      });
+
+      render();
+
+      if (globalThis.Tweak) {
+        const tweak = new Tweak({ container: root.querySelector(".pis-frame"), onChange: render });
+        tweak.addSelect(state, "mode", {
+          label: "Integration approach",
+          options: [
+            { label: "Floating cutout", value: "floating" },
+            { label: "Circular aperture", value: "aperture" },
+            { label: "Interlocked planes", value: "interlocked" },
+          ],
+          reference: "portrait.integration",
+        });
+      }
+    })();
+  </script>
+</section>

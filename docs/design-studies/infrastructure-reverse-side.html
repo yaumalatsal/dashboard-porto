@@ -1,0 +1,626 @@
+<section id="infrastructure-reverse-side" aria-labelledby="irs-title">
+  <style>
+    #infrastructure-reverse-side {
+      display: grid;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    #infrastructure-reverse-side .irs-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    #infrastructure-reverse-side .irs-head h2,
+    #infrastructure-reverse-side .irs-head p {
+      margin: 0;
+    }
+
+    #infrastructure-reverse-side .irs-head p {
+      max-width: 37rem;
+    }
+
+    #infrastructure-reverse-side .irs-control {
+      min-width: min(22rem, 100%);
+    }
+
+    #infrastructure-reverse-side .irs-control-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    #infrastructure-reverse-side .irs-frame {
+      --irs-bg: #0e0818;
+      --irs-ink: #f4e5c2;
+      --irs-muted: rgba(244, 229, 194, 0.62);
+      --irs-gold: #efc967;
+      --irs-copper: #b67448;
+      --irs-teal: #73aaa7;
+      position: relative;
+      min-height: 35rem;
+      overflow: hidden;
+      border-radius: 0.35rem;
+      background:
+        radial-gradient(circle at 72% 48%, rgba(115, 170, 167, 0.07), transparent 29%),
+        linear-gradient(rgba(239, 201, 103, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(239, 201, 103, 0.04) 1px, transparent 1px),
+        var(--irs-bg);
+      background-size: auto, 5rem 5rem, 5rem 5rem, auto;
+      color: var(--irs-ink);
+      isolation: isolate;
+    }
+
+    #infrastructure-reverse-side .irs-frame::before {
+      content: "";
+      position: absolute;
+      inset: 1rem;
+      z-index: 30;
+      border: 1px solid rgba(239, 201, 103, 0.14);
+      pointer-events: none;
+    }
+
+    #infrastructure-reverse-side .irs-nav {
+      position: relative;
+      z-index: 32;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.35rem 2rem;
+      border-bottom: 1px solid rgba(239, 201, 103, 0.12);
+      color: var(--irs-muted);
+      font: 400 0.64rem/1 ui-monospace, monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    #infrastructure-reverse-side .irs-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: var(--irs-ink);
+      font: 400 1rem/1 Georgia, serif;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    #infrastructure-reverse-side .irs-brand i {
+      position: relative;
+      width: 1rem;
+      aspect-ratio: 1;
+      border: 1px solid var(--irs-gold);
+      border-radius: 50%;
+    }
+
+    #infrastructure-reverse-side .irs-brand i::before,
+    #infrastructure-reverse-side .irs-brand i::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      background: var(--irs-gold);
+      transform: translate(-50%, -50%);
+    }
+
+    #infrastructure-reverse-side .irs-brand i::before { width: 1px; height: 1.45rem; }
+    #infrastructure-reverse-side .irs-brand i::after { width: 1.45rem; height: 1px; }
+
+    #infrastructure-reverse-side .irs-stage {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(18rem, 0.82fr) minmax(27rem, 1.18fr);
+      align-items: center;
+      min-height: 29.5rem;
+      padding: 2.5rem 4.5rem 3.5rem;
+    }
+
+    #infrastructure-reverse-side .irs-copy {
+      position: relative;
+      z-index: 12;
+      max-width: 24rem;
+    }
+
+    #infrastructure-reverse-side .irs-kicker {
+      margin: 0 0 1rem;
+      color: var(--irs-gold);
+      font: 400 0.66rem/1.4 ui-monospace, monospace;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    #infrastructure-reverse-side .irs-copy h3 {
+      margin: 0;
+      color: var(--irs-ink);
+      font: 400 clamp(2.25rem, 4.8vw, 4.25rem)/0.96 Georgia, serif;
+      letter-spacing: -0.035em;
+    }
+
+    #infrastructure-reverse-side .irs-copy h3 em {
+      color: var(--irs-gold);
+      font-weight: 400;
+    }
+
+    #infrastructure-reverse-side .irs-copy-body {
+      max-width: 21rem;
+      margin: 1.25rem 0 0;
+      color: var(--irs-muted);
+      font: 400 0.84rem/1.65 Arial, sans-serif;
+    }
+
+    #infrastructure-reverse-side .irs-route {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 1.6rem 0 0;
+      color: var(--irs-muted);
+      font: 400 0.59rem/1.35 ui-monospace, monospace;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    #infrastructure-reverse-side .irs-route i {
+      display: block;
+      width: 1.5rem;
+      height: 1px;
+      background: var(--irs-copper);
+    }
+
+    #infrastructure-reverse-side .irs-route i:nth-of-type(2) { background: var(--irs-gold); }
+    #infrastructure-reverse-side .irs-route i:nth-of-type(3) { background: var(--irs-teal); }
+
+    #infrastructure-reverse-side .irs-viewport {
+      position: relative;
+      z-index: 6;
+      justify-self: center;
+      width: min(31rem, 48vw);
+      aspect-ratio: 1;
+      perspective: 1200px;
+    }
+
+    #infrastructure-reverse-side .irs-disc {
+      position: absolute;
+      inset: 3%;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    #infrastructure-reverse-side .irs-face {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      border: 0.75rem solid rgba(182, 116, 72, 0.34);
+      border-radius: 50%;
+      backface-visibility: hidden;
+      box-shadow:
+        inset 0 0 0 1px rgba(239, 201, 103, 0.48),
+        0 0 3rem rgba(182, 116, 72, 0.12);
+    }
+
+    #infrastructure-reverse-side .irs-front {
+      background:
+        radial-gradient(circle, rgba(239, 201, 103, 0.09) 0 2%, transparent 2.4%),
+        repeating-conic-gradient(from 0deg, rgba(239, 201, 103, 0.38) 0 0.7deg, transparent 0.7deg 15deg),
+        radial-gradient(circle, transparent 0 20%, rgba(115, 170, 167, 0.1) 20.3% 20.7%, transparent 21% 35%, rgba(239, 201, 103, 0.17) 35.2% 35.6%, transparent 36%),
+        #130c1d;
+    }
+
+    #infrastructure-reverse-side .irs-front::before,
+    #infrastructure-reverse-side .irs-front::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 72%;
+      height: 1px;
+      background: rgba(239, 201, 103, 0.38);
+      transform-origin: center;
+    }
+
+    #infrastructure-reverse-side .irs-front::before { transform: translate(-50%, -50%) rotate(-17deg); }
+    #infrastructure-reverse-side .irs-front::after { transform: translate(-50%, -50%) rotate(51deg); }
+
+    #infrastructure-reverse-side .irs-front-title {
+      position: absolute;
+      left: 50%;
+      top: 17%;
+      color: var(--irs-muted);
+      font: 400 0.62rem/1.3 ui-monospace, monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transform: translateX(-50%);
+    }
+
+    #infrastructure-reverse-side .irs-front-layer {
+      position: absolute;
+      padding-left: 0.55rem;
+      border-left: 1px solid var(--irs-gold);
+      color: var(--irs-ink);
+      font: 400 0.6rem/1.3 ui-monospace, monospace;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    #infrastructure-reverse-side .irs-front-layer small {
+      display: block;
+      color: var(--irs-muted);
+      font-size: 0.56rem;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    #infrastructure-reverse-side .irs-front-layer--one { left: 12%; top: 34%; }
+    #infrastructure-reverse-side .irs-front-layer--two { right: 10%; top: 46%; }
+    #infrastructure-reverse-side .irs-front-layer--three { left: 23%; bottom: 18%; }
+
+    #infrastructure-reverse-side .irs-front-core {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1.15rem;
+      aspect-ratio: 1;
+      border: 0.25rem solid rgba(239, 201, 103, 0.42);
+      border-radius: 50%;
+      background: var(--irs-copper);
+      transform: translate(-50%, -50%);
+    }
+
+    #infrastructure-reverse-side .irs-back {
+      transform: rotateY(180deg);
+      background:
+        radial-gradient(circle at center, rgba(115, 170, 167, 0.12) 0 2%, transparent 2.5%),
+        repeating-conic-gradient(from 7deg, rgba(239, 201, 103, 0.28) 0 0.65deg, transparent 0.65deg 15deg),
+        radial-gradient(circle, transparent 0 18%, rgba(239, 201, 103, 0.2) 18.3% 18.7%, transparent 19% 34%, rgba(115, 170, 167, 0.2) 34.3% 34.7%, transparent 35% 45%, rgba(239, 201, 103, 0.15) 45.3% 45.7%, transparent 46%),
+        radial-gradient(circle at 50% 48%, #1a1022, #0c0911 72%);
+    }
+
+    #infrastructure-reverse-side .irs-back::before {
+      content: "SYSTEMS OBSERVATORY / REVERSE PLATE";
+      position: absolute;
+      left: 50%;
+      top: 7%;
+      width: max-content;
+      color: var(--irs-gold);
+      font: 400 0.57rem/1 ui-monospace, monospace;
+      letter-spacing: 0.13em;
+      transform: translateX(-50%);
+    }
+
+    #infrastructure-reverse-side .irs-back::after {
+      content: "LIVE PATH / EDGE → RUNTIME → DATA → NETWORK";
+      position: absolute;
+      left: 50%;
+      bottom: 6.5%;
+      width: max-content;
+      color: var(--irs-muted);
+      font: 400 0.52rem/1 ui-monospace, monospace;
+      letter-spacing: 0.08em;
+      transform: translateX(-50%);
+    }
+
+    #infrastructure-reverse-side .irs-path {
+      position: absolute;
+      z-index: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(182, 116, 72, 0.22), rgba(239, 201, 103, 0.72));
+      transform-origin: left center;
+    }
+
+    #infrastructure-reverse-side .irs-path--one { left: 50%; top: 21%; width: 23%; transform: rotate(132deg); }
+    #infrastructure-reverse-side .irs-path--two { left: 33%; top: 37%; width: 34%; transform: rotate(8deg); }
+    #infrastructure-reverse-side .irs-path--three { left: 61%; top: 41%; width: 26%; transform: rotate(128deg); }
+    #infrastructure-reverse-side .irs-path--four { left: 49%; top: 54%; width: 29%; transform: rotate(143deg); }
+    #infrastructure-reverse-side .irs-path--five { left: 47%; top: 55%; width: 30%; transform: rotate(42deg); }
+    #infrastructure-reverse-side .irs-path--six { left: 29%; top: 68%; width: 45%; transform: rotate(-1deg); background: linear-gradient(90deg, rgba(115, 170, 167, 0.28), rgba(115, 170, 167, 0.78)); }
+
+    #infrastructure-reverse-side .irs-node {
+      position: absolute;
+      z-index: 3;
+      display: grid;
+      place-items: center;
+      width: 3.7rem;
+      aspect-ratio: 1;
+      border: 1px solid rgba(239, 201, 103, 0.42);
+      border-radius: 50%;
+      background: rgba(14, 8, 24, 0.88);
+      color: var(--irs-ink);
+      text-align: center;
+      font: 400 0.5rem/1.2 ui-monospace, monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      box-shadow: 0 0 0 0.25rem rgba(239, 201, 103, 0.04);
+    }
+
+    #infrastructure-reverse-side .irs-node::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 0.35rem;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--irs-gold);
+      box-shadow: 0 0 0.8rem rgba(239, 201, 103, 0.72);
+      transform: translate(-50%, -50%);
+    }
+
+    #infrastructure-reverse-side .irs-node span {
+      position: absolute;
+      top: calc(100% + 0.35rem);
+      width: max-content;
+      color: var(--irs-muted);
+    }
+
+    #infrastructure-reverse-side .irs-node--edge { left: calc(50% - 1.85rem); top: 13%; }
+    #infrastructure-reverse-side .irs-node--proxy { left: 19%; top: 29%; }
+    #infrastructure-reverse-side .irs-node--runtime { right: 18%; top: 33%; }
+    #infrastructure-reverse-side .irs-node--app { left: calc(50% - 1.85rem); top: 46%; border-color: rgba(239, 201, 103, 0.72); }
+    #infrastructure-reverse-side .irs-node--data { left: 20%; bottom: 17%; }
+    #infrastructure-reverse-side .irs-node--network { right: 19%; bottom: 17%; border-color: rgba(115, 170, 167, 0.62); }
+    #infrastructure-reverse-side .irs-node--network::after { background: var(--irs-teal); box-shadow: 0 0 0.8rem rgba(115, 170, 167, 0.72); }
+
+    #infrastructure-reverse-side .irs-packet {
+      position: absolute;
+      z-index: 6;
+      width: 0.45rem;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--irs-gold);
+      box-shadow: 0 0 0.75rem rgba(239, 201, 103, 0.9);
+      opacity: 0;
+      transform: translate(-50%, -50%);
+    }
+
+    #infrastructure-reverse-side .irs-telemetry {
+      position: absolute;
+      right: 4%;
+      top: 50%;
+      z-index: 8;
+      display: grid;
+      gap: 0.25rem;
+      color: var(--irs-muted);
+      font: 400 0.5rem/1.2 ui-monospace, monospace;
+      letter-spacing: 0.06em;
+      text-align: right;
+      text-transform: uppercase;
+      transform: translateY(-50%) rotate(90deg) translateY(-100%);
+      transform-origin: right top;
+    }
+
+    #infrastructure-reverse-side .irs-telemetry strong {
+      color: var(--irs-ink);
+      font-weight: 400;
+    }
+
+    #infrastructure-reverse-side .irs-phase {
+      position: absolute;
+      left: 2rem;
+      right: 2rem;
+      bottom: 1.25rem;
+      z-index: 34;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 0.8rem;
+      color: var(--irs-muted);
+      font: 400 0.58rem/1.2 ui-monospace, monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    #infrastructure-reverse-side .irs-phase-line {
+      height: 1px;
+      overflow: hidden;
+      background: rgba(239, 201, 103, 0.16);
+    }
+
+    #infrastructure-reverse-side .irs-phase-line i {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--irs-gold);
+    }
+
+    #infrastructure-reverse-side .irs-note {
+      min-height: 1.4rem;
+      margin: 0;
+    }
+
+    @media (max-width: 700px) {
+      #infrastructure-reverse-side .irs-frame { min-height: 49rem; }
+      #infrastructure-reverse-side .irs-nav { padding: 1.2rem 1.25rem; }
+      #infrastructure-reverse-side .irs-nav > span:last-child { display: none; }
+      #infrastructure-reverse-side .irs-stage {
+        grid-template-columns: 1fr;
+        align-content: start;
+        gap: 1rem;
+        min-height: 43rem;
+        padding: 2rem 1.25rem 3.5rem;
+      }
+      #infrastructure-reverse-side .irs-copy { max-width: 20rem; }
+      #infrastructure-reverse-side .irs-viewport {
+        justify-self: end;
+        width: min(25rem, 98vw);
+        margin-right: -3.8rem;
+      }
+      #infrastructure-reverse-side .irs-phase { left: 1.25rem; right: 1.25rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #infrastructure-reverse-side .irs-disc { will-change: auto; }
+    }
+  </style>
+
+  <div class="irs-head">
+    <div>
+      <h2 id="irs-title">Infrastructure becomes the reverse plate</h2>
+      <p class="text-muted">Turn the instrument over to reveal the route that keeps each application alive.</p>
+    </div>
+    <label class="irs-control form-label" for="irs-progress">
+      <span class="irs-control-label"><span>Reveal infrastructure</span><output id="irs-progress-value">100%</output></span>
+      <input class="form-range" id="irs-progress" type="range" min="0" max="100" step="1" value="100">
+    </label>
+  </div>
+
+  <div class="irs-frame" aria-label="Infrastructure as the reverse side of an astrolabe">
+    <div class="irs-nav">
+      <span class="irs-brand"><i aria-hidden="true"></i>Dzaki Yaumal</span>
+      <span>Infrastructure / The operating layer</span>
+    </div>
+
+    <div class="irs-stage">
+      <div class="irs-copy">
+        <p class="irs-kicker" id="irs-kicker">03 Infrastructure / Reverse plate</p>
+        <h3 id="irs-copy-title">The interface is the face. <em>This is what keeps it alive.</em></h3>
+        <p class="irs-copy-body" id="irs-copy-body">The back of the astrolabe becomes a live route: DNS and TLS at the edge, Nginx and Docker in the runtime, the application and data at the core, and MikroTik below it.</p>
+        <div class="irs-route" aria-hidden="true"><span>Edge</span><i></i><span>Runtime</span><i></i><span>Data</span><i></i><span>Network</span></div>
+      </div>
+
+      <div class="irs-viewport" aria-hidden="true">
+        <div class="irs-disc">
+          <div class="irs-face irs-front">
+            <span class="irs-front-title">One practice / three layers</span>
+            <span class="irs-front-layer irs-front-layer--one">Experience<small>The visible layer</small></span>
+            <span class="irs-front-layer irs-front-layer--two">Software<small>The working layer</small></span>
+            <span class="irs-front-layer irs-front-layer--three">Infrastructure<small>Turn the plate over</small></span>
+            <span class="irs-front-core"></span>
+          </div>
+
+          <div class="irs-face irs-back">
+            <span class="irs-path irs-path--one"></span>
+            <span class="irs-path irs-path--two"></span>
+            <span class="irs-path irs-path--three"></span>
+            <span class="irs-path irs-path--four"></span>
+            <span class="irs-path irs-path--five"></span>
+            <span class="irs-path irs-path--six"></span>
+
+            <span class="irs-node irs-node--edge"><span>DNS / TLS</span></span>
+            <span class="irs-node irs-node--proxy"><span>Nginx</span></span>
+            <span class="irs-node irs-node--runtime"><span>Docker</span></span>
+            <span class="irs-node irs-node--app"><span>Application</span></span>
+            <span class="irs-node irs-node--data"><span>Database</span></span>
+            <span class="irs-node irs-node--network"><span>MikroTik</span></span>
+            <span class="irs-packet"></span>
+            <span class="irs-telemetry"><strong>Operational route</strong><span>Observed every 30 s</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="irs-phase" aria-live="polite">
+      <span id="irs-phase-name">03 / Infrastructure</span>
+      <span class="irs-phase-line"><i></i></span>
+      <span id="irs-phase-side">Reverse side</span>
+    </div>
+  </div>
+
+  <p class="irs-note text-small text-muted">The infrastructure is no longer a third label. It is the hidden machine on the back of the same instrument.</p>
+
+  <script>
+    (() => {
+      const root = document.getElementById("infrastructure-reverse-side");
+      if (!root) return;
+
+      const stored = window.openai?.widgetState?.modelContent || {};
+      const state = {
+        progress: Number.isFinite(stored.infrastructureReveal)
+          ? Math.max(0, Math.min(100, stored.infrastructureReveal))
+          : 100,
+      };
+
+      const range = root.querySelector("#irs-progress");
+      const output = root.querySelector("#irs-progress-value");
+      const disc = root.querySelector(".irs-disc");
+      const packet = root.querySelector(".irs-packet");
+      const kicker = root.querySelector("#irs-kicker");
+      const title = root.querySelector("#irs-copy-title");
+      const body = root.querySelector("#irs-copy-body");
+      const phaseName = root.querySelector("#irs-phase-name");
+      const phaseSide = root.querySelector("#irs-phase-side");
+      const phaseLine = root.querySelector(".irs-phase-line i");
+
+      const route = [
+        [50, 20],
+        [28, 37],
+        [61, 41],
+        [50, 54],
+        [29, 70],
+        [71, 70],
+      ];
+
+      function packetPoint(progress) {
+        const scaled = Math.max(0, Math.min(0.999, progress)) * (route.length - 1);
+        const index = Math.floor(scaled);
+        const local = scaled - index;
+        const a = route[index];
+        const b = route[Math.min(index + 1, route.length - 1)];
+        return [a[0] + (b[0] - a[0]) * local, a[1] + (b[1] - a[1]) * local];
+      }
+
+      function render() {
+        const t = state.progress / 100;
+        const angle = t * 180;
+        range.value = String(state.progress);
+        output.value = `${Math.round(state.progress)}%`;
+        output.textContent = `${Math.round(state.progress)}%`;
+        disc.style.transform = `rotateY(${angle}deg) rotateZ(${t * 4 - 2}deg)`;
+        phaseLine.style.width = `${state.progress}%`;
+
+        const backVisible = t > 0.56;
+        packet.style.opacity = backVisible ? "1" : "0";
+        const point = packetPoint(Math.max(0, (t - 0.56) / 0.44));
+        packet.style.left = `${point[0]}%`;
+        packet.style.top = `${point[1]}%`;
+
+        if (t < 0.3) {
+          kicker.textContent = "01 Front plate / visible system";
+          title.innerHTML = "The interface is <em>only the face.</em>";
+          body.textContent = "Experience and software remain on the readable front of the instrument. Infrastructure is present, but it is not yet visible.";
+          phaseName.textContent = "01 / Visible layers";
+          phaseSide.textContent = "Front side";
+        } else if (t < 0.7) {
+          kicker.textContent = "02 Transition / turn the instrument";
+          title.innerHTML = "Turn it over. <em>Expose the operating path.</em>";
+          body.textContent = "The astrolabe does not explode into generic technology icons. It turns over like a physical instrument and reveals its working plate.";
+          phaseName.textContent = "02 / Plate rotation";
+          phaseSide.textContent = "Between sides";
+        } else {
+          kicker.textContent = "03 Infrastructure / reverse plate";
+          title.innerHTML = "The interface is the face. <em>This is what keeps it alive.</em>";
+          body.textContent = "The back becomes a live route: DNS and TLS at the edge, Nginx and Docker in the runtime, the application and data at the core, and MikroTik below it.";
+          phaseName.textContent = "03 / Infrastructure";
+          phaseSide.textContent = "Reverse side";
+        }
+      }
+
+      function save() {
+        window.openai?.setWidgetState?.({
+          modelContent: { infrastructureReveal: state.progress },
+          privateContent: null,
+        }).catch(() => {});
+      }
+
+      range.addEventListener("input", () => {
+        state.progress = Number(range.value);
+        render();
+      });
+      range.addEventListener("change", save);
+
+      render();
+
+      if (globalThis.Tweak) {
+        const tweak = new Tweak({ container: root.querySelector(".irs-frame"), onChange: render });
+        tweak.addSlider(state, "progress", {
+          label: "Reveal infrastructure",
+          min: 0,
+          max: 100,
+          step: 1,
+          unit: "%",
+          reference: "infrastructure.reveal",
+        });
+      }
+    })();
+  </script>
+</section>

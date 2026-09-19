@@ -1,0 +1,706 @@
+<section id="astrolabe-scroll-concepts" aria-labelledby="asc-title">
+  <style>
+    #astrolabe-scroll-concepts {
+      display: grid;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    #astrolabe-scroll-concepts .asc-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    #astrolabe-scroll-concepts .asc-heading h2,
+    #astrolabe-scroll-concepts .asc-heading p {
+      margin: 0;
+    }
+
+    #astrolabe-scroll-concepts .asc-heading p {
+      max-width: 32rem;
+    }
+
+    #astrolabe-scroll-concepts .asc-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(12rem, 19rem);
+      align-items: end;
+      gap: 1rem;
+    }
+
+    #astrolabe-scroll-concepts .asc-scrub-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    #astrolabe-scroll-concepts .asc-frame {
+      --asc-bg: #0e0818;
+      --asc-ink: #f4e5c2;
+      --asc-muted: rgba(244, 229, 194, 0.62);
+      --asc-faint: rgba(244, 229, 194, 0.18);
+      --asc-gold: #efc967;
+      --asc-copper: #b67448;
+      --asc-teal: #73aaa7;
+      position: relative;
+      min-height: 31rem;
+      overflow: hidden;
+      border-radius: 0.35rem;
+      background:
+        radial-gradient(circle at 76% 38%, rgba(139, 67, 53, 0.13), transparent 28%),
+        linear-gradient(rgba(239, 201, 103, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(239, 201, 103, 0.045) 1px, transparent 1px),
+        var(--asc-bg);
+      background-size: auto, 5rem 5rem, 5rem 5rem, auto;
+      color: var(--asc-ink);
+      isolation: isolate;
+    }
+
+    #astrolabe-scroll-concepts .asc-frame::before {
+      content: "";
+      position: absolute;
+      inset: 1rem;
+      border: 1px solid rgba(239, 201, 103, 0.14);
+      pointer-events: none;
+    }
+
+    #astrolabe-scroll-concepts .asc-nav {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.4rem 2rem;
+      border-bottom: 1px solid rgba(239, 201, 103, 0.12);
+      font: 400 0.68rem/1.2 ui-monospace, monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--asc-muted);
+    }
+
+    #astrolabe-scroll-concepts .asc-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: var(--asc-ink);
+      font: 400 1rem/1 Georgia, serif;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    #astrolabe-scroll-concepts .asc-brand i {
+      position: relative;
+      display: block;
+      width: 1.1rem;
+      aspect-ratio: 1;
+      border: 1px solid var(--asc-gold);
+      border-radius: 50%;
+    }
+
+    #astrolabe-scroll-concepts .asc-brand i::before,
+    #astrolabe-scroll-concepts .asc-brand i::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      background: var(--asc-gold);
+      transform: translate(-50%, -50%);
+    }
+
+    #astrolabe-scroll-concepts .asc-brand i::before { width: 1px; height: 1.55rem; }
+    #astrolabe-scroll-concepts .asc-brand i::after { width: 1.55rem; height: 1px; }
+
+    #astrolabe-scroll-concepts .asc-stage {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(16rem, 0.85fr) minmax(22rem, 1.15fr);
+      align-items: center;
+      min-height: 25rem;
+      padding: 2rem 4.5rem 3.5rem;
+    }
+
+    #astrolabe-scroll-concepts .asc-copy {
+      position: relative;
+      z-index: 8;
+      max-width: 24rem;
+    }
+
+    #astrolabe-scroll-concepts .asc-kicker {
+      margin: 0 0 1.2rem;
+      font: 400 0.68rem/1.5 ui-monospace, monospace;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      color: var(--asc-muted);
+    }
+
+    #astrolabe-scroll-concepts .asc-copy h3 {
+      margin: 0;
+      max-width: 22rem;
+      color: var(--asc-ink);
+      font: 400 clamp(2.1rem, 5vw, 4.1rem)/0.96 Georgia, serif;
+      letter-spacing: -0.035em;
+    }
+
+    #astrolabe-scroll-concepts .asc-copy h3 em {
+      color: var(--asc-gold);
+      font-weight: 400;
+    }
+
+    #astrolabe-scroll-concepts .asc-copy-body {
+      max-width: 21rem;
+      margin: 1.2rem 0 0;
+      color: var(--asc-muted);
+      font: 400 0.82rem/1.65 Arial, sans-serif;
+    }
+
+    #astrolabe-scroll-concepts .asc-visual {
+      position: relative;
+      z-index: 3;
+      justify-self: center;
+      width: min(26rem, 42vw);
+      aspect-ratio: 1;
+    }
+
+    #astrolabe-scroll-concepts .asc-portrait {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      z-index: 6;
+      width: 44%;
+      height: 69%;
+      transform: translate(-50%, -50%);
+      transform-origin: center;
+      transition: none;
+      filter: drop-shadow(0 1.2rem 1rem rgba(0, 0, 0, 0.38));
+    }
+
+    #astrolabe-scroll-concepts .asc-portrait-head {
+      position: absolute;
+      left: 50%;
+      top: 15%;
+      width: 42%;
+      aspect-ratio: 0.82;
+      border-radius: 48% 52% 44% 48%;
+      background: linear-gradient(125deg, #c48768 5%, #61382f 42%, #15101a 78%);
+      transform: translateX(-50%) rotate(5deg);
+      box-shadow: -0.5rem -0.7rem 0 #17101a;
+    }
+
+    #astrolabe-scroll-concepts .asc-portrait-head::before {
+      content: "";
+      position: absolute;
+      left: -15%;
+      top: -17%;
+      width: 113%;
+      height: 50%;
+      border-radius: 54% 58% 28% 35%;
+      background: #0a0710;
+      box-shadow: 0.55rem -0.22rem 0 #0a0710;
+    }
+
+    #astrolabe-scroll-concepts .asc-portrait-head::after {
+      content: "";
+      position: absolute;
+      left: -8%;
+      top: 37%;
+      width: 72%;
+      height: 23%;
+      border-top: 1px solid rgba(239, 201, 103, 0.72);
+      border-bottom: 1px solid rgba(239, 201, 103, 0.38);
+      border-radius: 50%;
+      transform: rotate(-7deg);
+    }
+
+    #astrolabe-scroll-concepts .asc-portrait-body {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 92%;
+      height: 62%;
+      border-radius: 48% 48% 8% 8% / 32% 32% 4% 4%;
+      background: linear-gradient(100deg, #100c16 12%, #281723 58%, #09070d 100%);
+      transform: translateX(-50%);
+    }
+
+    #astrolabe-scroll-concepts .asc-instrument {
+      position: absolute;
+      inset: 3%;
+      z-index: 5;
+      transform-origin: center;
+    }
+
+    #astrolabe-scroll-concepts .asc-ring,
+    #astrolabe-scroll-concepts .asc-fragment,
+    #astrolabe-scroll-concepts .asc-axis,
+    #astrolabe-scroll-concepts .asc-core,
+    #astrolabe-scroll-concepts .asc-label {
+      position: absolute;
+      transition: none;
+      will-change: transform, opacity;
+    }
+
+    #astrolabe-scroll-concepts .asc-ring {
+      border-radius: 50%;
+      transform-origin: center;
+    }
+
+    #astrolabe-scroll-concepts .asc-ring--outer {
+      inset: 2%;
+      border: 0.55rem solid rgba(182, 116, 72, 0.36);
+      box-shadow: inset 0 0 0 1px rgba(239, 201, 103, 0.48), 0 0 2rem rgba(182, 116, 72, 0.12);
+    }
+
+    #astrolabe-scroll-concepts .asc-ring--middle {
+      inset: 16%;
+      border: 1px dashed rgba(239, 201, 103, 0.66);
+      box-shadow: 0 0 0 0.25rem rgba(239, 201, 103, 0.06);
+    }
+
+    #astrolabe-scroll-concepts .asc-ring--inner {
+      inset: 30%;
+      border: 1px solid rgba(115, 170, 167, 0.54);
+      border-right-color: transparent;
+    }
+
+    #astrolabe-scroll-concepts .asc-axis {
+      left: 10%;
+      right: 10%;
+      top: 50%;
+      height: 1px;
+      background: rgba(239, 201, 103, 0.34);
+      transform-origin: center;
+    }
+
+    #astrolabe-scroll-concepts .asc-axis--b { transform: rotate(58deg); }
+
+    #astrolabe-scroll-concepts .asc-core {
+      left: 50%;
+      top: 50%;
+      width: 1rem;
+      aspect-ratio: 1;
+      border: 0.22rem solid rgba(239, 201, 103, 0.48);
+      border-radius: 50%;
+      background: var(--asc-copper);
+      transform: translate(-50%, -50%);
+    }
+
+    #astrolabe-scroll-concepts .asc-fragment {
+      left: 50%;
+      top: 50%;
+      width: 0.42rem;
+      height: 1.45rem;
+      margin: -42% 0 0 -0.21rem;
+      border-radius: 0.1rem;
+      background: linear-gradient(var(--asc-gold), rgba(182, 116, 72, 0.4));
+      transform-origin: 50% 820%;
+    }
+
+    #astrolabe-scroll-concepts .asc-layer-labels {
+      position: absolute;
+      inset: 0;
+      z-index: 9;
+      pointer-events: none;
+    }
+
+    #astrolabe-scroll-concepts .asc-label {
+      display: grid;
+      gap: 0.16rem;
+      min-width: 7.8rem;
+      padding-left: 0.65rem;
+      border-left: 1px solid var(--asc-gold);
+      opacity: 0;
+      font: 400 0.62rem/1.3 ui-monospace, monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--asc-ink);
+    }
+
+    #astrolabe-scroll-concepts .asc-label small {
+      color: var(--asc-muted);
+      font-size: 0.58rem;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    #astrolabe-scroll-concepts .asc-label--one { left: -2%; top: 14%; }
+    #astrolabe-scroll-concepts .asc-label--two { right: -9%; top: 42%; }
+    #astrolabe-scroll-concepts .asc-label--three { left: 5%; bottom: 8%; }
+
+    #astrolabe-scroll-concepts .asc-scan {
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      top: 50%;
+      z-index: 12;
+      height: 1px;
+      opacity: 0;
+      background: linear-gradient(90deg, transparent, var(--asc-gold), transparent);
+      box-shadow: 0 0 1.2rem var(--asc-gold);
+      pointer-events: none;
+    }
+
+    #astrolabe-scroll-concepts .asc-phase {
+      position: absolute;
+      left: 2rem;
+      right: 2rem;
+      bottom: 1.25rem;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 0.8rem;
+      color: var(--asc-muted);
+      font: 400 0.6rem/1.2 ui-monospace, monospace;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    #astrolabe-scroll-concepts .asc-phase-line {
+      height: 1px;
+      overflow: hidden;
+      background: rgba(239, 201, 103, 0.16);
+    }
+
+    #astrolabe-scroll-concepts .asc-phase-line i {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--asc-gold);
+    }
+
+    #astrolabe-scroll-concepts .asc-note {
+      min-height: 1.4rem;
+      margin: 0;
+    }
+
+    @media (max-width: 700px) {
+      #astrolabe-scroll-concepts .asc-controls { grid-template-columns: 1fr; }
+      #astrolabe-scroll-concepts .asc-frame { min-height: 43rem; }
+      #astrolabe-scroll-concepts .asc-nav { padding: 1.2rem 1.25rem; }
+      #astrolabe-scroll-concepts .asc-nav > span:last-child { display: none; }
+      #astrolabe-scroll-concepts .asc-stage {
+        grid-template-columns: 1fr;
+        align-content: start;
+        gap: 0.5rem;
+        min-height: 37rem;
+        padding: 2rem 1.25rem 4rem;
+      }
+      #astrolabe-scroll-concepts .asc-copy { max-width: 19rem; }
+      #astrolabe-scroll-concepts .asc-copy h3 { max-width: 18rem; }
+      #astrolabe-scroll-concepts .asc-copy-body { max-width: 19rem; }
+      #astrolabe-scroll-concepts .asc-visual {
+        justify-self: end;
+        width: min(21rem, 92vw);
+        margin: -1rem -4.5rem 0 0;
+      }
+      #astrolabe-scroll-concepts .asc-label--two { right: 2%; }
+      #astrolabe-scroll-concepts .asc-phase { left: 1.25rem; right: 1.25rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #astrolabe-scroll-concepts .asc-ring,
+      #astrolabe-scroll-concepts .asc-fragment,
+      #astrolabe-scroll-concepts .asc-portrait,
+      #astrolabe-scroll-concepts .asc-instrument { will-change: auto; }
+    }
+  </style>
+
+  <div class="asc-heading">
+    <div>
+      <h2 id="asc-title">Three scroll concepts</h2>
+      <p class="text-muted">Scrub the transition, then compare how the portrait and instrument change roles.</p>
+    </div>
+    <span class="viz-badge">Concept study</span>
+  </div>
+
+  <div class="asc-controls">
+    <div class="nav nav-pills" role="tablist" aria-label="Motion concept">
+      <button class="nav-link active" id="asc-system-tab" type="button" role="tab" aria-controls="asc-concept" aria-selected="true" data-concept="system">System anatomy</button>
+      <button class="nav-link" id="asc-orbit-tab" type="button" role="tab" aria-controls="asc-concept" aria-selected="false" data-concept="orbit">Orbital transfer</button>
+      <button class="nav-link" id="asc-signal-tab" type="button" role="tab" aria-controls="asc-concept" aria-selected="false" data-concept="signal">Signal assembly</button>
+    </div>
+    <label class="form-label" for="asc-progress">
+      <span class="asc-scrub-label"><span>Scroll progress</span><output id="asc-progress-value">0%</output></span>
+      <input class="form-range" id="asc-progress" type="range" min="0" max="100" step="1" value="0">
+    </label>
+  </div>
+
+  <div id="asc-concept" role="tabpanel" aria-labelledby="asc-system-tab">
+    <div class="asc-frame" aria-label="Animated portfolio hero concept">
+      <div class="asc-nav">
+        <span class="asc-brand"><i aria-hidden="true"></i>Dzaki Yaumal</span>
+        <span>Portfolio / Systems / Network</span>
+      </div>
+
+      <div class="asc-stage">
+        <div class="asc-copy">
+          <p class="asc-kicker" id="asc-kicker">Hero / assembled</p>
+          <h3 id="asc-copy-title">I build the interface. <em>I run what supports it.</em></h3>
+          <p class="asc-copy-body" id="asc-copy-body">The portrait is the subject. The astrolabe frames the scope of the work without becoming a second subject.</p>
+        </div>
+
+        <div class="asc-visual" aria-hidden="true">
+          <div class="asc-portrait">
+            <span class="asc-portrait-body"></span>
+            <span class="asc-portrait-head"></span>
+          </div>
+
+          <div class="asc-instrument">
+            <span class="asc-ring asc-ring--outer"></span>
+            <span class="asc-ring asc-ring--middle"></span>
+            <span class="asc-ring asc-ring--inner"></span>
+            <span class="asc-axis asc-axis--a"></span>
+            <span class="asc-axis asc-axis--b"></span>
+            <span class="asc-core"></span>
+            <span class="asc-fragment" style="--i:0"></span>
+            <span class="asc-fragment" style="--i:1"></span>
+            <span class="asc-fragment" style="--i:2"></span>
+            <span class="asc-fragment" style="--i:3"></span>
+            <span class="asc-fragment" style="--i:4"></span>
+            <span class="asc-fragment" style="--i:5"></span>
+            <span class="asc-fragment" style="--i:6"></span>
+            <span class="asc-fragment" style="--i:7"></span>
+            <span class="asc-fragment" style="--i:8"></span>
+            <span class="asc-fragment" style="--i:9"></span>
+            <span class="asc-fragment" style="--i:10"></span>
+            <span class="asc-fragment" style="--i:11"></span>
+          </div>
+
+          <div class="asc-layer-labels">
+            <span class="asc-label asc-label--one">Experience<small>The visible layer</small></span>
+            <span class="asc-label asc-label--two">Software<small>The working layer</small></span>
+            <span class="asc-label asc-label--three">Infrastructure<small>The resilient layer</small></span>
+          </div>
+          <span class="asc-scan"></span>
+        </div>
+      </div>
+
+      <div class="asc-phase" aria-live="polite">
+        <span id="asc-phase-name">01 / Identity</span>
+        <span class="asc-phase-line"><i></i></span>
+        <span id="asc-phase-section">Hero</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="asc-note text-small text-muted" id="asc-note" aria-live="polite">Recommended: the instrument breaks into three meaningful system layers, then rebuilds as the About atlas.</p>
+
+  <script>
+    (() => {
+      const root = document.getElementById("astrolabe-scroll-concepts");
+      if (!root) return;
+
+      const stored = window.openai?.widgetState?.modelContent || {};
+      const state = {
+        concept: ["system", "orbit", "signal"].includes(stored.concept) ? stored.concept : "system",
+        progress: Number.isFinite(stored.progress) ? Math.max(0, Math.min(100, stored.progress)) : 0,
+      };
+
+      const range = root.querySelector("#asc-progress");
+      const output = root.querySelector("#asc-progress-value");
+      const tabs = [...root.querySelectorAll("[data-concept]")];
+      const portrait = root.querySelector(".asc-portrait");
+      const instrument = root.querySelector(".asc-instrument");
+      const outer = root.querySelector(".asc-ring--outer");
+      const middle = root.querySelector(".asc-ring--middle");
+      const inner = root.querySelector(".asc-ring--inner");
+      const axes = [...root.querySelectorAll(".asc-axis")];
+      const fragments = [...root.querySelectorAll(".asc-fragment")];
+      const labels = [...root.querySelectorAll(".asc-label")];
+      const scan = root.querySelector(".asc-scan");
+      const kicker = root.querySelector("#asc-kicker");
+      const title = root.querySelector("#asc-copy-title");
+      const body = root.querySelector("#asc-copy-body");
+      const phaseName = root.querySelector("#asc-phase-name");
+      const phaseSection = root.querySelector("#asc-phase-section");
+      const phaseLine = root.querySelector(".asc-phase-line i");
+      const note = root.querySelector("#asc-note");
+
+      const clamp = (value, min = 0, max = 1) => Math.max(min, Math.min(max, value));
+      const smooth = (a, b, value) => {
+        const x = clamp((value - a) / (b - a));
+        return x * x * (3 - 2 * x);
+      };
+      const mix = (a, b, value) => a + (b - a) * value;
+
+      const copy = {
+        system: {
+          note: "Recommended: the instrument breaks into three meaningful system layers, then rebuilds as the About atlas.",
+          start: ["Hero / assembled", "I build the interface. <em>I run what supports it.</em>", "The portrait is the subject. The astrolabe frames the scope of the work without becoming a second subject."],
+          middle: ["Transition / exposed", "One person. <em>Three operating layers.</em>", "The instrument separates into experience, software, and infrastructure. The motion explains the practice."],
+          end: ["About / reconstructed", "The interface is visible. <em>The system below it is not.</em>", "The same pieces rebuild as the About atlas, so the visual transition carries meaning into the next section."],
+        },
+        orbit: {
+          note: "The quietest option: the portrait stays human while the instrument migrates and becomes the next section's object.",
+          start: ["Hero / paired", "The person and the system <em>share one orbit.</em>", "The portrait and astrolabe begin as one lockup, with the instrument held behind the head."],
+          middle: ["Transition / hand-off", "The portrait stays. <em>The instrument travels.</em>", "On scroll, the portrait recedes while the astrolabe moves toward the next section instead of breaking apart."],
+          end: ["About / arrived", "One instrument. <em>A new job.</em>", "The astrolabe arrives intact and becomes the interactive About dial. This is calmer and easier to maintain."],
+        },
+        signal: {
+          note: "The most cinematic option: a scan assembles the portrait, then resolves it into system coordinates. Use sparingly.",
+          start: ["Hero / acquiring", "A signal becomes <em>a person.</em>", "The astrolabe behaves like a scanner. A bright sweep resolves the portrait from darkness."],
+          middle: ["Transition / sampled", "Identity becomes <em>system data.</em>", "The scan passes through the portrait and sends small markers outward into the instrument."],
+          end: ["About / mapped", "The signal resolves into <em>three coordinates.</em>", "The portrait fades and the sampled markers settle on the three layers of the practice."],
+        },
+      };
+
+      function setCopy(t) {
+        const set = copy[state.concept];
+        const selected = t < 0.34 ? set.start : t < 0.7 ? set.middle : set.end;
+        kicker.textContent = selected[0];
+        title.innerHTML = selected[1];
+        body.textContent = selected[2];
+        note.textContent = set.note;
+      }
+
+      function renderSystem(t) {
+        const explode = smooth(0.16, 0.55, t);
+        const rebuild = smooth(0.62, 0.94, t);
+        const open = explode * (1 - rebuild);
+        const reveal = smooth(0.38, 0.7, t);
+        const portraitFade = smooth(0.5, 0.82, t);
+
+        portrait.style.opacity = String(mix(1, 0.18, portraitFade));
+        portrait.style.transform = `translate(-50%, -50%) translateX(${mix(0, -34, portraitFade)}px) scale(${mix(1, 0.9, portraitFade)})`;
+        instrument.style.transform = `translateX(${mix(0, 18, rebuild)}px) scale(${mix(1, 0.88, open)}) rotate(${mix(0, 9, rebuild)}deg)`;
+        outer.style.transform = `translate(${mix(0, 54, open)}px, ${mix(0, -34, open)}px) rotate(${mix(0, 78, explode)}deg)`;
+        middle.style.transform = `translate(${mix(0, -50, open)}px, ${mix(0, 8, open)}px) rotate(${mix(0, -122, explode)}deg)`;
+        inner.style.transform = `translate(${mix(0, 28, open)}px, ${mix(0, 50, open)}px) rotate(${mix(0, 164, explode)}deg)`;
+        axes.forEach((axis, index) => {
+          const base = index ? 58 : 0;
+          axis.style.transform = `translateY(${mix(0, index ? 42 : -42, open)}px) rotate(${base + mix(0, index ? -24 : 31, open)}deg)`;
+          axis.style.opacity = String(mix(1, 0.25, open));
+        });
+        fragments.forEach((fragment, index) => {
+          const angle = index * 30;
+          const offset = open * (20 + (index % 4) * 8);
+          fragment.style.transform = `rotate(${angle + open * (index % 2 ? 14 : -11)}deg) translateY(${-offset}px)`;
+          fragment.style.opacity = String(mix(0.78, 0.3, open));
+        });
+        labels.forEach((label, index) => {
+          label.style.opacity = String(reveal);
+          label.style.transform = `translateY(${mix(index % 2 ? -8 : 8, 0, reveal)}px)`;
+        });
+        scan.style.opacity = "0";
+      }
+
+      function renderOrbit(t) {
+        const travel = smooth(0.18, 0.84, t);
+        const settle = smooth(0.76, 1, t);
+        portrait.style.opacity = String(mix(1, 0.28, travel));
+        portrait.style.transform = `translate(-50%, -50%) translateX(${mix(0, -72, travel)}px) scale(${mix(1, 0.82, travel)})`;
+        instrument.style.transform = `translate(${mix(0, 58, travel)}px, ${mix(0, 34, travel)}px) scale(${mix(1, 0.78, travel)}) rotate(${mix(0, 115, travel) - settle * 96}deg)`;
+        outer.style.transform = `rotate(${t * 92}deg)`;
+        middle.style.transform = `rotate(${-t * 130}deg)`;
+        inner.style.transform = `rotate(${t * 180}deg)`;
+        axes[0].style.transform = `rotate(${t * 75}deg)`;
+        axes[1].style.transform = `rotate(${58 - t * 52}deg)`;
+        axes.forEach((axis) => { axis.style.opacity = "1"; });
+        fragments.forEach((fragment, index) => {
+          fragment.style.transform = `rotate(${index * 30 + t * 42}deg)`;
+          fragment.style.opacity = "0.65";
+        });
+        labels.forEach((label) => {
+          label.style.opacity = String(settle);
+          label.style.transform = `translateY(${mix(8, 0, settle)}px)`;
+        });
+        scan.style.opacity = "0";
+      }
+
+      function renderSignal(t) {
+        const acquire = smooth(0, 0.34, t);
+        const sample = smooth(0.34, 0.72, t);
+        const mapped = smooth(0.68, 1, t);
+        portrait.style.opacity = String(acquire * (1 - mapped * 0.78));
+        portrait.style.transform = `translate(-50%, -50%) scale(${mix(0.92, 1, acquire)})`;
+        instrument.style.transform = `scale(${mix(0.95, 1.02, sample)}) rotate(${t * 22}deg)`;
+        outer.style.transform = `rotate(${t * 70}deg)`;
+        middle.style.transform = `rotate(${-t * 120}deg)`;
+        inner.style.transform = `rotate(${t * 190}deg)`;
+        axes[0].style.transform = `rotate(${t * 46}deg)`;
+        axes[1].style.transform = `rotate(${58 - t * 74}deg)`;
+        axes.forEach((axis) => { axis.style.opacity = "1"; });
+        fragments.forEach((fragment, index) => {
+          const scatter = sample * (1 - mapped * 0.65);
+          fragment.style.transform = `rotate(${index * 30}deg) translateY(${-scatter * (25 + (index % 3) * 12)}px)`;
+          fragment.style.opacity = String(mix(0.25, 0.9, sample));
+        });
+        labels.forEach((label, index) => {
+          label.style.opacity = String(mapped);
+          label.style.transform = `translateY(${mix(index % 2 ? -10 : 10, 0, mapped)}px)`;
+        });
+        scan.style.opacity = String(t < 0.92 ? 0.9 : 0);
+        scan.style.transform = `translateY(${mix(-150, 150, t)}px)`;
+      }
+
+      function render() {
+        const t = state.progress / 100;
+        range.value = String(state.progress);
+        output.value = `${Math.round(state.progress)}%`;
+        output.textContent = `${Math.round(state.progress)}%`;
+        phaseLine.style.width = `${state.progress}%`;
+
+        tabs.forEach((tab) => {
+          const selected = tab.dataset.concept === state.concept;
+          tab.classList.toggle("active", selected);
+          tab.setAttribute("aria-selected", String(selected));
+        });
+
+        setCopy(t);
+        if (state.concept === "system") renderSystem(t);
+        if (state.concept === "orbit") renderOrbit(t);
+        if (state.concept === "signal") renderSignal(t);
+
+        if (t < 0.34) {
+          phaseName.textContent = "01 / Identity";
+          phaseSection.textContent = "Hero";
+        } else if (t < 0.7) {
+          phaseName.textContent = "02 / Transition";
+          phaseSection.textContent = "Between sections";
+        } else {
+          phaseName.textContent = "03 / Practice";
+          phaseSection.textContent = "About";
+        }
+      }
+
+      function save() {
+        window.openai?.setWidgetState?.({
+          modelContent: { concept: state.concept, progress: state.progress },
+          privateContent: null,
+        }).catch(() => {});
+      }
+
+      range.addEventListener("input", () => {
+        state.progress = Number(range.value);
+        render();
+      });
+      range.addEventListener("change", save);
+
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          state.concept = tab.dataset.concept;
+          render();
+          save();
+        });
+      });
+
+      render();
+
+      if (globalThis.Tweak) {
+        const tweak = new Tweak({ container: root.querySelector(".asc-frame"), onChange: render });
+        tweak.addSelect(state, "concept", {
+          label: "Motion concept",
+          options: [
+            { label: "System anatomy", value: "system" },
+            { label: "Orbital transfer", value: "orbit" },
+            { label: "Signal assembly", value: "signal" },
+          ],
+          reference: "motion.concept",
+        });
+        tweak.addSlider(state, "progress", { label: "Scroll progress", min: 0, max: 100, step: 1, unit: "%", reference: "scroll.progress" });
+      }
+    })();
+  </script>
+</section>
