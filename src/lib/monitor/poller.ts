@@ -11,8 +11,10 @@
  * would bias both.
  */
 
+import { startAccessLog, stopAccessLog } from "./access-log";
 import { getAdapter } from "./adapters";
 import { loadConfig } from "./config";
+import { sample as sampleHost } from "./host";
 import { runProbe } from "./probe";
 import {
   recordSample,
@@ -20,12 +22,19 @@ import {
   prune,
   readSnapshot,
   recordEvent,
+  recordHostSample,
   recordMetrics,
   recordTlsCheck,
   tlsStatus,
 } from "./store";
 import { checkCertificate } from "./tls";
 import type { Health, ProbeResult, SiteConfig, SiteSnapshot } from "./types";
+
+/**
+ * Host sampling cadence. Fast enough that a CPU spike lasting under a minute
+ * still shows up, slow enough that a fortnight of rows stays small.
+ */
+const HOST_SAMPLE_MS = 10_000;
 
 const DEFAULT_INTERVALS: Record<string, number> = {
   health: 30,
@@ -382,6 +391,40 @@ export function startPolling(): void {
     console.error("[monitor] prune failed:", error);
   }
 
+  // Host metrics. CPU and network are counter deltas, so the cadence has to be
+  // fixed — the first sample after a start has no predecessor and reports null
+  // for both, which is why this runs on its own timer rather than per-site.
+  const hostTimer = setInterval(() => {
+    try {
+      const snapshot = sampleHost();
+      if (snapshot.unavailable) return;
+
+      recordHostSample({
+        ts: snapshot.ts,
+        cpuPercent: snapshot.cpu.percent,
+        memoryPercent: snapshot.memory?.percent ?? null,
+        memoryUsed: snapshot.memory?.used ?? null,
+        memoryTotal: snapshot.memory?.total ?? null,
+        swapPercent: snapshot.memory?.swapPercent ?? null,
+        diskPercent: snapshot.disk?.percent ?? null,
+        diskUsed: snapshot.disk?.used ?? null,
+        diskTotal: snapshot.disk?.total ?? null,
+        load1: snapshot.load?.one ?? null,
+        load5: snapshot.load?.five ?? null,
+        load15: snapshot.load?.fifteen ?? null,
+        rxPerSec: snapshot.network?.rxPerSec ?? null,
+        txPerSec: snapshot.network?.txPerSec ?? null,
+        uptimeSeconds: snapshot.uptimeSeconds,
+      });
+    } catch (error) {
+      console.error("[monitor] host sample failed:", error);
+    }
+  }, HOST_SAMPLE_MS);
+  hostTimer.unref?.();
+  globalTimers.add(hostTimer);
+
+  startAccessLog();
+
   void checkCertificates();
   const certificates = setInterval(() => void checkCertificates(), 86_400_000);
   certificates.unref?.();
@@ -406,6 +449,7 @@ export function startPolling(): void {
 }
 
 export function stopPolling(): void {
+  stopAccessLog();
   for (const siteId of [...siteTimers.keys()]) unschedule(siteId);
   for (const timer of globalTimers) clearInterval(timer);
   globalTimers.clear();

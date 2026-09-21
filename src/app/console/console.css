@@ -2052,3 +2052,73 @@
   font: inherit;
   color: inherit;
 }
+
+/* ---------------------------------------------------------------- server */
+/* The machine board: /console/vps. Everything else on that page reuses the
+   tile, panel, kpi and breakdown vocabulary already defined above. */
+
+/* A second title inside one board, introducing the requests half. */
+.board-head--sub {
+  margin-top: var(--s-3);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--c-rule-soft);
+}
+.board-head--sub h2 {
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin: 0;
+}
+
+/* Current capacity, read as label/value pairs rather than as a table: there
+   is one row of each and nothing to align vertically. */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--s-2) var(--s-3);
+  margin: 0;
+}
+.detail-grid dt {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  margin-bottom: 0.3rem;
+}
+.detail-grid dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ink);
+}
+
+/* Saturation, coloured only past the point where it is worth noticing. A
+   healthy figure stays in the default ink: green on everything normal trains
+   the eye to ignore the colour entirely. */
+.detail--good { color: var(--c-ink); }
+.detail--warn { color: var(--s-warning); }
+.detail--bad { color: var(--s-critical); }
+.detail--flat { color: var(--c-muted); }
+
+.cell--bad { color: var(--s-critical); }
+
+/* An empty state that reports a fault rather than absence — an unreadable log
+   is a problem to fix, not a blank slate to fill. */
+.console__empty--warn {
+  border-style: solid;
+  border-color: var(--s-warning);
+  text-align: left;
+  padding: 1.5rem 1.75rem;
+}
+.console__empty--warn h2 { margin-bottom: 0.75rem; }
+.console__empty--warn p { margin-left: 0; max-width: 64ch; }
+.console__empty--warn ul {
+  margin: 0 0 1rem;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  color: var(--c-ink-2);
+}
+
+@media (max-width: 900px) {
+  .detail-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+}

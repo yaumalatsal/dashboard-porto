@@ -69,14 +69,17 @@ src/
       page.tsx  work/  orrery-lab/
     console/             lean: no WebGL, no animation stack
       page.tsx           status wall
+      vps/               the machine: procfs vitals + nginx request traffic
       analytics/  incidents/  [site]/
       console.css        scoped styles
-    api/monitor/         status · series · incidents · sites
+    api/monitor/         status · series · incidents · sites · host · access
   lib/monitor/
     types.ts             the vocabulary every app is normalized into
     adapters.ts          per-app normalizers (add an app without code)
     poller.ts            the polling loop
     store.ts             SQLite: samples, incidents, rollups
+    host.ts              VPS vitals, read from procfs
+    access-log.ts        nginx access logs, tailed and aggregated per minute
     probe.ts  config.ts  guard.ts  format.ts
   instrumentation.ts     boots the poller once per server instance
 ```
@@ -95,6 +98,20 @@ The `generic` adapter infers health, services and metrics from whatever JSON the
 app returns, so a new service is useful immediately. Full reference, including
 custom adapters, auth headers and non-standard probes:
 **[docs/console.md](docs/console.md)**.
+
+## Watching the server
+
+`/console/vps` reports the machine the console runs on, and what reaches it.
+No agent, no exporter: the console is already on the box, so it reads the
+host's procfs for CPU, memory, disk, load and network, and tails nginx's access
+logs for per-site request rates, error rates and latency percentiles.
+
+Both need the mounts already present in `docker-compose.yml` — the container's
+own `/proc` describes the container, not the host — and the `json_analytics`
+log format from `docker/nginx.conf`. Unlike the page beacon, the log reader
+covers every site nginx serves without touching their code, and sees API calls,
+bots and 5xx responses too. Setup, permissions and the honest limits:
+**[docs/console.md](docs/console.md#the-machine-itself)**.
 
 ## Security note
 

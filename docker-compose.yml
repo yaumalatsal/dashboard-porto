@@ -32,12 +32,32 @@ services:
       # require X-Console-Token on POST /api/monitor/sites and DELETE.
       - CONSOLE_ADMIN_TOKEN=${CONSOLE_ADMIN_TOKEN:-}
       - CONSOLE_RETENTION_DAYS=${CONSOLE_RETENTION_DAYS:-90}
+      # Host samples land every 10s rather than every 30-300s, so they keep a
+      # shorter history than the health series.
+      - CONSOLE_HOST_RETENTION_DAYS=${CONSOLE_HOST_RETENTION_DAYS:-14}
+      # Where the host's procfs and root filesystem appear inside the container
+      # (see the volumes below). Without these the console reports on itself.
+      - HOST_PROC=/host/proc
+      - HOST_ROOTFS=/host/rootfs
+      # Directories scanned for nginx access logs, comma-separated. Only files
+      # matching NGINX_LOG_PATTERN are tailed, and they must use the
+      # json_analytics format from docker/nginx.conf.
+      - NGINX_LOG_DIR=${NGINX_LOG_DIR:-/host/var/log/nginx}
+      - NGINX_LOG_PATTERN=${NGINX_LOG_PATTERN:-^access.*\.log$$}
     volumes:
       # Time-series history AND the live site registry. Without this, every
       # redeploy resets uptime to zero and forgets apps added via the console.
       # Deliberately not a bind-mount of ./sites.json: Docker silently creates a
       # directory where the file should be when the host path does not exist.
       - console-data:/app/data
+      # The container's own /proc describes the container. Reporting on the
+      # machine means reading the host's, mounted read-only.
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      # Disk usage of the VPS root filesystem, not the container's layer.
+      - /:/host/rootfs:ro
+      # nginx access logs. Remove this if nginx does not run on the host.
+      - /var/log/nginx:/host/var/log/nginx:ro
     healthcheck:
       test:
         ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/monitor/status || exit 1"]

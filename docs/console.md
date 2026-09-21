@@ -245,6 +245,129 @@ people rather than crawlers.
 
 ---
 
+## The machine itself
+
+`/console/vps` reports the VPS the console runs on: CPU, memory, swap, disk,
+load, uptime and network throughput. There is no agent and no exporter — the
+console is already on the machine, so it reads procfs directly.
+
+In Docker the container's own `/proc` describes the container, not the host, so
+the host's procfs has to be mounted:
+
+```yaml
+volumes:
+  - /proc:/host/proc:ro
+  - /sys:/host/sys:ro
+  - /:/host/rootfs:ro
+environment:
+  - HOST_PROC=/host/proc
+  - HOST_ROOTFS=/host/rootfs
+```
+
+`docker-compose.yml` already does this. Without it the page says so rather than
+reporting the container's own figures as if they were the machine's.
+
+| Metric | Source |
+|---|---|
+| CPU | `/proc/stat`, as a delta between samples, with `iowait` folded into idle |
+| Memory, swap | `/proc/meminfo`, using the kernel's `MemAvailable` |
+| Disk | `statfs` on the mounted root, counting `bavail` rather than `bfree` |
+| Load, uptime | `/proc/loadavg`, `/proc/uptime` |
+| Network | `/proc/net/dev`, summed over physical interfaces only |
+
+Virtual interfaces (`lo`, `docker*`, `br-*`, `veth*`, `tun*`) are skipped:
+traffic to a container crosses both the physical NIC and the bridge carrying it
+onward, and counting both would double every byte.
+
+CPU and network are cumulative counters, so a single reading means nothing —
+the poller samples on a fixed 10-second cadence and both are reported as the
+delta since the previous sample. The first sample after a restart therefore has
+no predecessor and reports neither.
+
+Samples are kept for 14 days (`CONSOLE_HOST_RETENTION_DAYS`), shorter than the
+90 days of health samples because they arrive two orders of magnitude more
+often.
+
+---
+
+## Requests reaching the machine
+
+The beacon above answers *how many people read a page*. This answers a
+different question: *what is actually hitting this server*. It covers every
+site nginx serves, without touching their code, and it sees what a page beacon
+structurally cannot — API calls, bots, redirects, and the 5xx responses of a
+page that never got far enough to run a script.
+
+The lower half of `/console/vps` reports, per virtual host: request count and
+rate, status-code breakdown, error rate, latency p50/p95/p99, bytes
+transferred, top paths and top referrers.
+
+### Setting it up
+
+nginx must write the `json_analytics` format defined in `docker/nginx.conf` —
+one JSON object per request. For any other nginx on the machine, add that
+`log_format` block to the `http {}` section of `/etc/nginx/nginx.conf`, then
+point each `server {}` at it:
+
+```nginx
+access_log /var/log/nginx/access.json.log json_analytics;
+```
+
+```bash
+sudo nginx -t && sudo nginx -s reload
+```
+
+`NGINX_LOG_DIR` takes a comma-separated list of directories, so the console can
+read both its own nginx and the host's. Only files matching
+`NGINX_LOG_PATTERN` are tailed.
+
+Tailing starts at the **end** of each file: a log can hold weeks of history and
+replaying it on boot would invent a traffic spike that never happened. Rotation
+is handled both ways — renamed, and truncated in place.
+
+### Permissions
+
+nginx logs are commonly `root:adm 0640` while the console runs unprivileged. An
+unreadable log looks exactly like a site nobody visited, so the reason is
+reported on the page and in `collector.unreadable` of `/api/monitor/access`
+instead of being shown as zero traffic.
+
+```bash
+sudo chmod 0644 /var/log/nginx/access.json.log
+```
+
+Add `create 0644 root adm` to `/etc/logrotate.d/nginx` so the next rotation
+does not undo it.
+
+### What is stored, and what is not
+
+Addresses go through the same rotating-salt hash as the beacon and are never
+written down. Query strings are stripped from paths before storage —
+`/search?q=` is where the sensitive part of a URL usually lives — and referrers
+are reduced to a hostname.
+
+Raw requests are not kept at all. Each minute is aggregated in memory, then
+written to `access_minutes` (the rollup) and `access_labels` (the path,
+referrer and method breakdowns) once the minute closes. A minute is written
+about a minute after the requests in it, which is why the first figures appear
+shortly after the first request rather than instantly.
+
+### Limitations
+
+- **Visitors are counted per minute and summed.** One person browsing for ten
+  minutes counts ten times. Exact de-duplication would mean storing every
+  hash — the durable identifier the hashing exists to avoid. Read the figure
+  as a floor on activity, not a headcount.
+- **Percentiles over a window are approximations.** Each minute stores its own
+  p50/p95/p99; a longer window averages them weighted by request count. A true
+  percentile needs the original observations, which are deliberately not kept.
+- **Only the last 300 distinct paths per minute are tracked**, and the top
+  2,000 latencies. A pathological URL space degrades gracefully rather than
+  growing without bound.
+- A site missing from the figures is usually a log that is not in the
+  `json_analytics` format, or one the console cannot read.
+---
+
 ## Storage
 
 Time-series data lives in SQLite via Node's built-in `node:sqlite`, so the
@@ -255,6 +378,9 @@ console adds **zero runtime npm dependencies**.
 | `samples` | one row per health poll: site, timestamp, health, latency |
 | `incidents` | contiguous runs of degraded/down, opened and closed as samples arrive |
 | `snapshots` | latest normalized state per app, so a restarted process renders real data before its first poll |
+| `host_samples` | one row per 10s: the machine's CPU, memory, disk, load and network |
+| `access_minutes` | one row per minute per virtual host: the nginx request rollup |
+| `access_labels` | the path, referrer and method breakdowns for those minutes |
 
 Only the **health** probe writes a sample — uptime and latency series must be
 evenly spaced, and mixing in the 5-minute metrics probe would bias both.
@@ -280,6 +406,11 @@ daily thereafter.
 | `CONSOLE_DB_PATH` | `<data>/console.db` | Override the database path directly. |
 | `CONSOLE_SITES_PATH` | `./sites.json` | Registry location. Docker points this at the volume. |
 | `CONSOLE_RETENTION_DAYS` | `90` | How long samples are kept. |
+| `CONSOLE_HOST_RETENTION_DAYS` | `14` | How long host samples are kept — they arrive every 10s. |
+| `HOST_PROC` | `/proc` | Where the host's procfs is mounted. |
+| `HOST_ROOTFS` | `/` | Where the host's root filesystem is mounted, for disk usage. |
+| `NGINX_LOG_DIR` | `/var/log/nginx` | Comma-separated directories scanned for access logs. |
+| `NGINX_LOG_PATTERN` | `^access.*\.log$` | Which files in them to tail. |
 | `CONSOLE_ADMIN_TOKEN` | *(unset)* | See [Access](#access). |
 | `CONSOLE_DISABLE_POLLER` | *(unset)* | Set to `1` to skip polling. **Required during builds.** |
 | `MONITOR_API_TOKEN` | *(unset)* | Referenced by name from a site's `auth.env`. |

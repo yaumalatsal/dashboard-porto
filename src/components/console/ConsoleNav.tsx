@@ -7,6 +7,7 @@ const links = [
   { href: "/console", label: "Overview" },
   { href: "/console/projects", label: "Projects" },
   { href: "/console/reliability", label: "Reliability" },
+  { href: "/console/vps", label: "Server" },
   { href: "/console/analytics", label: "Analytics" },
   { href: "/console/traffic", label: "Traffic" },
   { href: "/console/logs", label: "Log" },

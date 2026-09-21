@@ -31,6 +31,13 @@ const DB_PATH = process.env.CONSOLE_DB_PATH ?? path.join(DATA_DIR, "console.db")
 /** Samples older than this are pruned on boot and daily thereafter. */
 const RETENTION_DAYS = Number(process.env.CONSOLE_RETENTION_DAYS ?? 90);
 
+/**
+ * Host samples are written every 10s rather than every 30-300s, so 90 days of
+ * them would dwarf everything else in the file for data nobody reads at that
+ * age. A fortnight covers "what happened last week".
+ */
+const HOST_RETENTION_DAYS = Number(process.env.CONSOLE_HOST_RETENTION_DAYS ?? 14);
+
 let db: DatabaseSync | null = null;
 
 /**
@@ -213,6 +220,83 @@ function connect(): DatabaseSync {
       error      TEXT
     );
   `);
+
+  /**
+   * VPS metrics, one row per sample.
+   *
+   * Fixed columns rather than a key/value table like `metric_samples`: the set
+   * of things a machine reports is known and small, and the console reads
+   * several of them together on every render.
+   */
+  handle.exec(`
+    CREATE TABLE IF NOT EXISTS host_samples (
+      ts             INTEGER PRIMARY KEY,
+      cpu_percent    REAL,
+      memory_percent REAL,
+      memory_used    INTEGER,
+      memory_total   INTEGER,
+      swap_percent   REAL,
+      disk_percent   REAL,
+      disk_used      INTEGER,
+      disk_total     INTEGER,
+      load1          REAL,
+      load5          REAL,
+      load15         REAL,
+      rx_per_sec     INTEGER,
+      tx_per_sec     INTEGER,
+      uptime_seconds INTEGER
+    );
+  `);
+  handle.exec("CREATE INDEX IF NOT EXISTS idx_host_ts ON host_samples (ts DESC)");
+
+  /**
+   * Traffic from nginx's access logs, pre-aggregated to one row per minute per
+   * virtual host.
+   *
+   * Raw rows are not kept. A busy site is thousands of requests a minute, and
+   * every question the console asks — rate, error share, percentiles, bytes —
+   * is answerable from the rollup. Percentiles are stored rather than derived
+   * because they cannot be recomputed from an aggregate after the fact.
+   */
+  handle.exec(`
+    CREATE TABLE IF NOT EXISTS access_minutes (
+      host            TEXT    NOT NULL,
+      ts              INTEGER NOT NULL,
+      requests        INTEGER NOT NULL,
+      bytes           INTEGER NOT NULL,
+      visitors        INTEGER NOT NULL,
+      s2xx            INTEGER NOT NULL DEFAULT 0,
+      s3xx            INTEGER NOT NULL DEFAULT 0,
+      s4xx            INTEGER NOT NULL DEFAULT 0,
+      s5xx            INTEGER NOT NULL DEFAULT 0,
+      other           INTEGER NOT NULL DEFAULT 0,
+      latency_avg_ms  INTEGER,
+      latency_p50_ms  INTEGER,
+      latency_p95_ms  INTEGER,
+      latency_p99_ms  INTEGER,
+      PRIMARY KEY (host, ts)
+    );
+  `);
+  handle.exec("CREATE INDEX IF NOT EXISTS idx_access_ts ON access_minutes (ts DESC)");
+
+  /**
+   * The path, referrer and method breakdowns for those same minutes, one row
+   * per distinct label. Separate from the rollup because the cardinality is
+   * unbounded and only the top few are ever read.
+   */
+  handle.exec(`
+    CREATE TABLE IF NOT EXISTS access_labels (
+      host  TEXT    NOT NULL,
+      ts    INTEGER NOT NULL,
+      kind  TEXT    NOT NULL,
+      label TEXT    NOT NULL,
+      count INTEGER NOT NULL,
+      PRIMARY KEY (host, ts, kind, label)
+    );
+  `);
+  handle.exec(
+    "CREATE INDEX IF NOT EXISTS idx_access_labels ON access_labels (kind, ts DESC)",
+  );
 
   db = handle;
   return handle;
@@ -675,6 +759,13 @@ export function prune(): number {
   sql("DELETE FROM events WHERE ts < ?").run(cutoff);
   sql("DELETE FROM metric_samples WHERE ts < ?").run(cutoff);
   sql("DELETE FROM page_views WHERE ts < ?").run(cutoff);
+  sql("DELETE FROM access_minutes WHERE ts < ?").run(cutoff);
+  sql("DELETE FROM access_labels WHERE ts < ?").run(cutoff);
+  // Host samples arrive every 10s — two orders of magnitude denser than a
+  // health poll — so they get their own, shorter retention.
+  sql("DELETE FROM host_samples WHERE ts < ?").run(
+    Date.now() - HOST_RETENTION_DAYS * 86400_000,
+  );
   return Number(result.changes ?? 0);
 }
 
@@ -1327,4 +1418,381 @@ export function tlsStatuses(): TlsStatus[] {
 
 export function tlsStatus(siteId: string): TlsStatus | null {
   return tlsStatuses().find((t) => t.siteId === siteId) ?? null;
+}
+
+/* ------------------------------------------------------------ host metrics */
+
+export type HostRow = {
+  ts: number;
+  cpuPercent: number | null;
+  memoryPercent: number | null;
+  memoryUsed: number | null;
+  memoryTotal: number | null;
+  swapPercent: number | null;
+  diskPercent: number | null;
+  diskUsed: number | null;
+  diskTotal: number | null;
+  load1: number | null;
+  load5: number | null;
+  load15: number | null;
+  rxPerSec: number | null;
+  txPerSec: number | null;
+  uptimeSeconds: number | null;
+};
+
+function toHostRow(r: Record<string, unknown>): HostRow {
+  const n = (key: string) => (r[key] as number | null) ?? null;
+  return {
+    ts: r.ts as number,
+    cpuPercent: n("cpu_percent"),
+    memoryPercent: n("memory_percent"),
+    memoryUsed: n("memory_used"),
+    memoryTotal: n("memory_total"),
+    swapPercent: n("swap_percent"),
+    diskPercent: n("disk_percent"),
+    diskUsed: n("disk_used"),
+    diskTotal: n("disk_total"),
+    load1: n("load1"),
+    load5: n("load5"),
+    load15: n("load15"),
+    rxPerSec: n("rx_per_sec"),
+    txPerSec: n("tx_per_sec"),
+    uptimeSeconds: n("uptime_seconds"),
+  };
+}
+
+export function recordHostSample(row: HostRow): void {
+  sql(
+    `INSERT OR REPLACE INTO host_samples
+       (ts, cpu_percent, memory_percent, memory_used, memory_total, swap_percent,
+        disk_percent, disk_used, disk_total, load1, load5, load15,
+        rx_per_sec, tx_per_sec, uptime_seconds)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  ).run(
+    row.ts,
+    row.cpuPercent,
+    row.memoryPercent,
+    row.memoryUsed,
+    row.memoryTotal,
+    row.swapPercent,
+    row.diskPercent,
+    row.diskUsed,
+    row.diskTotal,
+    row.load1,
+    row.load5,
+    row.load15,
+    row.rxPerSec,
+    row.txPerSec,
+    row.uptimeSeconds,
+  );
+}
+
+export function latestHostSample(): HostRow | null {
+  const row = sql("SELECT * FROM host_samples ORDER BY ts DESC LIMIT 1").get() as
+    | Record<string, unknown>
+    | undefined;
+  return row ? toHostRow(row) : null;
+}
+
+/**
+ * Averages over evenly spaced buckets.
+ *
+ * At one sample per 10s a day is 8,640 rows and a chart has room for a couple
+ * of hundred points. Averaging in SQL keeps the rest out of the render.
+ */
+export function hostSeries(windowSeconds = 3600, buckets = 120): HostRow[] {
+  const from = Date.now() - windowSeconds * 1000;
+  const width = Math.max(1, Math.floor((windowSeconds * 1000) / buckets));
+
+  const rows = sql(
+    `SELECT (ts / ?) * ?          AS ts,
+            AVG(cpu_percent)      AS cpu_percent,
+            AVG(memory_percent)   AS memory_percent,
+            AVG(memory_used)      AS memory_used,
+            MAX(memory_total)     AS memory_total,
+            AVG(swap_percent)     AS swap_percent,
+            AVG(disk_percent)     AS disk_percent,
+            AVG(disk_used)        AS disk_used,
+            MAX(disk_total)       AS disk_total,
+            AVG(load1)            AS load1,
+            AVG(load5)            AS load5,
+            AVG(load15)           AS load15,
+            AVG(rx_per_sec)       AS rx_per_sec,
+            AVG(tx_per_sec)       AS tx_per_sec,
+            MAX(uptime_seconds)   AS uptime_seconds
+       FROM host_samples
+      WHERE ts >= ?
+   GROUP BY ts / ?
+   ORDER BY ts`,
+  ).all(width, width, from, width) as Record<string, unknown>[];
+
+  return rows.map(toHostRow);
+}
+
+/* -------------------------------------------------------------- access log */
+
+export type AccessMinuteInput = {
+  host: string;
+  ts: number;
+  requests: number;
+  bytes: number;
+  visitors: number;
+  status: { s2xx: number; s3xx: number; s4xx: number; s5xx: number; other: number };
+  latencyAvgMs: number | null;
+  latencyP50Ms: number | null;
+  latencyP95Ms: number | null;
+  latencyP99Ms: number | null;
+  paths: Map<string, number>;
+  referrers: Map<string, number>;
+  methods: Map<string, number>;
+};
+
+/**
+ * Write one closed minute and its label breakdowns as a single transaction.
+ *
+ * The rollup is replaced outright, but label counts are added to whatever is
+ * there. A minute is normally written once; if a rotation makes the tailer
+ * re-read one, the rollup must not double — and the labels of a minute that
+ * was flushed in two parts must not be lost.
+ */
+export function flushAccessMinute(input: AccessMinuteInput): void {
+  const handle = connect();
+
+  handle.exec("BEGIN");
+  try {
+    sql(
+      `INSERT OR REPLACE INTO access_minutes
+         (host, ts, requests, bytes, visitors, s2xx, s3xx, s4xx, s5xx, other,
+          latency_avg_ms, latency_p50_ms, latency_p95_ms, latency_p99_ms)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).run(
+      input.host,
+      input.ts,
+      input.requests,
+      input.bytes,
+      input.visitors,
+      input.status.s2xx,
+      input.status.s3xx,
+      input.status.s4xx,
+      input.status.s5xx,
+      input.status.other,
+      input.latencyAvgMs,
+      input.latencyP50Ms,
+      input.latencyP95Ms,
+      input.latencyP99Ms,
+    );
+
+    const insertLabel = sql(
+      `INSERT INTO access_labels (host, ts, kind, label, count)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT (host, ts, kind, label)
+       DO UPDATE SET count = count + excluded.count`,
+    );
+
+    const dimensions: [string, Map<string, number>][] = [
+      ["path", input.paths],
+      ["referrer", input.referrers],
+      ["method", input.methods],
+    ];
+
+    for (const [kind, counts] of dimensions) {
+      for (const [label, count] of counts) {
+        insertLabel.run(input.host, input.ts, kind, label, count);
+      }
+    }
+
+    handle.exec("COMMIT");
+  } catch (error) {
+    handle.exec("ROLLBACK");
+    throw error;
+  }
+}
+
+export type AccessSummary = {
+  host: string;
+  requests: number;
+  bytes: number;
+  visitors: number;
+  status: { s2xx: number; s3xx: number; s4xx: number; s5xx: number; other: number };
+  errorRate: number;
+  requestsPerMin: number;
+  latencyP50Ms: number | null;
+  latencyP95Ms: number | null;
+  latencyP99Ms: number | null;
+};
+
+function toAccessSummary(
+  r: Record<string, unknown>,
+  windowSeconds: number,
+): AccessSummary {
+  const requests = Number(r.requests ?? 0);
+  const status = {
+    s2xx: Number(r.s2xx ?? 0),
+    s3xx: Number(r.s3xx ?? 0),
+    s4xx: Number(r.s4xx ?? 0),
+    s5xx: Number(r.s5xx ?? 0),
+    other: Number(r.other ?? 0),
+  };
+
+  const round = (value: unknown) =>
+    value == null ? null : Math.round(Number(value));
+
+  return {
+    host: r.host as string,
+    requests,
+    bytes: Number(r.bytes ?? 0),
+    // A sum of per-minute distinct counts: someone reading for ten minutes
+    // counts ten times. Exact de-duplication would mean storing every hash,
+    // which is the durable identifier the hashing exists to avoid.
+    visitors: Number(r.visitors ?? 0),
+    status,
+    errorRate: requests
+      ? Math.round(((status.s4xx + status.s5xx) / requests) * 1000) / 10
+      : 0,
+    requestsPerMin: Math.round((requests / (windowSeconds / 60)) * 10) / 10,
+    latencyP50Ms: round(r.latency_p50_ms),
+    latencyP95Ms: round(r.latency_p95_ms),
+    latencyP99Ms: round(r.latency_p99_ms),
+  };
+}
+
+/**
+ * Percentiles are averaged weighted by request count. A minute that served
+ * three requests should not move the hour's p95 as much as one that served
+ * three thousand. This is an approximation — a true percentile needs the
+ * original observations — but it is the honest one available from a rollup.
+ */
+const ACCESS_SUMMARY_COLUMNS = `
+  SUM(requests) AS requests,
+  SUM(bytes)    AS bytes,
+  SUM(visitors) AS visitors,
+  SUM(s2xx)     AS s2xx,
+  SUM(s3xx)     AS s3xx,
+  SUM(s4xx)     AS s4xx,
+  SUM(s5xx)     AS s5xx,
+  SUM(other)    AS other,
+  SUM(latency_p50_ms * requests) / NULLIF(SUM(CASE WHEN latency_p50_ms IS NULL THEN 0 ELSE requests END), 0) AS latency_p50_ms,
+  SUM(latency_p95_ms * requests) / NULLIF(SUM(CASE WHEN latency_p95_ms IS NULL THEN 0 ELSE requests END), 0) AS latency_p95_ms,
+  SUM(latency_p99_ms * requests) / NULLIF(SUM(CASE WHEN latency_p99_ms IS NULL THEN 0 ELSE requests END), 0) AS latency_p99_ms
+`;
+
+/** One row per virtual host, busiest first. */
+export function accessSummaries(windowSeconds = 3600): AccessSummary[] {
+  const from = Date.now() - windowSeconds * 1000;
+  const rows = sql(
+    `SELECT host, ${ACCESS_SUMMARY_COLUMNS}
+       FROM access_minutes
+      WHERE ts >= ?
+   GROUP BY host
+   ORDER BY requests DESC`,
+  ).all(from) as Record<string, unknown>[];
+
+  return rows.map((row) => toAccessSummary(row, windowSeconds));
+}
+
+export function accessSummary(
+  host: string,
+  windowSeconds = 3600,
+): AccessSummary | null {
+  const from = Date.now() - windowSeconds * 1000;
+  const row = sql(
+    `SELECT host, ${ACCESS_SUMMARY_COLUMNS}
+       FROM access_minutes
+      WHERE ts >= ? AND host = ?
+   GROUP BY host`,
+  ).get(from, host) as Record<string, unknown> | undefined;
+
+  return row?.host ? toAccessSummary(row, windowSeconds) : null;
+}
+
+export type AccessPoint = {
+  ts: number;
+  requests: number;
+  errors: number;
+  visitors: number;
+  bytes: number;
+  latencyP95Ms: number | null;
+};
+
+export function accessSeries(
+  windowSeconds = 3600,
+  buckets = 60,
+  host?: string,
+): AccessPoint[] {
+  const now = Date.now();
+  const from = now - windowSeconds * 1000;
+  // Never narrower than the stored resolution.
+  const width = Math.max(60_000, Math.floor((windowSeconds * 1000) / buckets));
+
+  const rows = sql(
+    `SELECT (ts / ?) * ?        AS ts,
+            SUM(requests)       AS requests,
+            SUM(s5xx)           AS errors,
+            SUM(visitors)       AS visitors,
+            SUM(bytes)          AS bytes,
+            MAX(latency_p95_ms) AS latency_p95_ms
+       FROM access_minutes
+      WHERE ts >= ? AND (? IS NULL OR host = ?)
+   GROUP BY ts / ?
+   ORDER BY ts`,
+  ).all(width, width, from, host ?? null, host ?? null, width) as Record<
+    string,
+    unknown
+  >[];
+
+  // Silence is information. A site with no requests for ten minutes must read
+  // as a flat line at zero, not as one segment drawn between the two minutes
+  // that did have traffic, so empty buckets are filled in rather than skipped.
+  const byBucket = new Map<number, Record<string, unknown>>();
+  for (const row of rows) byBucket.set(Number(row.ts), row);
+
+  const points: AccessPoint[] = [];
+  for (let ts = Math.floor(from / width) * width; ts <= now; ts += width) {
+    const row = byBucket.get(ts);
+    points.push({
+      ts,
+      requests: Number(row?.requests ?? 0),
+      errors: Number(row?.errors ?? 0),
+      visitors: Number(row?.visitors ?? 0),
+      bytes: Number(row?.bytes ?? 0),
+      latencyP95Ms: row?.latency_p95_ms == null ? null : Number(row.latency_p95_ms),
+    });
+  }
+
+  return points;
+}
+
+export type AccessLabel = { label: string; count: number };
+
+export function accessLabels(
+  kind: "path" | "referrer" | "method",
+  windowSeconds = 3600,
+  limit = 10,
+  host?: string,
+): AccessLabel[] {
+  const from = Date.now() - windowSeconds * 1000;
+  const rows = sql(
+    `SELECT label, SUM(count) AS count
+       FROM access_labels
+      WHERE ts >= ? AND kind = ? AND (? IS NULL OR host = ?)
+   GROUP BY label
+   ORDER BY count DESC
+      LIMIT ?`,
+  ).all(from, kind, host ?? null, host ?? null, limit) as Record<string, unknown>[];
+
+  return rows.map((r) => ({ label: r.label as string, count: Number(r.count) }));
+}
+
+/** Every virtual host seen in the window, busiest first. */
+export function accessHosts(windowSeconds = 30 * 86_400): string[] {
+  const from = Date.now() - windowSeconds * 1000;
+  const rows = sql(
+    `SELECT host, SUM(requests) AS requests
+       FROM access_minutes
+      WHERE ts >= ?
+   GROUP BY host
+   ORDER BY requests DESC`,
+  ).all(from) as Record<string, unknown>[];
+
+  return rows.map((r) => r.host as string);
 }
