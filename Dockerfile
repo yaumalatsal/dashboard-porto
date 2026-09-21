@@ -8,6 +8,7 @@ WORKDIR /app
 # Copy application source
 COPY package.json ./
 COPY server.js ./
+COPY lib/ ./lib/
 COPY sites.json.example ./
 
 # Copy static assets (UI served by the app)

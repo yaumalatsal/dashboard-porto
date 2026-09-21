@@ -132,3 +132,157 @@ a { color: inherit; text-decoration: none; }
     color: var(--muted);
     padding: 40px;
 }
+
+/* ---- Panels ---- */
+.panel { margin-bottom: 28px; }
+.panel-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.panel-title select {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font: inherit;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.muted { color: var(--muted); }
+
+/* ---- VPS gauges ---- */
+.host-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+}
+.host-cell {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+}
+.gauge-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+.gauge-value { color: var(--text); font-weight: 600; font-size: 0.95rem; }
+.gauge-track {
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 6px 0 4px;
+}
+.gauge-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+.gauge-fill.lvl-ok { background: var(--ok); }
+.gauge-fill.lvl-warn { background: var(--warn); }
+.gauge-fill.lvl-down { background: var(--down); }
+.gauge-fill.lvl-pending { background: var(--pending); }
+.gauge-detail { font-size: 0.7rem; color: var(--muted); min-height: 1em; }
+.kv {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    padding: 2px 0;
+}
+.kv b { color: var(--text); font-weight: 600; }
+
+/* ---- Sparklines ---- */
+.spark { width: 100%; height: 28px; display: block; margin: 6px 0; }
+.spark-line { fill: none; stroke: var(--ok); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.spark-area { fill: var(--ok); opacity: 0.12; }
+.spark-mem .spark-line, .spark-mem .spark-area { stroke: #6aa8ff; fill: #6aa8ff; }
+.spark-net .spark-line, .spark-net .spark-area { stroke: #c08bff; fill: #c08bff; }
+.spark-req .spark-line, .spark-req .spark-area { stroke: #ffad2f; fill: #ffad2f; }
+
+/* ---- Traffic ---- */
+.traffic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+.traffic-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+}
+.traffic-card .site-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    word-break: break-all;
+}
+.traffic-rpm { color: var(--muted); font-size: 0.72rem; font-weight: 400; white-space: nowrap; }
+.stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin: 8px 0;
+}
+.stat { text-align: center; }
+.stat b { display: block; font-size: 0.95rem; }
+.stat span {
+    display: block;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+}
+
+/* ---- Top paths / referrers ---- */
+.top-list { margin-top: 10px; }
+.top-list h4 {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.top-row {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.72rem;
+    padding: 2px 4px;
+    overflow: hidden;
+}
+/* Count bar sits behind the label, Plausible-style. */
+.top-bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--border);
+    border-radius: 3px;
+}
+.top-key {
+    position: relative;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.top-count { position: relative; color: var(--muted); }
+
+@media (max-width: 520px) {
+    .container { padding: 16px; }
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+}

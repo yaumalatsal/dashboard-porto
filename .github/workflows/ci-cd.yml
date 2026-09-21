@@ -31,8 +31,10 @@ jobs:
           node-version: '22'
 
       # Syntax check — catches typos without a running container.
-      - name: Lint server.js
-        run: node --check server.js
+      - name: Lint JavaScript sources
+        run: |
+          node --check server.js
+          for f in lib/*.js; do node --check "$f"; done
 
       # Build the image and smoke-test the health endpoint.
       - name: Build Docker image

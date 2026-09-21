@@ -6,6 +6,9 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
+const host = require('./lib/host');
+const traffic = require('./lib/traffic');
+
 const PORT = process.env.PORT || 3001;
 const POLL_INTERVAL = 30000;   // health every 30s
 const SERVICES_INTERVAL = 60000;   // services every 60s
@@ -180,6 +183,11 @@ const mimeTypes = {
     '.ico': 'image/x-icon',
 };
 
+function sendJson(res, status, payload) {
+    res.writeHead(status, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(payload));
+}
+
 // --- Serve static files ---
 function serveFile(req, res, filePath) {
     fs.readFile(filePath, (err, data) => {
@@ -212,6 +220,20 @@ function handleReq(req, res) {
     const pathname = parsedUrl.pathname;
 
     // --- API routes ---
+    if (pathname === '/api/host') {
+        sendJson(res, 200, {
+            generated_at: new Date().toISOString(),
+            host: host.current(),
+            history: host.history(),
+        });
+        return;
+    }
+
+    if (pathname === '/api/traffic') {
+        sendJson(res, 200, traffic.report(parsedUrl.query.minutes));
+        return;
+    }
+
     if (pathname === '/api/status') {
         const now = new Date().toISOString();
         const sites = config.sites.map((site) => {
@@ -319,4 +341,6 @@ const server = http.createServer(handleReq);
 server.listen(PORT, () => {
     console.log('[dashboard] listening on :' + PORT);
     startPolling();
+    host.start();
+    traffic.start();
 });
