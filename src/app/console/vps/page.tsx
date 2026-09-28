@@ -266,7 +266,8 @@ environment:
         </div>
         {disk && (
           <span className="panel__meta">
-            scanned {formatRelative(disk.ts)} in {(disk.durationMs / 1000).toFixed(1)}s
+            {disk.source === "host-agent" ? "host agent" : "unprivileged scan"} ·{" "}
+            {formatRelative(disk.ts)} · {(disk.durationMs / 1000).toFixed(1)}s
           </span>
         )}
       </div>
@@ -310,9 +311,11 @@ environment:
                 ))}
               </ul>
               <p>
-                The console runs unprivileged, so anything root-only reads as
-                empty. What it cannot see is named here rather than quietly
-                left out of the totals.
+                {disk.source === "host-agent"
+                  ? "Even as root some paths refuse: a vanished temp directory, a filesystem that went away mid-walk."
+                  : "This scan ran unprivileged, so root-only directories — /var/lib/containerd and /home among them — read as empty. Install scripts/disk-report.py as a root cron job to measure them without giving the web app that access."}{" "}
+                What cannot be seen is named here rather than quietly left out
+                of the totals.
               </p>
             </div>
           )}

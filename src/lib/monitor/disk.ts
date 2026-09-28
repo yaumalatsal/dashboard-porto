@@ -64,6 +64,16 @@ export type ServiceUsage = {
 };
 
 export type DiskReport = {
+  /**
+   * Which walk produced this.
+   *
+   * `in-process` is this module, running unprivileged, which cannot see
+   * /var/lib/containerd or /home — the two directories that usually matter
+   * most. `host-agent` is scripts/disk-report.py run by root from cron, which
+   * can. The board says which, because the difference decides whether a
+   * missing figure means "empty" or "invisible".
+   */
+  source: "in-process" | "host-agent";
   ts: number;
   /** Wall-clock the scan took, so a slow VPS is visible rather than mysterious. */
   durationMs: number;
@@ -370,6 +380,7 @@ export function scan(): DiskReport {
   const bySize = (a: DiskEntry, b: DiskEntry) => b.bytes - a.bytes;
 
   return {
+    source: "in-process",
     ts: started,
     durationMs: Date.now() - started,
     roots: roots.sort(bySize),
@@ -443,8 +454,40 @@ export function stopDiskScanner(): void {
   state.timer = null;
 }
 
+/** Where the privileged host agent leaves its report, as the host sees it. */
+const REPORT_PATH = process.env.DISK_REPORT_PATH ?? "/var/lib/dashboard-porto/disk.json";
+
+/** A report older than this is stale — the cron job has probably stopped. */
+const REPORT_MAX_AGE_MS = Number(process.env.DISK_REPORT_MAX_AGE_MS ?? 3 * 3600_000);
+
+/**
+ * The host agent's report, if it is there and recent.
+ *
+ * Read on demand rather than cached: the file changes on cron's schedule, not
+ * ours, and it is a few kilobytes. A stale one is ignored rather than shown —
+ * a disk breakdown from last week is worse than none, because it looks
+ * current.
+ */
+function externalReport(): DiskReport | null {
+  try {
+    const raw = fs.readFileSync(/*turbopackIgnore: true*/ underRoot(REPORT_PATH), "utf8");
+    const parsed = JSON.parse(raw) as DiskReport;
+    if (typeof parsed.ts !== "number" || !Array.isArray(parsed.roots)) return null;
+    if (Date.now() - parsed.ts > REPORT_MAX_AGE_MS) return null;
+    return { ...parsed, source: "host-agent" };
+  } catch {
+    // Not installed, not readable, or not valid JSON. The in-process walk
+    // below still gives a partial answer.
+    return null;
+  }
+}
+
+/**
+ * Prefer the host agent: it runs as root and can see the directories that
+ * actually fill a VPS. Fall back to what this process could reach itself.
+ */
 export function latestDiskReport(): DiskReport | null {
-  return state.latest;
+  return externalReport() ?? state.latest;
 }
 
 export function diskScannerStatus(): {
