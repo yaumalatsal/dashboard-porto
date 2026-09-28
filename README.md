@@ -106,11 +106,20 @@ No agent, no exporter: the console is already on the box, so it reads the
 host's procfs for CPU, memory, disk, load and network, and tails nginx's access
 logs for per-site request rates, error rates and latency percentiles.
 
+It also answers what a disk percentage cannot: *which* directories, files and
+container images filled it.
+
 Both need the mounts already present in `docker-compose.yml` — the container's
 own `/proc` describes the container, not the host — and the `json_analytics`
 log format from `docker/nginx.conf`. Unlike the page beacon, the log reader
 covers every site nginx serves without touching their code, and sees API calls,
-bots and 5xx responses too. Setup, permissions and the honest limits:
+bots and 5xx responses too.
+
+No part of this mounts the Docker socket, which would hand the container root
+on the host. The one job that genuinely needs root — measuring `0700`
+directories like `/var/lib/containerd` — is a short cron script
+(`scripts/disk-report.py`) that writes a JSON report the console reads; the web
+app itself stays unprivileged. Setup, permissions and the honest limits:
 **[docs/console.md](docs/console.md#the-machine-itself)**.
 
 ## Security note

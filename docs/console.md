@@ -376,12 +376,58 @@ question that follows and that a percentage cannot — *what is filling it*.
 Per scan it reports the total per watched location, the largest directories and
 files, and a per-service breakdown of the container runtime.
 
-This needs no privileges beyond the read-only rootfs mount the machine board
-already uses. In particular it does **not** mount the Docker socket. Doing so
-would grant the container the equivalent of root on the host — anyone able to
-run code in a console whose reads are public could then start a privileged
-container — and every figure here is obtainable by reading directories that
-are already visible.
+It does **not** mount the Docker socket. Doing so would grant the container
+the equivalent of root on the host — anyone able to run code in a console
+whose reads are public could then start a privileged container — and every
+figure here is obtainable by reading directories instead.
+
+### Two scanners, and why
+
+The directories that actually fill a VPS are `root`-owned and mode 0700. An
+unprivileged process cannot measure them: on this machine it could account
+for 1.7 GB of the 27 GB in use, and read `/var/lib/containerd` as empty.
+
+Granting the app that access was the obvious fix and the wrong one. The rootfs
+is mounted whole, so `CAP_DAC_READ_SEARCH` on a process serving public pages
+puts `/etc/shadow`, the SSH keys and every other application's `.env` one bug
+away from the internet.
+
+The privilege lives in a smaller place instead:
+
+| | Runs as | Sees |
+|---|---|---|
+| `in-process` | the app's unprivileged user | only world-readable paths |
+| `host-agent` — `scripts/disk-report.py`, from cron | root | everything |
+
+The agent writes a world-readable JSON report; the console reads that file and
+gains no access of its own. What holds root is a script with no network, no
+untrusted input and one job — short enough to read in a sitting — and the only
+path it writes is its own output, via a temporary file and a rename so a
+reader never catches it half-written.
+
+The console prefers the agent's report when it is present and under three
+hours old, and falls back to its own partial walk otherwise: a stale
+breakdown is worse than none, because it looks current. The board names which
+of the two it is showing, since that decides whether a missing figure means
+"empty" or "invisible".
+
+### Installing the agent
+
+```bash
+sudo install -m 0755 scripts/disk-report.py /usr/local/bin/disk-report
+sudo mkdir -p /var/lib/dashboard-porto
+sudo /usr/local/bin/disk-report          # once, to check it works
+```
+
+Then `/etc/cron.d/dashboard-disk-report`:
+
+```cron
+*/30 * * * * root /usr/local/bin/disk-report >/dev/null 2>&1
+```
+
+It walked 516k entries in 38s on this VPS, which is why the cadence is half an
+hour rather than minutes. Without the agent everything still works; the board
+just says the scan was unprivileged and names what it could not open.
 
 ### Watch out for containerd
 
@@ -517,6 +563,8 @@ daily thereafter.
 | `DISK_SCAN_INITIAL_DELAY_MS` | `60000` | Delay before the first walk, so it misses application startup. |
 | `DISK_SCAN_ENTRY_BUDGET` | `600000` | Entries after which a walk stops and reports itself truncated. |
 | `DISK_SCAN_TIME_BUDGET_MS` | `90000` | The same, in wall-clock time. |
+| `DISK_REPORT_PATH` | `/var/lib/dashboard-porto/disk.json` | Where the privileged host agent leaves its report. |
+| `DISK_REPORT_MAX_AGE_MS` | `10800000` | Past this age the agent's report is ignored as stale. |
 
 `DISK_SCAN_PATHS` defaults to
 `/var/lib/containerd,/var/lib/docker,/var/log,/home,/var/www,/opt,/tmp`.
