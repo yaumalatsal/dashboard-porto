@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const links = [
+/** Public boards: what the estate is doing. */
+const PUBLIC_LINKS = [
   { href: "/console", label: "Overview" },
   { href: "/console/projects", label: "Projects" },
   { href: "/console/reliability", label: "Reliability" },
@@ -12,11 +13,17 @@ const links = [
   { href: "/console/traffic", label: "Traffic" },
   { href: "/console/logs", label: "Log" },
   { href: "/console/incidents", label: "Incidents" },
-  { href: "/console/integrate", label: "Integrate" },
 ];
 
-export default function ConsoleNav() {
+/**
+ * Shown only once this browser holds the admin cookie. The page itself 404s
+ * regardless — this list decides what is advertised, never what is allowed.
+ */
+const PRIVATE_LINKS = [{ href: "/console/integrate", label: "Integrate" }];
+
+export default function ConsoleNav({ unlocked = false }: { unlocked?: boolean }) {
   const pathname = usePathname();
+  const links = unlocked ? [...PUBLIC_LINKS, ...PRIVATE_LINKS] : PUBLIC_LINKS;
 
   return (
     <nav className="console__nav" aria-label="Console sections">

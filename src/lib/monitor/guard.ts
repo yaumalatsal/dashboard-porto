@@ -30,7 +30,7 @@ export function guardMutation(request: Request): GuardResult {
 }
 
 /** Constant-time compare so the token cannot be guessed a character at a time. */
-function timingSafeEqual(a: string, b: string): boolean {
+export function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;
   for (let i = 0; i < a.length; i++) {

@@ -14,6 +14,7 @@
 import { startAccessLog, stopAccessLog } from "./access-log";
 import { getAdapter } from "./adapters";
 import { loadConfig } from "./config";
+import { startDiskScanner, stopDiskScanner } from "./disk";
 import { sample as sampleHost } from "./host";
 import { runProbe } from "./probe";
 import {
@@ -424,6 +425,7 @@ export function startPolling(): void {
   globalTimers.add(hostTimer);
 
   startAccessLog();
+  startDiskScanner();
 
   void checkCertificates();
   const certificates = setInterval(() => void checkCertificates(), 86_400_000);
@@ -450,6 +452,7 @@ export function startPolling(): void {
 
 export function stopPolling(): void {
   stopAccessLog();
+  stopDiskScanner();
   for (const siteId of [...siteTimers.keys()]) unschedule(siteId);
   for (const timer of globalTimers) clearInterval(timer);
   globalTimers.clear();

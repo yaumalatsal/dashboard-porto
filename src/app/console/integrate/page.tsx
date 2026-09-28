@@ -12,9 +12,11 @@
  */
 
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { loadConfig } from "@/lib/monitor/config";
 import { currentSnapshots } from "@/lib/monitor/poller";
 import { listAdapters } from "@/lib/monitor/adapters";
+import { consoleUnlocked } from "@/lib/monitor/session";
 import Status from "@/components/console/Status";
 
 export const dynamic = "force-dynamic";
@@ -23,9 +25,16 @@ export const metadata = {
   title: "Adding a service",
   description:
     "How an application is added to this console: one configuration entry, no code.",
+  // Private: this page maps the estate rather than reporting on it.
+  robots: { index: false, follow: false },
 };
 
 export default async function IntegratePage() {
+  // 404 rather than 403: a "forbidden" page confirms there is something here
+  // worth finding. Hiding it from the navigation alone would leave the URL
+  // open to anyone who guessed it or had it bookmarked.
+  if (!(await consoleUnlocked())) notFound();
+
   const { sites } = loadConfig();
   const snapshots = currentSnapshots();
   const adapters = listAdapters();

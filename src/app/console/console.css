@@ -2122,3 +2122,94 @@
 @media (max-width: 900px) {
   .detail-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
 }
+
+/* --------------------------------------------------------------- storage */
+/* The disk breakdown on /console/vps, and the lock on the private pages. */
+
+/* A path's tail identifies it — /var/lib/docker/volumes/console-data/_data
+   says nothing until the last two segments. Clip the front, not the end. */
+.breakdown__label--path {
+  direction: rtl;
+  text-align: left;
+  /* `direction: rtl` moves the ellipsis to the front but also drags the
+     leading slash to the wrong end; the isolate puts the string back in
+     logical order while keeping the truncation side. */
+  unicode-bidi: plaintext;
+}
+
+/* A caveat attached to a panel, in the panel's own voice rather than as an
+   alert: it qualifies the figures above without competing with them. */
+.panel__note {
+  margin: var(--s-2) 0 0;
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--c-rule-soft);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--c-muted);
+}
+.panel__note code {
+  font-family: var(--font-jetbrains), monospace;
+  color: var(--c-ink-2);
+}
+
+/* ------------------------------------------------------------------ lock */
+
+.console__button {
+  appearance: none;
+  border: 1px solid var(--c-copper);
+  background: transparent;
+  color: var(--c-ember);
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.console__button:hover {
+  background: var(--c-copper);
+  color: var(--c-page);
+}
+.console__button:focus-visible {
+  outline: 2px solid var(--c-ember);
+  outline-offset: 2px;
+}
+
+.console__error {
+  color: var(--s-critical);
+  font-size: 0.85rem;
+  margin: 0 auto 1rem;
+  max-width: 48ch;
+}
+
+.unlock-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+  max-width: 22rem;
+  margin: 0 auto;
+  text-align: left;
+}
+.unlock-form label {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+.unlock-form input {
+  background: var(--c-page);
+  border: 1px solid var(--c-rule);
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  color: var(--c-ink);
+  font: inherit;
+  font-family: var(--font-jetbrains), monospace;
+}
+.unlock-form input:focus-visible {
+  outline: 2px solid var(--c-ember);
+  outline-offset: 1px;
+}
+.unlock-form button {
+  margin-top: 0.25rem;
+}

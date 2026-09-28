@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import ConsoleNav from "@/components/console/ConsoleNav";
+import { consoleUnlocked } from "@/lib/monitor/session";
 import { profile } from "@/data/portfolio";
 import "./console.css";
 
@@ -18,9 +19,13 @@ export const metadata: Metadata = {
   description: "The status of the applications that I run in production.",
 };
 
-export default function ConsoleLayout({
+export default async function ConsoleLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
+  // Decides only what the navigation advertises. Every private page checks
+  // for itself, so this is presentation, not access control.
+  const unlocked = await consoleUnlocked();
+
   return (
     <div className="console">
       <header className="console__bar">
@@ -30,7 +35,7 @@ export default function ConsoleLayout({
             {profile.shortName} <small>Console</small>
           </span>
         </Link>
-        <ConsoleNav />
+        <ConsoleNav unlocked={unlocked} />
         <Link href="/" className="console__back">
           ← Portfolio
         </Link>

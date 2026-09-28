@@ -14,6 +14,7 @@
 
 import Link from "next/link";
 import { accessLogStatus } from "@/lib/monitor/access-log";
+import { diskScannerStatus, latestDiskReport } from "@/lib/monitor/disk";
 import { procPath } from "@/lib/monitor/host";
 import {
   accessHosts,
@@ -24,7 +25,12 @@ import {
   hostSeries,
   latestHostSample,
 } from "@/lib/monitor/store";
-import { compact, formatBytes, formatDuration } from "@/lib/monitor/format";
+import {
+  compact,
+  formatBytes,
+  formatDuration,
+  formatRelative,
+} from "@/lib/monitor/format";
 import AutoRefresh from "@/components/console/AutoRefresh";
 import ScopeBar from "@/components/console/ScopeBar";
 import Kpi from "@/components/console/Kpi";
@@ -51,6 +57,14 @@ function percent(value: number | null): string {
   return value == null ? "—" : `${value.toFixed(value < 10 ? 1 : 0)}%`;
 }
 
+const SERVICE_KIND: Record<string, string> = {
+  container: "Container",
+  volume: "Volume",
+  "image-layers": "Image layers",
+  "build-cache": "Build cache",
+  other: "Other",
+};
+
 export default async function VpsPage({
   searchParams,
 }: {
@@ -74,6 +88,11 @@ export default async function VpsPage({
   const referrers = accessLabels("referrer", range.seconds, 8, hostFilter);
   const seenHosts = accessHosts();
   const collector = accessLogStatus();
+
+  // The last completed walk, not a fresh one: scanning on render would make
+  // every page load an I/O storm on the machine being reported on.
+  const disk = latestDiskReport();
+  const scanner = diskScannerStatus();
 
   // Totals across every vhost when nothing is scoped, so the KPI row always has
   // a subject.
@@ -236,6 +255,129 @@ environment:
             </div>
           </dl>
         </section>
+      )}
+
+      {/* --- Storage ----------------------------------------------------- */}
+
+      <div className="board-head board-head--sub">
+        <div>
+          <p className="console__eyebrow">Operations / Storage</p>
+          <h2>Where the disk went.</h2>
+        </div>
+        {disk && (
+          <span className="panel__meta">
+            scanned {formatRelative(disk.ts)} in {(disk.durationMs / 1000).toFixed(1)}s
+          </span>
+        )}
+      </div>
+
+      {!disk ? (
+        <div className="console__empty">
+          <h2>No scan yet</h2>
+          <p>
+            {scanner.enabled
+              ? "A filesystem walk is expensive, so the first one runs a minute after boot and then every half hour. Check back shortly."
+              : "The disk scanner is not running."}
+          </p>
+          <p>
+            Scanning <code>{scanner.paths.join("</code>, <code>")}</code> under{" "}
+            <code>{scanner.rootfs}</code>.
+          </p>
+        </div>
+      ) : (
+        <>
+          {disk.truncated && (
+            <div className="console__empty console__empty--warn">
+              <h2>The scan was cut short</h2>
+              <p>
+                It stopped after {compact(disk.entriesScanned)} entries or its
+                time budget, so every figure below is a <em>floor</em>, not a
+                total. Docker&rsquo;s <code>overlay2</code> can hold millions of
+                files. Raise <code>DISK_SCAN_ENTRY_BUDGET</code> or{" "}
+                <code>DISK_SCAN_TIME_BUDGET_MS</code> to scan further.
+              </p>
+            </div>
+          )}
+
+          {disk.unreadable.length > 0 && (
+            <div className="console__empty console__empty--warn">
+              <h2>Some paths cannot be read</h2>
+              <ul>
+                {disk.unreadable.map((entry) => (
+                  <li key={entry.path}>
+                    <code>{entry.path}</code> — {entry.error}
+                  </li>
+                ))}
+              </ul>
+              <p>
+                The console runs unprivileged, so anything root-only reads as
+                empty. What it cannot see is named here rather than quietly
+                left out of the totals.
+              </p>
+            </div>
+          )}
+
+          <section className="panel" aria-label="Storage by root">
+            <div className="panel__head">
+              <h2>By location</h2>
+              <span className="panel__meta">bytes on disk</span>
+            </div>
+            <SizeList rows={disk.roots.map((r) => ({ label: r.path, bytes: r.bytes }))} />
+          </section>
+
+          <section className="board-grid">
+            <div className="panel">
+              <div className="panel__head">
+                <h2>Largest directories</h2>
+              </div>
+              <SizeList
+                rows={disk.topDirectories.map((d) => ({ label: d.path, bytes: d.bytes }))}
+              />
+            </div>
+            <div className="panel">
+              <div className="panel__head">
+                <h2>Largest files</h2>
+              </div>
+              <SizeList
+                rows={disk.topFiles.map((f) => ({ label: f.path, bytes: f.bytes }))}
+                empty="No individual file stood out."
+              />
+            </div>
+          </section>
+
+          {disk.services.length > 0 && (
+            <section className="panel" aria-label="Storage by service">
+              <div className="panel__head">
+                <h2>By service</h2>
+                <span className="panel__meta">from Docker&rsquo;s data root</span>
+              </div>
+              <table className="ctable">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Kind</th>
+                    <th className="ctable__num">Size</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {disk.services.map((service) => (
+                    <tr key={`${service.kind}:${service.name}`}>
+                      <td>{service.name}</td>
+                      <td>{SERVICE_KIND[service.kind]}</td>
+                      <td className="ctable__num">{formatBytes(service.bytes)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="panel__note">
+                Container names come from each container&rsquo;s own
+                <code> config.v2.json</code>. Individual image layers cannot be
+                attributed to a service without the daemon&rsquo;s index, so they
+                are reported as one figure rather than guessed at.
+              </p>
+            </section>
+          )}
+        </>
       )}
 
       {/* --- Requests ---------------------------------------------------- */}
@@ -483,6 +625,47 @@ function LabelList({
             {total > 0 ? ((row.count / total) * 100).toFixed(1) : "0.0"}%
           </span>
           <span className="breakdown__count">{compact(row.count)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * The same ranked bars, measured in bytes.
+ *
+ * Paths are shown from the right when they overflow: the tail of
+ * `/var/lib/docker/volumes/console-data/_data` is the part that identifies it,
+ * and truncating the front is what a person reading a path list wants.
+ */
+function SizeList({
+  rows,
+  empty = "Nothing found here.",
+}: {
+  rows: { label: string; bytes: number }[];
+  empty?: string;
+}) {
+  if (rows.length === 0) return <p className="panel__empty">{empty}</p>;
+
+  const top = Math.max(...rows.map((r) => r.bytes), 1);
+  const total = rows.reduce((sum, r) => sum + r.bytes, 0);
+
+  return (
+    <ul className="breakdown">
+      {rows.map((row) => (
+        <li key={row.label} className="breakdown__row">
+          <span
+            className="breakdown__bar"
+            style={{ width: `${(row.bytes / top) * 100}%` }}
+            aria-hidden="true"
+          />
+          <span className="breakdown__label breakdown__label--path" title={row.label}>
+            {row.label}
+          </span>
+          <span className="breakdown__share">
+            {total > 0 ? ((row.bytes / total) * 100).toFixed(1) : "0.0"}%
+          </span>
+          <span className="breakdown__count">{formatBytes(row.bytes)}</span>
         </li>
       ))}
     </ul>

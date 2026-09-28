@@ -366,6 +366,106 @@ shortly after the first request rather than instantly.
   growing without bound.
 - A site missing from the figures is usually a log that is not in the
   `json_analytics` format, or one the console cannot read.
+
+---
+
+## Where the disk went
+
+A percentage answers "how full"; the lower half of `/console/vps` answers the
+question that follows and that a percentage cannot — *what is filling it*.
+Per scan it reports the total per watched location, the largest directories and
+files, and a per-service breakdown of the container runtime.
+
+This needs no privileges beyond the read-only rootfs mount the machine board
+already uses. In particular it does **not** mount the Docker socket. Doing so
+would grant the container the equivalent of root on the host — anyone able to
+run code in a console whose reads are public could then start a privileged
+container — and every figure here is obtainable by reading directories that
+are already visible.
+
+### Watch out for containerd
+
+The obvious place to look is `/var/lib/docker`. On current Ubuntu that is
+usually the wrong one: with Docker's containerd snapshotter the image layers
+live under `/var/lib/containerd`, and `/var/lib/docker` holds almost nothing.
+On this VPS the split is 11 GB against 1 GB. `DISK_SCAN_PATHS` therefore lists
+both, containerd first.
+
+### Naming services without the daemon
+
+Container directories are named by id, which is useless on a page. The name is
+read from each container's own
+`/var/lib/docker/containers/<id>/config.v2.json` — an ordinary file, where the
+alternative was the socket. A container whose config cannot be read falls back
+to its short id.
+
+Image layers are reported as one bulk figure per store rather than split
+across services. Attributing a layer to a service needs the daemon's index,
+and one honest total beats a breakdown that is guessed at.
+
+### Budgets, and why a figure can be a floor
+
+`overlay2` and containerd's snapshot store can hold millions of files, so the
+walk stops after `DISK_SCAN_ENTRY_BUDGET` entries (600k) or
+`DISK_SCAN_TIME_BUDGET_MS` (90s), whichever comes first. When it does, the
+board says the scan was cut short and every figure below it is a floor rather
+than a total. Silently reporting a number that is too small would be worse
+than saying so.
+
+Other deliberate choices in the walk:
+
+- **`blocks * 512`, not `size`.** What the filesystem gave a file, which is
+  what `du` reports and what a sparse file makes a nonsense of.
+- **Symlinks are never followed.** They invite cycles, and a link into another
+  tree would bill those bytes twice.
+- **Hard links are counted once**, by inode.
+- **One filesystem only.** A bind mount or a network share is not this disk.
+- **The scan is deferred a minute after boot** and then runs every half hour;
+  a full walk competing with application startup is the worst possible moment
+  for it. The page and `/api/monitor/disk` serve the last completed scan — an
+  endpoint that started a walk per request would be a denial-of-service handle
+  on the machine it reports on.
+
+Anything the unprivileged container cannot read is named in `unreadable[]`
+rather than quietly left out of the totals.
+
+---
+
+## Private pages
+
+Console reads are public by design — the status wall is portfolio evidence.
+`/console/integrate` is the exception: it documents how the estate is wired
+together, which is a map of the infrastructure rather than a report on it.
+
+It is locked behind the `CONSOLE_ADMIN_TOKEN` that already guards mutations,
+carried in a cookie so a browser can present it.
+
+| Behaviour | Why |
+|---|---|
+| Locked pages return **404**, not 403 | A "forbidden" page confirms there is something worth finding. |
+| The nav link is hidden when locked | Presentation only — the page checks for itself regardless. |
+| **No token set ⇒ the page stays hidden** | An unset secret must fail closed. Treating "no token" as "everyone is an admin" is how a private page goes public the moment an environment variable is forgotten. |
+
+> **Set `CONSOLE_ADMIN_TOKEN` before you need it.** With it empty, nobody —
+> including you — can open `/console/integrate`.
+
+### Unlocking
+
+Visit `/console/unlock` and submit the token. It is a plain server-rendered
+form posting to `/api/console/unlock`; there is no client JavaScript.
+
+The token is **not** accepted in a query string. This console tails its own
+nginx access log, so `?token=` would be written to disk by the feature on the
+next board over — as well as into browser history and any referrer the page
+emits.
+
+The cookie it sets is `HttpOnly` (no page script has cause to read it, so an
+XSS elsewhere cannot lift it), `SameSite=Lax` (a cross-site form post must not
+arrive already unlocked), `Secure` over https, and lasts 30 days. The `next`
+parameter is restricted to paths beginning `/console`, so the endpoint cannot
+be turned into an open redirect. "Lock again" is a POST, because a GET that
+logs you out is a link every prefetcher on the internet will follow.
+
 ---
 
 ## Storage
@@ -411,6 +511,15 @@ daily thereafter.
 | `HOST_ROOTFS` | `/` | Where the host's root filesystem is mounted, for disk usage. |
 | `NGINX_LOG_DIR` | `/var/log/nginx` | Comma-separated directories scanned for access logs. |
 | `NGINX_LOG_PATTERN` | `^access.*\.log$` | Which files in them to tail. |
+| `DISK_SCAN_PATHS` | see below | Host directories the disk breakdown walks, comma-separated. |
+| `DISK_SCAN_DEPTH` | `3` | How deep a directory is still listed individually. Sizes always recurse. |
+| `DISK_SCAN_INTERVAL_MS` | `1800000` | How often to re-walk. |
+| `DISK_SCAN_INITIAL_DELAY_MS` | `60000` | Delay before the first walk, so it misses application startup. |
+| `DISK_SCAN_ENTRY_BUDGET` | `600000` | Entries after which a walk stops and reports itself truncated. |
+| `DISK_SCAN_TIME_BUDGET_MS` | `90000` | The same, in wall-clock time. |
+
+`DISK_SCAN_PATHS` defaults to
+`/var/lib/containerd,/var/lib/docker,/var/log,/home,/var/www,/opt,/tmp`.
 | `CONSOLE_ADMIN_TOKEN` | *(unset)* | See [Access](#access). |
 | `CONSOLE_DISABLE_POLLER` | *(unset)* | Set to `1` to skip polling. **Required during builds.** |
 | `MONITOR_API_TOKEN` | *(unset)* | Referenced by name from a site's `auth.env`. |

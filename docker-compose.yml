@@ -14,6 +14,13 @@ services:
         SITE_URL: ${SITE_URL:-http://localhost:3000}
     container_name: dashboard-porto
     restart: unless-stopped
+    # Group 4 is `adm` on Debian and Ubuntu, which owns the nginx logs.
+    # logrotate recreates them as `0640 www-data adm` every night, so without
+    # this the traffic board works until the first rotation and then quietly
+    # reports nothing. Joining the group is read access to the logs and
+    # nothing else — the container still runs as the unprivileged `nextjs`.
+    group_add:
+      - "4"
     ports:
       - "3000:3000"
     environment:
@@ -44,6 +51,16 @@ services:
       # json_analytics format from docker/nginx.conf.
       - NGINX_LOG_DIR=${NGINX_LOG_DIR:-/host/var/log/nginx}
       - NGINX_LOG_PATTERN=${NGINX_LOG_PATTERN:-^access.*\.log$$}
+      # Which directories the disk breakdown walks, as the HOST sees them —
+      # they are resolved under HOST_ROOTFS. /var/lib/containerd comes first
+      # because Docker's containerd snapshotter puts image layers there, not
+      # under /var/lib/docker: on this VPS that is 11G against 1G.
+      - DISK_SCAN_PATHS=${DISK_SCAN_PATHS:-/var/lib/containerd,/var/lib/docker,/var/log,/home,/var/www,/opt,/tmp}
+      # A walk is expensive, so it runs on a slow timer with hard budgets.
+      # Hitting either marks the report truncated rather than under-reporting.
+      - DISK_SCAN_INTERVAL_MS=${DISK_SCAN_INTERVAL_MS:-1800000}
+      - DISK_SCAN_ENTRY_BUDGET=${DISK_SCAN_ENTRY_BUDGET:-600000}
+      - DISK_SCAN_TIME_BUDGET_MS=${DISK_SCAN_TIME_BUDGET_MS:-90000}
     volumes:
       # Time-series history AND the live site registry. Without this, every
       # redeploy resets uptime to zero and forgets apps added via the console.
