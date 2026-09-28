@@ -91,6 +91,16 @@ type WalkContext = {
   files: DiskEntry[];
   truncated: boolean;
   depthLimit: number;
+  /**
+   * Directories the walk could not open, with the reason.
+   *
+   * This exists because of a real failure: `/var/lib/containerd` is mode 0700
+   * and the console runs unprivileged, so an early version returned zero for
+   * the eleven gigabytes living there — and reported nothing wrong, because
+   * the root directory itself stats perfectly well and only `readdir` fails.
+   * A silent zero is the exact misreading this whole board exists to prevent.
+   */
+  denied: { path: string; error: string }[];
 };
 
 function overBudget(ctx: WalkContext): boolean {
@@ -136,8 +146,19 @@ function walk(dir: string, depth: number, ctx: WalkContext): number {
   let dirents: fs.Dirent[];
   try {
     dirents = fs.readdirSync(/*turbopackIgnore: true*/ dir, { withFileTypes: true });
-  } catch {
-    // Permission denied, or it vanished mid-walk. Either way, nothing to add.
+  } catch (error) {
+    const code =
+      error instanceof Error && "code" in error
+        ? String((error as NodeJS.ErrnoException).code)
+        : String(error);
+    // A directory that vanished mid-walk is noise. One we are not allowed to
+    // open is not: its contents are missing from every total above it, and
+    // saying so is the difference between "empty" and "invisible".
+    if (code !== "ENOENT") {
+      // Only the first few: a root-owned tree can deny thousands of times and
+      // the reason is the same every time.
+      if (ctx.denied.length < 10) ctx.denied.push({ path: hostPath(dir), error: code });
+    }
     return 0;
   }
 
@@ -327,11 +348,19 @@ export function scan(): DiskReport {
       files: [],
       truncated: false,
       depthLimit,
+      denied: [],
     };
 
     const bytes = walk(resolved, 1, ctx);
 
-    roots.push({ path: target, bytes, truncated: ctx.truncated || undefined });
+    // A root whose own listing was refused contributed nothing, and its total
+    // is not "zero" but "unknown". Flag it as incomplete either way.
+    roots.push({
+      path: target,
+      bytes,
+      truncated: ctx.truncated || ctx.denied.length > 0 || undefined,
+    });
+    unreadable.push(...ctx.denied);
     allDirs.push(...ctx.dirs);
     allFiles.push(...ctx.files);
     truncated = truncated || ctx.truncated;

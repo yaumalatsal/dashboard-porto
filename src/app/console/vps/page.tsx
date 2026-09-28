@@ -322,7 +322,14 @@ environment:
               <h2>By location</h2>
               <span className="panel__meta">bytes on disk</span>
             </div>
-            <SizeList rows={disk.roots.map((r) => ({ label: r.path, bytes: r.bytes }))} />
+            {/* A root the walk was refused entry to reports zero, which reads
+                as "empty" when it means "invisible". Say which it is. */}
+            <SizeList
+              rows={disk.roots.map((r) => ({
+                label: r.truncated ? `${r.path} — incomplete` : r.path,
+                bytes: r.bytes,
+              }))}
+            />
           </section>
 
           <section className="board-grid">
