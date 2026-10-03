@@ -1,72 +1,127 @@
 "use client";
 
-import { ArrowUp, Code2, Mail, Network } from "lucide-react";
-import { useRef } from "react";
-import { useGSAP } from "@gsap/react";
+/**
+ * The sign-off.
+ *
+ * Replaces a footer that was the generic three-column kind — name, a row of
+ * icons, a copyright line — with something that could only be this site's:
+ *
+ *   - a telemetry rule: real local time in Malang, its coordinates, and the
+ *     live state of the services this site's own console monitors. For
+ *     someone who builds and runs systems, that line is evidence, not chrome.
+ *   - the name at full width, sliding in on scroll — kprverse.com closes on a
+ *     wordmark the width of the page, and this is that idea in this palette.
+ *     The slide is a CSS scroll timeline (observatory.css), so this file
+ *     ships no animation library.
+ *
+ * The status is fetched once, only when the sign-off comes near the screen,
+ * and the clock only ticks while it is visible: until a visitor reaches the
+ * bottom of a page this component costs nothing.
+ */
+
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { ArrowUp } from "lucide-react";
 import { profile, socialLinks } from "@/data/portfolio";
-import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { gsap } from "@/lib/gsap-config";
+
+/** Malang, to the precision a postcard would give. */
+const COORDINATES = "7.97°S 112.63°E";
+
+type Fleet = { total: number; up: number } | null;
+
+function localTime(): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jakarta",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date());
+}
 
 export default function Footer() {
   const footerRef = useRef<HTMLElement>(null);
-  const prefersReducedMotion = useReducedMotion();
+  const [time, setTime] = useState<string | null>(null);
+  const [fleet, setFleet] = useState<Fleet>(null);
+  const [isNear, setIsNear] = useState(false);
 
-  useGSAP(
-    () => {
-      if (!footerRef.current || prefersReducedMotion) {
-        return;
-      }
+  // Wake only when the sign-off is about to be seen.
+  useEffect(() => {
+    const node = footerRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsNear(entry.isIntersecting),
+      { rootMargin: "400px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
-      gsap.timeline({
-        scrollTrigger: {
-          trigger: footerRef.current,
-          start: "top bottom",
-          end: "bottom bottom",
-          scrub: 0.7,
-        },
+  // Minute precision is all a clock in a footer needs, so it ticks twice a
+  // minute rather than every second — and not at all while out of view.
+  useEffect(() => {
+    if (!isNear) return;
+    const tick = () => setTime(localTime());
+    // The first reading goes through a callback like every later one, so the
+    // effect itself never sets state while it runs.
+    const first = window.setTimeout(tick, 0);
+    const timer = window.setInterval(tick, 30_000);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(timer);
+    };
+  }, [isNear]);
+
+  // Once per page view. A failed request just leaves the status out — the
+  // sign-off must never show a number it could not read.
+  useEffect(() => {
+    if (!isNear || fleet) return;
+    const controller = new AbortController();
+    fetch("/api/monitor/status", { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { sites?: { health?: string; hidden?: boolean }[] } | null) => {
+        const sites = (data?.sites ?? []).filter((site) => !site.hidden);
+        if (sites.length) setFleet({ total: sites.length, up: sites.filter((site) => site.health === "operational").length });
       })
-        .fromTo(".site-footer__seal", { yPercent: 38, scale: 0.84 }, { yPercent: 0, scale: 1, ease: "none" }, 0)
-        .fromTo(".site-footer__inner", { y: 70, opacity: 0.35 }, { y: 0, opacity: 1, ease: "none" }, 0.12);
-    },
-    { scope: footerRef, dependencies: [prefersReducedMotion] },
-  );
+      .catch(() => {});
+    return () => controller.abort();
+  }, [isNear, fleet]);
+
+  const fleetLabel = fleet
+    ? fleet.up === fleet.total
+      ? `${fleet.total} services operational`
+      : `${fleet.up} of ${fleet.total} services up`
+    : null;
+  const fleetTone = fleet ? (fleet.up === fleet.total ? "ok" : fleet.up === 0 ? "down" : "warn") : "";
 
   return (
-    <footer ref={footerRef} className="site-footer">
-      <div className="site-footer__instrument" data-instrument-trace aria-hidden="true">
-        <span /><span /><span /><i />
+    <footer ref={footerRef} className="sign-off">
+      <div className="sign-off__telemetry">
+        <span className="sign-off__end">End of transmission</span>
+        <span>
+          {time ? <>Malang <b>{time}</b> WIB</> : "Malang"} · {COORDINATES}
+        </span>
+        {fleetLabel && (
+          <Link href="/console" className={`sign-off__fleet sign-off__fleet--${fleetTone}`}>
+            {fleetLabel} ↗
+          </Link>
+        )}
       </div>
-      <div className="site-footer__seal" aria-hidden="true">Portfolio</div>
-      <div className="site-footer__inner">
-        <div>
-          <p className="site-footer__brand">{profile.name}</p>
-          <p>{profile.role}</p>
-        </div>
-        {/* Driven by the data rather than fixed positions: `socialLinks[1]`
-            threw the moment the placeholder LinkedIn entry was removed. */}
-        <div className="site-footer__links" aria-label="Social links">
-          {profile.email && (
-            <a href={`mailto:${profile.email}`} aria-label="Email" data-cursor="link">
-              <Mail size={17} />
-            </a>
-          )}
+
+      {/* Decorative: the name is also given as text in the line below. */}
+      <div className="sign-off__stage" aria-hidden="true">
+        <p className="sign-off__mark">{profile.shortName}</p>
+      </div>
+
+      <div className="sign-off__base">
+        <span>© {new Date().getFullYear()} {profile.name}</span>
+        <nav aria-label="Elsewhere">
+          {profile.email && <a href={`mailto:${profile.email}`}>Email</a>}
           {socialLinks.map((social) => (
-            <a
-              key={social.label}
-              href={social.href}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={social.label}
-              data-cursor="link"
-            >
-              {social.label === "GitHub" ? <Code2 size={17} /> : <Network size={17} />}
-            </a>
+            <a key={social.label} href={social.href} target="_blank" rel="noreferrer">{social.label}</a>
           ))}
-          <a href="#hero" aria-label="Back to top" data-cursor="link"><ArrowUp size={17} /></a>
-        </div>
-        <p className="site-footer__copyright">
-          {new Date().getFullYear()} / I build and operate this site in {profile.location}
-        </p>
+          <Link href="/resume">Résumé</Link>
+          <a href="#main-content" className="sign-off__top"><ArrowUp size={14} aria-hidden="true" /> Top</a>
+        </nav>
       </div>
     </footer>
   );

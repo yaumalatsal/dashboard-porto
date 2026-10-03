@@ -7,10 +7,18 @@
    is already long enough to be hard to reason about.
    ========================================================================== */
 
+/*
+ * Dark ink on the portfolio's paper. The sheet was written for the old dark
+ * shell — cream text — and when the shell turned light it became cream on
+ * cream, 1.07:1, effectively invisible. These values are measured against
+ * #f1f0e9: ink ~16:1, muted ~6:1, accent ~5.9:1, all above WCAG AA. The light
+ * gold of the rest of the page fails on paper, hence a separate accent.
+ */
 .resume {
-  --resume-ink: #f4e5c2;
-  --resume-muted: rgba(244, 229, 194, 0.72);
-  --resume-rule: rgba(216, 155, 78, 0.28);
+  --resume-ink: #171819;
+  --resume-muted: #55554f;
+  --resume-accent: #765709;
+  --resume-rule: rgba(23, 24, 25, 0.16);
   max-width: 52rem;
   margin: 0 auto;
   padding: 7.5rem var(--page-pad, 1.5rem) 6rem;
@@ -46,12 +54,12 @@
 }
 .resume__back:hover,
 .resume__print:hover {
-  border-color: var(--ember, #ddae5c);
-  background: rgba(169, 84, 50, 0.16);
+  border-color: var(--resume-accent);
+  background: rgba(231, 201, 111, 0.22);
 }
 .resume__back:focus-visible,
 .resume__print:focus-visible {
-  outline: 1px solid var(--copper, #a95432);
+  outline: 2px solid var(--resume-accent);
   outline-offset: 3px;
 }
 
@@ -75,7 +83,7 @@
   font-size: 0.8rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ember, #ddae5c);
+  color: var(--resume-accent);
 }
 .resume__contact {
   display: flex;
@@ -114,7 +122,7 @@
   font-weight: 400;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ember, #ddae5c);
+  color: var(--resume-accent);
 }
 
 .resume__entry {
@@ -149,7 +157,7 @@
   margin: 0.15rem 0 0.4rem;
   font-size: 0.85rem;
   letter-spacing: 0.02em;
-  color: var(--ember, #ddae5c);
+  color: var(--resume-accent);
 }
 .resume__entry p {
   margin: 0;
@@ -162,7 +170,7 @@
   font-family: var(--font-label);
   font-size: 0.75rem !important;
   letter-spacing: 0.04em;
-  color: rgba(244, 229, 194, 0.58) !important;
+  color: var(--resume-muted) !important;
 }
 
 .resume__caps {
@@ -242,6 +250,7 @@
   .site-nav,
   .mobile-nav,
   .site-footer,
+  .sign-off,
   .starfield,
   .cursor-layer,
   .scroll-progress,

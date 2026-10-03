@@ -35,7 +35,11 @@ export function celestialMapCoordinates(
   const constellation = constellationIdForStar(star);
   const ariesDisplay: Record<string, { longitude: number; latitude: number }> = {
     bharani: { longitude: 45, latitude: 25 },
-    botein: { longitude: 35, latitude: 0 },
+    // Botein sits below Hamal rather than level with it. Labels flip to the
+    // inward side of their star, so two stars on the same horizontal band
+    // point their text at each other: at latitude 0 this one's label landed
+    // on top of Hamal's in the rest orientation.
+    botein: { longitude: 36, latitude: -13 },
     hamal: { longitude: 0, latitude: 14 },
     sheratan: { longitude: -22, latitude: 0 },
     mesarthim: { longitude: -45, latitude: -16 },

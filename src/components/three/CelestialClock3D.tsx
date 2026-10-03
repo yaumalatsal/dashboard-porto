@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html, OrthographicCamera } from "@react-three/drei";
 import * as THREE from "three";
@@ -1409,6 +1409,39 @@ function ClockModel({
   );
 }
 
+/**
+ * Sets the render rate.
+ *
+ * At rest the instrument only drifts — a slow spin, a breathing camera — and
+ * that motion reads identically at 30fps. Each frame costs ~220 draw calls of
+ * main-thread work, so halving the idle rate halves what the hero charges a
+ * visitor who is just reading. The moment anyone touches it (drag, hover, a
+ * star selected or highlighted) it renders every frame, because input lag is
+ * where a low frame rate is actually felt.
+ *
+ * Animations advance by `delta`, so a lower rate changes smoothness, not speed.
+ */
+function FrameGovernor({ active }: { active: boolean }) {
+  const invalidate = useThree((state) => state.invalidate);
+
+  useEffect(() => {
+    const idleInterval = 1000 / 30;
+    let last = 0;
+    let frame = requestAnimationFrame(function loop(now) {
+      frame = requestAnimationFrame(loop);
+      // A millisecond of slack, or a 60Hz display lands just short of the
+      // interval on every other frame and drops to 20fps.
+      if (active || now - last >= idleInterval - 1) {
+        last = now;
+        invalidate();
+      }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [active, invalidate]);
+
+  return null;
+}
+
 export default function CelestialClock3D({
   onPointerDown,
   onPointerMove,
@@ -1421,6 +1454,30 @@ export default function CelestialClock3D({
   hoverZone,
   ...props
 }: CelestialClock3DProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  /*
+   * Render only while the instrument is on screen.
+   *
+   * R3F's default loop redraws the whole scene every frame for as long as the
+   * page is open, so a visitor reading the projects or the contact section was
+   * still paying for an astrolabe a thousand pixels above them. Stopping the
+   * loop costs nothing visible: the frame on screen when it scrolls out is the
+   * frame it comes back to. The margin starts it slightly before it re-enters,
+   * so the first visible frame is never a stale one.
+   */
+  const [isOnScreen, setIsOnScreen] = useState(true);
+  useEffect(() => {
+    const node = rootRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsOnScreen(entry.isIntersecting),
+      { rootMargin: "200px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   const piscesIds: Set<AstrolabeSection> = new Set(["pisces", "experience"]);
   const constellationSpotlight = piscesIds.has(props.selectedId!) || piscesIds.has(props.hoveredId!)
     ? "pisces"
@@ -1430,6 +1487,7 @@ export default function CelestialClock3D({
 
   return (
     <div
+      ref={rootRef}
       className={`celestial-clock-3d${isDragging ? " is-dragging" : ""}${isSpinning ? " is-spinning" : ""}`}
       role="group"
       tabIndex={0}
@@ -1448,12 +1506,15 @@ export default function CelestialClock3D({
       <Canvas
         orthographic
         camera={{ position: [0, 0, 14], zoom: 96 }}
+        // "demand": frames are requested by FrameGovernor, not drawn by default.
+        frameloop={isOnScreen ? "demand" : "never"}
         dpr={[1, 1.5]}
         // R3F puts pointer-events:auto inline on its container, which no stylesheet rule
         // can outrank. The instrument's hit area is .orrery__surface instead.
         style={{ pointerEvents: "none" }}
         gl={{ alpha: true, antialias: true, logarithmicDepthBuffer: true, stencil: false, powerPreference: "high-performance" }}
       >
+        <FrameGovernor active={Boolean(isDragging || isSpinning || props.isPointerOver || props.selectedId || props.hoveredId)} />
         <CameraRig zoomRef={zoomRef} reducedMotion={props.reducedMotion} isFocused={Boolean(props.selectedId)} isPointerOver={props.isPointerOver} />
         <ambientLight intensity={2.2} color="#ffffff" />
         <ClockModel {...props} />

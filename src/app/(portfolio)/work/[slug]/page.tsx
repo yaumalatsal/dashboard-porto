@@ -43,7 +43,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
         </div>
         <div className="section-shell">
           <Link href="/#work" className="case-study-back-link" data-cursor="link">
-            <ArrowLeft size={16} /> Back to field records
+            <ArrowLeft size={16} /> Back to projects
           </Link>
 
           <SectionLabel number={project.number} label={project.category} />
@@ -97,7 +97,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
         <div className="section-shell">
           <div className="case-study-content-grid">
             <div className="case-study-main">
-              <h2>Brief</h2>
+              <h2>About this project</h2>
               <p className="lead-text">{project.overview}</p>
 
               <h2>What I found</h2>
@@ -106,7 +106,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
               <h2>What I built</h2>
               <p>{project.solution}</p>
 
-              <h2>Architecture</h2>
+              <h2>How it works</h2>
               <ul className="architecture-list">
                 {project.architecture.map((item, idx) => (
                   <li key={idx}>
@@ -135,7 +135,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
               )}
 
               <div className="sidebar-card">
-                <h3><ShieldCheck size={18} /> Tech Stack</h3>
+                <h3><ShieldCheck size={18} /> Tools used</h3>
                 <div className="tags-flex">
                   {project.techStack.map((tech) => (
                     <span key={tech} className="tech-tag">{tech}</span>

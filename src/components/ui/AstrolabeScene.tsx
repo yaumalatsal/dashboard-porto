@@ -45,13 +45,13 @@ const portfolioStar = (key: string, content: PortfolioStarContent): OrreryStar =
 };
 
 const stars: OrreryStar[] = [
-  portfolioStar("bharani", { id: "hero", chapter: "Start", title: profile.shortName, story: "I build web systems and I operate the networks below them.", level: "00", status: "Origin charted" }),
-  portfolioStar("botein", { id: "contact", chapter: "Contact", title: "Bring the difficult map", story: "Selected commissions for digital products, interactive stories, service platforms, and systems that cross disciplines.", level: "05", status: "Signal open" }),
-  portfolioStar("hamal", { id: "about", chapter: "About", title: "Making terrain legible", story: "I turn complex product and infrastructure problems into clear, expressive systems people can understand and use.", level: "01", status: "Primary route" }),
-  portfolioStar("sheratan", { id: "work", chapter: "Projects", title: "Systems in context", story: "Selected work spanning observability, immersive storytelling, service operations, and design systems.", level: "02", status: "Four records" }),
-  portfolioStar("mesarthim", { id: "skills", chapter: "Capabilities", title: "Four working layers", story: "Direction, product engineering, infrastructure, and operations form a single practical toolkit.", level: "03", status: "Kit calibrated" }),
-  portfolioStar("eta-psc", { id: "experience", chapter: "Field Journal", title: "Beyond the workbench", story: "Conferences spoken at, communities built, and organisations shaped outside the daily practice.", level: "04", status: "Signal active" }),
-  portfolioStar("alrescha", { id: "pisces", chapter: "The Knot", title: "Binding the threads", story: "Connecting disparate systems into a unified whole, just as Alrescha binds the two fishes.", level: "06", status: "New signal" }),
+  portfolioStar("bharani", { id: "hero", chapter: "Home", title: profile.shortName, story: profile.tagline, level: "00", status: "Introduction" }),
+  portfolioStar("botein", { id: "contact", chapter: "Contact", title: "Contact", story: profile.availability, level: "06", status: "Email me" }),
+  portfolioStar("hamal", { id: "about", chapter: "About", title: "About me", story: profile.bio, level: "02", status: "My background" }),
+  portfolioStar("sheratan", { id: "work", chapter: "Projects", title: "Projects", story: "Some of the applications I built.", level: "01", status: "View projects" }),
+  portfolioStar("mesarthim", { id: "skills", chapter: "Skills", title: "Skills and tools", story: profile.practiceLead, level: "03", status: "Tools I use" }),
+  portfolioStar("eta-psc", { id: "experience", chapter: "Experience", title: "Experience", story: "My jobs, research, and community activities.", level: "04", status: "Work history" }),
+  portfolioStar("alrescha", { id: "pisces", chapter: "About", title: "About me", story: profile.bio, level: "02", status: "My background" }),
 ];
 
 const rimGripPositions = ["north", "east", "south", "west"] as const;
@@ -154,14 +154,16 @@ export default function AstrolabeScene() {
   const activeHoverId = hoveredId ?? navHoveredPoint;
   const hoveredStar = stars.find((star) => star.id === activeHoverId) ?? null;
 
-  // These write to the DOM through refs and read no state, so they are
-  // declared before every effect that calls them and memoised once.
-  const updateSpinCss = useCallback(() => {
-    if (sceneRef.current) {
-      sceneRef.current.style.setProperty("--spin-angle", `${discRotationRef.current.toFixed(2)}deg`);
-    }
-    document.documentElement.style.setProperty("--orbit-drift", `${(Math.sin((discRotationRef.current * 0.12 * Math.PI) / 180) * 2.5).toFixed(3)}deg`);
-  }, []);
+  /*
+   * This used to mirror discRotationRef into two CSS custom properties on every
+   * frame: --spin-angle on the scene and --orbit-drift on <html>. Nothing reads
+   * either any more — their consumers were the CSS gears and hero orbit that the
+   * WebGL instrument replaced — but writing an inherited property on <html>
+   * still forced a style recalculation of the entire document, every frame,
+   * for as long as the page was open. At 4x CPU throttle that was ~97ms a
+   * frame: the single largest cost on the page. The 3D scene reads the ref
+   * directly (driveRotationRef), so the ref alone is enough.
+   */
 
   /** Turns the sphere's current attitude into the coordinates the instrument is reading. */
   const updateReadout = useCallback((rotateX: number, rotateY: number) => {
@@ -176,25 +178,22 @@ export default function AstrolabeScene() {
       const previous = manualRotationRef.current;
       manualRotationRef.current = { x: rotateX, y: rotateY };
       discRotationRef.current += (rotateY - previous.y) * 0.055 - (rotateX - previous.x) * 0.035;
-      updateSpinCss();
       updateReadout(rotateX, rotateY);
       sceneRef.current?.querySelector(".celestial-clock-3d")?.setAttribute("data-globe-rotation", `${rotateX.toFixed(2)},${rotateY.toFixed(2)}`);
     },
-    [updateSpinCss, updateReadout],
+    [updateReadout],
   );
 
   useEffect(() => {
     updateReadout(manualRotationRef.current.x, manualRotationRef.current.y);
 
     let animationFrameId: number;
+    // Advances the idle drive that the 3D scene reads. Touches no DOM: see the
+    // note above on why this no longer writes CSS properties.
     const tick = () => {
       if (!isDragging && !isDiscDragging) {
         discRotationRef.current += hasInteractedRef.current ? 0.045 : 0.08;
-        if (sceneRef.current) {
-          sceneRef.current.style.setProperty("--spin-angle", `${discRotationRef.current.toFixed(2)}deg`);
-        }
       }
-      document.documentElement.style.setProperty("--orbit-drift", `${(Math.sin((discRotationRef.current * 0.12 * Math.PI) / 180) * 2.5).toFixed(3)}deg`);
       animationFrameId = requestAnimationFrame(tick);
     };
     if (!prefersReducedMotion) {
@@ -214,7 +213,6 @@ export default function AstrolabeScene() {
 
   const setInstrumentZoom = (zoom: number) => {
     zoomRef.current = zoom;
-    sceneRef.current?.style.setProperty("--instrument-zoom", zoom.toFixed(3));
     sceneRef.current?.querySelector(".celestial-clock-3d")?.setAttribute("data-camera-zoom", zoom.toFixed(3));
   };
 
@@ -235,7 +233,6 @@ export default function AstrolabeScene() {
   const orientDisc = (rotateX: number, rotateY: number, commit = false, driveDelta = 0) => {
     discOrientationRef.current = { x: rotateX, y: rotateY };
     discRotationRef.current += driveDelta;
-    updateSpinCss();
     rimControlRef.current?.setAttribute("aria-label", `Rotate the complete celestial instrument in three dimensions. Current pitch ${Math.round(rotateX)} degrees, yaw ${Math.round(normaliseYaw(rotateY))} degrees`);
     sceneRef.current?.querySelector(".celestial-clock-3d")?.setAttribute("data-instrument-orientation", `${rotateX.toFixed(2)},${rotateY.toFixed(2)}`);
 
@@ -674,13 +671,13 @@ export default function AstrolabeScene() {
     setActiveSection(star.id);
 
     if (star.id === "hero") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
       return;
     }
 
     document
-      .getElementById(star.id)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      .getElementById(star.id === "pisces" ? "about" : star.id)
+      ?.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
   };
 
   const handleStarHover = (id: AstrolabeSection | null) => {
@@ -875,7 +872,7 @@ export default function AstrolabeScene() {
         <div ref={mapRef} className="orrery-map" aria-live="polite">
           <div className={`orrery-map-preview${hoveredStar && !selectedStar ? " is-visible" : ""}`} aria-live="polite">
             {hoveredStar && !selectedStar && <>
-              <p>Level {hoveredStar.level} / {hoveredStar.designation}</p>
+              <p>Section {hoveredStar.level} / {hoveredStar.designation}</p>
               <span>{hoveredStar.status}</span>
               <strong>{hoveredStar.chapter}</strong>
             </>}
@@ -902,7 +899,7 @@ export default function AstrolabeScene() {
       <div className={`orrery__guide${hasOpenedChapter ? " is-learned" : ""}`}>
         <p className="orrery__instruction">
           <span className="orrery__instruction-mark" aria-hidden="true" />
-          Turn the instrument. <span>Select a star to go to that section.</span>
+          Drag to rotate. <span>Select a star to visit a section.</span>
         </p>
       </div>
     </div>

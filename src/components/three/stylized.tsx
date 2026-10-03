@@ -6,19 +6,19 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 
 /**
  * Shared vocabulary for the 2.5D-illustrated look, translated to real geometry:
- * flat banded toon shading, thick dark contours, a limited brass/amethyst palette.
+ * flat banded toon shading, thick dark contours, a limited gold/amethyst palette.
  * Everything here survives a full 360 turn because the outlines are inverted hulls
  * rather than painted-on edges.
  */
 
 export const palette = {
   outline: "#1b1218",
-  caseBack: "#3a2a22",
-  brassDeep: "#7a5223",
-  brass: "#bd8734",
-  brassLight: "#e3ba63",
-  brassPale: "#f7e3a8",
-  engrave: "#42291a",
+  caseBack: "#302c26",
+  brassDeep: "#8a702b",
+  brass: "#d6b64f",
+  brassLight: "#efd784",
+  brassPale: "#fff0b5",
+  engrave: "#443919",
   amethyst: "#6b398c",
   amethystLight: "#b174d6",
   /**

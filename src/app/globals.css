@@ -49,7 +49,14 @@ body {
   font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.65;
-  overflow-x: hidden;
+  /* clip, not hidden. With <html> also clipping (overflow-x: clip, below), the
+     body's overflow is not handed to the viewport, so "hidden" made <body> a
+     scroll container in its own right — one that never scrolls. Anything that
+     looks for the nearest scroller then found the body instead of the window:
+     CSS scroll timelines (view()) froze at their page-load progress, and
+     sticky positioning measured against a box that does not move. clip cuts
+     the same overflow without creating a scroller. */
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
 }
 a { color: inherit; text-decoration: none; }
@@ -1456,7 +1463,11 @@ body:has(.astrolabe-scene.is-reading) .cursor-ring span, body:has(.astrolabe-sce
 .orrery-detail__experiences small { color: rgba(244, 231, 200, 0.38); font-family: var(--font-label); font-size: 0.3rem; line-height: 1.25; text-transform: uppercase; }
 @keyframes map-detail-arrive { from { opacity: 0; transform: scale(0.84); } to { opacity: 1; transform: scale(1); } }
 @keyframes map-scrim-arrive { from { opacity: 0; } to { opacity: 1; } }
-@keyframes guide-beacon { 0%, 100% { opacity: 0.55; box-shadow: 0 0 0 0.18rem rgba(240, 204, 124, 0.1); } 50% { opacity: 1; box-shadow: 0 0 0 0.34rem rgba(240, 204, 124, 0.2); } }
+/* The halo is a pseudo-element that scales, rather than an animated box-shadow:
+   box-shadow cannot run on the compositor, so the old version restyled and
+   repainted the mark on the main thread every frame, forever. */
+@keyframes guide-beacon { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes guide-beacon-halo { 0%, 100% { transform: scale(1.4); opacity: 0.1; } 50% { transform: scale(1.75); opacity: 0.22; } }
 
 /* ── Staggered detail panel entry ── */
 @keyframes detail-stagger-in {
@@ -1502,7 +1513,8 @@ body:has(.astrolabe-scene.is-reading) .cursor-ring span, body:has(.astrolabe-sce
 .orrery__guide { position: absolute; left: 50%; bottom: -2.5%; z-index: 70; display: grid; justify-items: center; gap: 0.5rem; width: max-content; max-width: 96%; transform: translateX(-50%); pointer-events: none; transition: opacity 400ms ease; }
 .orrery__instruction { position: static; display: flex; align-items: center; gap: 0.55rem; margin: 0; font-family: var(--font-label); font-size: 0.7rem; line-height: 1.45; color: var(--ink); text-transform: uppercase; text-shadow: 0 2px 12px #08030f; }
 .orrery__instruction span { color: rgba(244, 231, 200, 0.5); }
-.orrery__instruction-mark { display: block; width: 0.46rem; aspect-ratio: 1; border-radius: 50%; background: var(--ember); animation: guide-beacon 2.4s ease-in-out infinite; }
+.orrery__instruction-mark { position: relative; display: block; width: 0.46rem; aspect-ratio: 1; border-radius: 50%; background: var(--ember); animation: guide-beacon 2.4s ease-in-out infinite; }
+.orrery__instruction-mark::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: rgb(240, 204, 124); animation: guide-beacon-halo 2.4s ease-in-out infinite; pointer-events: none; }
 /* Once a chapter has been opened the invitation has landed; only the gesture legend stays. */
 .orrery__guide.is-learned .orrery__instruction { display: none; }
 

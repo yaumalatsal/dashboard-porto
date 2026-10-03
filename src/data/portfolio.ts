@@ -38,18 +38,18 @@ export const profile = {
   /** Two lines on purpose. Four words on one line are too wide for the column. */
   nameLines: ["Mohammad Dzaki", "Yaumal Atsal"],
   role: "Web Systems and Network Engineer",
-  tagline: "I build web systems. I also operate the networks below them.",
+  tagline: "I build web applications and look after networks.",
   email: "mdzakiyaumal18@gmail.com",
   phone: "+62 812 4960 2770",
   location: "Malang, Indonesia",
-  availability: "I am open to a full-time role and to freelance work",
+  availability: "I am available for full-time and freelance work",
   heroSummary:
-    "I design the full path: the interface, the data, the deployment, the server, and the network that connects them.",
-  bio: "I build web systems for organisations that depend on them. My clients include an industrial smelter, a government health agency and a logistics enterprise. I started in computer networks, so I design the full path. I write the interface, the database behind it, and I run the server below both.",
+    "I work on the website, database, and server. I also help with network setup and maintenance.",
+  bio: "I started with computer networks and later moved into web development. My work includes projects for a smelter, a health agency, and a logistics company. I build applications and help maintain their servers and networks.",
   practiceLead:
-    "I work across three linked layers. I design the experience, the software rules, and the infrastructure that keeps both available.",
+    "These are the tools and skills I use in my work.",
   practiceSummary:
-    "I start with the real workflow and its constraints. I then build the smallest system that can run reliably.",
+    "I ask how people do their work, then build something that helps with it.",
 } as const;
 
 export const practiceSteps = [
@@ -230,7 +230,7 @@ export const projects: ProjectData[] = [
     chapter: "Project 01",
     description:
       "A web system that holds the performance data of every work area of the Surabaya Health Quarantine Centre.",
-    outcome: "I designed, built and deployed the system alone.",
+    outcome: "I designed, built and deployed the system.",
     images: [
       "/images/projects/simaksi-live.png",
       "/images/projects/simaksi-card.png",

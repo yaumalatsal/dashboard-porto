@@ -65,7 +65,7 @@ export default function IntroLoader() {
         <span /><span /><span />
       </div>
       <p data-loader-name>{profile.shortName}</p>
-      <span className="intro-loader__caption">Preparing the field guide</span>
+      <span className="intro-loader__caption">Loading portfolio</span>
     </div>
   );
 }

@@ -5,12 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useLenis } from "lenis/react";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useUiStore, type AstrolabeSection } from "@/stores/uiStore";
 import { experiences, profile } from "@/data/portfolio";
 
 const allLinks = [
-  { section: "about" as AstrolabeSection, href: "#about", label: "About" },
   { section: "work" as AstrolabeSection, href: "#work", label: "Projects" },
+  { section: "about" as AstrolabeSection, href: "#about", label: "About" },
   { section: "skills" as AstrolabeSection, href: "#skills", label: "Skills" },
   { section: "operations" as AstrolabeSection, href: "#operations", label: "Live Systems" },
   { section: "experience" as AstrolabeSection, href: "#experience", label: "Experience" },
@@ -30,6 +31,7 @@ const links = allLinks.filter(
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const prefersReducedMotion = useReducedMotion();
 
   // The sections only exist on the homepage. On a case study the same links
   // pointed at "#about", found no such element and stopped — the click was
@@ -102,7 +104,7 @@ export default function Navigation() {
         lenis.start();
         lenis.scrollTo(0);
       }
-      else window.scrollTo({ top: 0, behavior: "smooth" });
+      else window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
       return;
     }
 
@@ -113,9 +115,9 @@ export default function Navigation() {
       // The mobile menu stops Lenis while it is open. React applies the menu
       // state on the next render, so restart it here before asking it to move.
       lenis.start();
-      lenis.scrollTo(target, { offset: -72 });
+      lenis.scrollTo(target, { offset: -95 });
     }
-    else target.scrollIntoView({ behavior: "smooth", block: "start" });
+    else target.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
   };
 
   // Each header entry is a star on the instrument. Pointing at one lights its coordinate
@@ -137,7 +139,7 @@ export default function Navigation() {
           </a>
 
           <div className="site-nav__links">
-            {links.map((link, index) => (
+            {links.filter(link => ["work", "about", "experience", "contact"].includes(link.section)).map((link, index) => (
               <a
                 key={link.href}
                 href={onHomepage ? link.href : `/${link.href}`}
@@ -193,10 +195,10 @@ export default function Navigation() {
             </a>
           ))}
         </div>
-        <Link href="/resume" className="mobile-nav__console" tabIndex={isMenuOpen ? 0 : -1}>
+        <Link href="/resume" className="mobile-nav__console" onClick={() => setMenuOpen(false)} tabIndex={isMenuOpen ? 0 : -1}>
           Résumé
         </Link>
-        <Link href="/console" className="mobile-nav__console" tabIndex={isMenuOpen ? 0 : -1}>
+        <Link href="/console" className="mobile-nav__console" onClick={() => setMenuOpen(false)} tabIndex={isMenuOpen ? 0 : -1}>
           Console <span aria-hidden="true">↗</span>
         </Link>
         <p className="mobile-nav__footer">{profile.role} / {profile.location}</p>
