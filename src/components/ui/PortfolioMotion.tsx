@@ -94,12 +94,10 @@ export default function PortfolioMotion({ children }: { children: ReactNode }) {
       };
     });
 
-    gsap.utils.toArray<HTMLElement>(".obs-section-heading, .obs-project-title, .obs-about-copy, .obs-capabilities article").forEach(element => {
-      gsap.from(element, {
-        y: 30, opacity: 0, duration: 0.7, ease: "power2.out",
-        scrollTrigger: { trigger: element, start: "top 94%", once: true },
-      });
-    });
+    // The once-only fade-up that used to run here on headings, project titles
+    // and cards is gone: headings now decode in and paragraphs flow in
+    // (SignalLayer.tsx), and a container fading while its text also animates
+    // reads as two effects fighting.
     return () => media.revert();
   }, { scope: root, dependencies: [reducedMotion], revertOnUpdate: true });
 

@@ -1509,6 +1509,14 @@ export default function CelestialClock3D({
         // "demand": frames are requested by FrameGovernor, not drawn by default.
         frameloop={isOnScreen ? "demand" : "never"}
         dpr={[1, 1.5]}
+        // Measure the canvas by its layout size, and do not re-measure on scroll.
+        // By default R3F reads getBoundingClientRect, which includes CSS
+        // transforms — and the hero scales this instrument up by 12% as the
+        // page scrolls. R3F took that for the container growing and resized the
+        // WebGL drawing buffer again and again (1245 -> 1395px over one screen
+        // of scroll), each reallocation a ~300ms main-thread stall. The layout
+        // size never changes; only the transform does.
+        resize={{ offsetSize: true, scroll: false }}
         // R3F puts pointer-events:auto inline on its container, which no stylesheet rule
         // can outrank. The instrument's hit area is .orrery__surface instead.
         style={{ pointerEvents: "none" }}

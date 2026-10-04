@@ -653,3 +653,21 @@
     .obs-project-image img { animation: obs-img-pan linear both; animation-timeline: view(); }
   }
 }
+
+/* ======================================================================
+   Long text flows in rather than decoding (SignalLayer.tsx).
+
+   Paragraphs below the fold are held back (.is-pending) when the page
+   settles and released, a beat apart, as they reach the screen. Only
+   opacity and transform move, so it is composited. Nothing is hidden until
+   script runs and nothing stays hidden if it stops: the class is removed on
+   teardown, and under reduced motion it is never added.
+   ====================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  .obs-flow {
+    transition: opacity .85s cubic-bezier(.2, .7, .2, 1) var(--flow-delay, 0ms),
+                transform .95s cubic-bezier(.2, .7, .2, 1) var(--flow-delay, 0ms);
+  }
+  .obs-flow.is-pending { opacity: 0; transform: translateY(18px); }
+}
+@media print { .obs-flow.is-pending { opacity: 1; transform: none; } }
