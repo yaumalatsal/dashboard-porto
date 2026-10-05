@@ -16,12 +16,12 @@ import {
   type ConstellationId,
 } from "@/data/constellations";
 import {
-  FlatPart,
-  ToonPart,
+  FlatPart as BaseFlatPart,
+  ToonPart as BaseToonPart,
   bandGeometry,
   discGeometry,
   mergeParts,
-  palette,
+  palette as basePalette,
   radialMerge,
   useGeometryKit,
 } from "@/components/three/stylized";
@@ -41,6 +41,62 @@ import {
   wheelAngle,
   type Transmission,
 } from "@/components/three/mechanism";
+
+/*
+ * The instrument, dressed for this page.
+ *
+ * It began life as a standalone piece, brass and violet with heavy black
+ * contours, and sat in the hero like a game asset dropped onto an editorial
+ * layout: everything else here is flat, hairline and ink, with one butter gold
+ * and a handful of pastel accents. Three changes bring it into that language:
+ *
+ *   - metal is the page gold, with a cool graphite shadow in place of olive
+ *     bronze, and the highlight is the warm paper tone;
+ *   - the globe is ink with a lilac cast rather than saturated violet, so the
+ *     hero background reads through it and the gold stays the only loud colour;
+ *   - the amethyst accents (graticule, Pisces figure, glows) take the iridescent
+ *     pastels used across the rest of the page.
+ *
+ * Everything is overridden here, not in stylized.tsx, because the orrery lab
+ * shares that palette and should keep its own look.
+ */
+const palette = {
+  ...basePalette,
+  caseBack: "#15161b",
+  brassDeep: "#4d4e59",
+  brass: "#e7c96f",
+  brassLight: "#f1dc8e",
+  brassPale: "#faf1cf",
+  engrave: "#26262c",
+  amethyst: "#7f74c4",
+  amethystLight: "#b9a6f1",
+  jewel: "#3a3b45",
+  void: "#25233b",
+  voidDeep: "#101016",
+  starCore: "#fbf6e4",
+  starGold: "#f1dc8e",
+  sky: "#8fd9ef",
+  mint: "#9ee0cd",
+} as const;
+
+/**
+ * Contour weight, as a fraction of what each part asks for. The heavy black
+ * line is what made the instrument read as an illustration pasted over the
+ * page; at about half it still separates the shapes but stops dominating them.
+ */
+const OUTLINE_SCALE = 0.5;
+const TOON_DEFAULT_OUTLINE = 0.028;
+
+type ToonProps = Parameters<typeof BaseToonPart>[0];
+type FlatProps = Parameters<typeof BaseFlatPart>[0];
+
+function ToonPart({ outline = TOON_DEFAULT_OUTLINE, ...props }: ToonProps) {
+  return <BaseToonPart {...props} outline={outline * OUTLINE_SCALE} />;
+}
+
+function FlatPart({ outline = 0, ...props }: FlatProps) {
+  return <BaseFlatPart {...props} outline={outline * OUTLINE_SCALE} />;
+}
 
 export type ClockStar = {
   id: AstrolabeSection;
@@ -444,7 +500,7 @@ function GlobeOrbitRing({
   return (
     <group ref={ringRef} position={[0, 0, 0.06]}>
       <FlatPart geometry={kit.rail} color={palette.brassPale} opacity={0.68} />
-      <FlatPart geometry={kit.railInset} color={palette.amethystLight} opacity={0.34} />
+      <FlatPart geometry={kit.railInset} color={palette.mint} opacity={0.4} />
       <group ref={carrierRef} position={[GLOBE_RADIUS + 0.17, 0, 0.16]}>
         <FlatPart geometry={kit.carrier} color={palette.starGold} outline={0.018} />
         <FlatPart geometry={kit.carrierCap} color={palette.jewel} outline={0.014} position={[0, 0, 0.08]} rotation={[Math.PI / 2, 0, 0]} />
@@ -559,7 +615,7 @@ function GlobeAtmosphere({
     <mesh ref={meshRef} geometry={geometry}>
       <meshBasicMaterial
         ref={materialRef}
-        color="#a06cd5"
+        color={palette.amethystLight}
         transparent
         opacity={0.06}
         depthWrite={false}
@@ -1038,7 +1094,7 @@ function Globe({
 
       {/* The ecliptic and its twelve signs now live on the cage ring, off the map's face. */}
       <FlatPart geometry={kit.graticuleGold} color={palette.brassPale} opacity={0.7} />
-      <FlatPart geometry={kit.graticuleViolet} color={palette.amethystLight} opacity={0.26} />
+      <FlatPart geometry={kit.graticuleViolet} color={palette.sky} opacity={0.34} />
 
       <CelestialDust reducedMotion={reducedMotion} />
 

@@ -671,3 +671,16 @@
   .obs-flow.is-pending { opacity: 0; transform: translateY(18px); }
 }
 @media print { .obs-flow.is-pending { opacity: 1; transform: none; } }
+
+/* ======================================================================
+   Instrument controls, in the page's own colours.
+   The shared orrery styles tint the active map and the reset hover with
+   violet; here they take the same gold-on-ink treatment as the Console
+   button, so the controls and the instrument read as part of the page.
+   Scoped to the portfolio hero: the orrery lab keeps its own look.
+   ====================================================================== */
+.observatory .obs-astrolabe-panel .orrery-map-switch button[aria-pressed="true"] { color: #14151a; background: var(--gold); }
+.observatory .obs-astrolabe-panel .orrery-map-switch button[aria-pressed="true"]:hover,
+.observatory .obs-astrolabe-panel .orrery-map-switch button[aria-pressed="true"]:focus-visible { color: #14151a; }
+.observatory .obs-astrolabe-panel .orrery__reset:hover,
+.observatory .obs-astrolabe-panel .orrery__reset:focus-visible { background: #1d1e24f2; border-color: var(--gold); }
