@@ -51,8 +51,11 @@ import {
  * layout: everything else here is flat, hairline and ink, with one butter gold
  * and a handful of pastel accents. Three changes bring it into that language:
  *
- *   - metal is the page gold (--gold, --ember), its shadow the neutral
- *     charcoal of the page's dark panels, and the highlight the paper cream;
+ *   - metal is a rich amber gold, warmer and deeper than the flat --gold so
+ *     it does not wash out to cream under the toon banding; the dark parts
+ *     (case, meridian ring, gear bands) are deep teal rather than black, the
+ *     dark end of the --iri-sky/--iri-mint hues the globe glows in, and the
+ *     bearing jewels are coral;
  *   - the globe is the hero's own ink, a step lighter than the background,
  *     with no violet cast at all: the hero now has a faint gold glow, not a
  *     purple one, and gold stays the only loud colour;
@@ -69,16 +72,16 @@ import {
  */
 const palette = {
   ...basePalette,
-  outline: "#0c0d10",
-  caseBack: "#18191d",
-  brassDeep: "#3a3b40",
-  brass: "#e7c96f",
-  brassLight: "#f1d994",
-  brassPale: "#f5f2e9",
-  engrave: "#25262a",
+  outline: "#081a1e",
+  caseBack: "#0f3038",
+  brassDeep: "#1d6572",
+  brass: "#ebb847",
+  brassLight: "#f5d06c",
+  brassPale: "#fae2a0",
+  engrave: "#123f48",
   amethyst: "#b9a6f1",
   amethystLight: "#b9a6f1",
-  jewel: "#2a2b30",
+  jewel: "#e58f6f",
   void: "#1b1c21",
   voidDeep: "#101116",
   starCore: "#f5f2e9",
