@@ -6,9 +6,10 @@
  *
  * Text gets one of two treatments, chosen by how long it is:
  *
- *   SHORT text (headings, titles, labels, links, tags) decodes: characters
- *   type in behind a band of noise the first time they reach the screen, and
- *   links and titles replay a pass of that noise on hover.
+ *   SHORT labels (the monospaced captions, tags and nav links) decode:
+ *   characters type in behind a band of noise the first time they reach the
+ *   screen, and links replay a pass of that noise on hover. Headings and
+ *   names do not: they must stay readable from the first frame.
  *
  *   LONG text (paragraphs) flows: it rises into place a line of reading at a
  *   time. Decoding a paragraph would make it unreadable for the second or two
@@ -38,12 +39,15 @@ type Rule = {
   speed?: number;
 };
 
-/** Decode in once, when first seen. The first rule to claim an element wins. */
+/**
+ * Decode in once, when first seen. The first rule to claim an element wins.
+ *
+ * Only small monospaced labels decode. Headings, names and titles used to as
+ * well, and with a dozen runs going at once the page read as corrupted text:
+ * a heading in noise is a heading nobody can read. Headings keep their slide
+ * (observatory.css), which is motion without making the words illegible.
+ */
 const ENTER: Rule[] = [
-  { select: ".obs-hero-title", speed: 0.8 },
-  { select: "#main-content :is(h1, h2, h3)", speed: 0.85 },
-  { select: ".obs-hero-statement, .obs-education article > p:not(.obs-label)", speed: 0.55 },
-  { select: ".obs-archive > a > span:first-child", speed: 0.7 },
   {
     select: [
       "[data-scramble]",
@@ -55,10 +59,6 @@ const ENTER: Rule[] = [
       ".obs-project-bar > span",
       ".obs-tags span",
       ".obs-archive small",
-      ".obs-experience-list small",
-      ".obs-text-link",
-      ".obs-button",
-      ".obs-contact-email",
       ".site-nav__links a",
       ".site-nav__resume",
       ".site-nav__console",
@@ -70,10 +70,8 @@ const ENTER: Rule[] = [
 
 /** Replay a sweep of noise on hover. */
 const HOVER: Rule[] = [
-  { select: ".obs-archive > a", parts: ":scope > span:first-child, small" },
-  { select: ".obs-project", parts: "h3, .obs-project-bar > span" },
-  { select: ".obs-experience-list summary", parts: "strong, small" },
-  { select: ".obs-capabilities article", parts: "h3" },
+  { select: ".obs-archive > a", parts: "small" },
+  { select: ".obs-project", parts: ".obs-project-bar > span" },
   {
     select: [
       "[data-scramble-hover]",
@@ -176,7 +174,7 @@ export default function SignalLayer() {
           for (const entry of entries) {
             if (!entry.isIntersecting) continue;
             enterObserver?.unobserve(entry.target);
-            const job = claim(entry.target, jobs.length * 70);
+            const job = claim(entry.target, jobs.length * 40);
             if (job) jobs.push(job);
           }
           decodeAll(jobs);
@@ -195,7 +193,7 @@ export default function SignalLayer() {
         if (decoded.has(el)) continue;
         const r = el.getBoundingClientRect();
         if (r.bottom > 0 && r.top < window.innerHeight) {
-          const job = claim(el, initial.length * 70);
+          const job = claim(el, initial.length * 40);
           if (job) initial.push(job);
         } else {
           enterObserver.observe(el);

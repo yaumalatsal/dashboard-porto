@@ -50,30 +50,37 @@ import {
  * layout: everything else here is flat, hairline and ink, with one butter gold
  * and a handful of pastel accents. Three changes bring it into that language:
  *
- *   - metal is the page gold, with a cool graphite shadow in place of olive
- *     bronze, and the highlight is the warm paper tone;
- *   - the globe is ink with a lilac cast rather than saturated violet, so the
- *     hero background reads through it and the gold stays the only loud colour;
- *   - the amethyst accents (graticule, Pisces figure, glows) take the iridescent
- *     pastels used across the rest of the page.
+ *   - metal is the page gold (--gold, --ember), its shadow the neutral
+ *     charcoal of the page's dark panels, and the highlight the paper cream;
+ *   - the globe is the hero's own ink, a step lighter than the background,
+ *     with no violet cast at all: the hero now has a faint gold glow, not a
+ *     purple one, and gold stays the only loud colour;
+ *   - the contours are page ink rather than the shared plum-black, so the
+ *     edges read as the same black as the type;
+ *   - the accents (graticule, Pisces figure, inner rail) take the exact
+ *     iridescent tokens from observatory.css (--iri-sky, --iri-lilac, --iri-mint).
+ *
+ * Every value below is a token the page already uses. Change one there,
+ * change it here.
  *
  * Everything is overridden here, not in stylized.tsx, because the orrery lab
  * shares that palette and should keep its own look.
  */
 const palette = {
   ...basePalette,
-  caseBack: "#15161b",
-  brassDeep: "#4d4e59",
+  outline: "#0c0d10",
+  caseBack: "#18191d",
+  brassDeep: "#3a3b40",
   brass: "#e7c96f",
-  brassLight: "#f1dc8e",
-  brassPale: "#faf1cf",
-  engrave: "#26262c",
-  amethyst: "#7f74c4",
+  brassLight: "#f1d994",
+  brassPale: "#f5f2e9",
+  engrave: "#25262a",
+  amethyst: "#b9a6f1",
   amethystLight: "#b9a6f1",
-  jewel: "#3a3b45",
-  void: "#25233b",
-  voidDeep: "#101016",
-  starCore: "#fbf6e4",
+  jewel: "#2a2b30",
+  void: "#1b1c21",
+  voidDeep: "#101116",
+  starCore: "#f5f2e9",
   starGold: "#f1dc8e",
   sky: "#8fd9ef",
   mint: "#9ee0cd",
@@ -91,11 +98,11 @@ type ToonProps = Parameters<typeof BaseToonPart>[0];
 type FlatProps = Parameters<typeof BaseFlatPart>[0];
 
 function ToonPart({ outline = TOON_DEFAULT_OUTLINE, ...props }: ToonProps) {
-  return <BaseToonPart {...props} outline={outline * OUTLINE_SCALE} />;
+  return <BaseToonPart {...props} outline={outline * OUTLINE_SCALE} outlineColor={palette.outline} />;
 }
 
 function FlatPart({ outline = 0, ...props }: FlatProps) {
-  return <BaseFlatPart {...props} outline={outline * OUTLINE_SCALE} />;
+  return <BaseFlatPart {...props} outline={outline * OUTLINE_SCALE} outlineColor={palette.outline} />;
 }
 
 export type ClockStar = {

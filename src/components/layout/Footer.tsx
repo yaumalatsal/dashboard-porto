@@ -79,7 +79,9 @@ export default function Footer() {
     fetch("/api/monitor/status", { signal: controller.signal })
       .then((response) => (response.ok ? response.json() : null))
       .then((data: { sites?: { health?: string; hidden?: boolean }[] } | null) => {
-        const sites = (data?.sites ?? []).filter((site) => !site.hidden);
+        // Only sites with a check count. Just after a start every site reads
+        // "unknown", and "0 of 3 services up" would claim an outage.
+        const sites = (data?.sites ?? []).filter((site) => !site.hidden && site.health && site.health !== "unknown");
         if (sites.length) setFleet({ total: sites.length, up: sites.filter((site) => site.health === "operational").length });
       })
       .catch(() => {});

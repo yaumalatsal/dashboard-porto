@@ -132,6 +132,18 @@ export default async function ConsolePage({
       });
     }
   }
+  // An application with no check yet is not "operational": saying so on a
+  // board that also reads 0/3 contradicts itself.
+  const unmeasured = snapshots.filter((s) => s.health === "unknown").length;
+  if (unmeasured > 0) {
+    actions.push({
+      level: "warn",
+      text:
+        unmeasured === snapshots.length
+          ? "The console has no checks yet. The first results arrive within a minute of a start."
+          : `${unmeasured} application${unmeasured === 1 ? " has" : "s have"} no check yet. The first result arrives within a minute.`,
+    });
+  }
   if (actions.length === 0) {
     actions.push({
       level: "good",

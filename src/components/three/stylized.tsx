@@ -53,20 +53,21 @@ function buildToonRamp(): THREE.DataTexture {
 
 export const toonRamp = buildToonRamp();
 
-const outlineCache = new Map<number, THREE.ShaderMaterial>();
+const outlineCache = new Map<string, THREE.ShaderMaterial>();
 
 /**
  * Inverted-hull contour. The offset happens in view space so an orthographic
  * camera keeps the line an even weight all the way around the silhouette.
  */
-export function outlineMaterial(thickness: number): THREE.ShaderMaterial {
-  const cached = outlineCache.get(thickness);
+export function outlineMaterial(thickness: number, color: string = palette.outline): THREE.ShaderMaterial {
+  const key = `${thickness}|${color}`;
+  const cached = outlineCache.get(key);
   if (cached) return cached;
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uThickness: { value: thickness },
-      uColor: { value: new THREE.Color(palette.outline) },
+      uColor: { value: new THREE.Color(color) },
     },
     vertexShader: `
       uniform float uThickness;
@@ -87,7 +88,7 @@ export function outlineMaterial(thickness: number): THREE.ShaderMaterial {
     polygonOffsetUnits: 1,
   });
 
-  outlineCache.set(thickness, material);
+  outlineCache.set(key, material);
   return material;
 }
 
@@ -175,12 +176,14 @@ type ToonPartProps = GroupProps & {
   geometry: THREE.BufferGeometry;
   color: string;
   outline?: number;
+  /** Contour colour. Defaults to the shared ink; a scene can set its own. */
+  outlineColor?: string;
   emissive?: string;
   emissiveIntensity?: number;
 };
 
 /** A solid in the illustrated style: banded toon fill plus its dark contour. */
-export function ToonPart({ geometry, color, outline = 0.028, emissive, emissiveIntensity = 1, ...props }: ToonPartProps) {
+export function ToonPart({ geometry, color, outline = 0.028, outlineColor, emissive, emissiveIntensity = 1, ...props }: ToonPartProps) {
   return (
     <group {...props}>
       <mesh geometry={geometry}>
@@ -194,7 +197,7 @@ export function ToonPart({ geometry, color, outline = 0.028, emissive, emissiveI
           polygonOffsetUnits={-1}
         />
       </mesh>
-      {outline > 0 && <mesh geometry={geometry} material={outlineMaterial(outline)} />}
+      {outline > 0 && <mesh geometry={geometry} material={outlineMaterial(outline, outlineColor)} />}
     </group>
   );
 }
@@ -204,6 +207,7 @@ export function FlatPart({
   geometry,
   color,
   outline = 0,
+  outlineColor,
   opacity = 1,
   ...props
 }: Omit<ToonPartProps, "emissive" | "emissiveIntensity"> & { opacity?: number }) {
@@ -219,7 +223,7 @@ export function FlatPart({
           polygonOffsetUnits={-1}
         />
       </mesh>
-      {outline > 0 && <mesh geometry={geometry} material={outlineMaterial(outline)} />}
+      {outline > 0 && <mesh geometry={geometry} material={outlineMaterial(outline, outlineColor)} />}
     </group>
   );
 }
