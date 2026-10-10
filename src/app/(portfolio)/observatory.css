@@ -31,17 +31,17 @@
 .obs-label > span:first-child:before { content: ''; display: inline-block; width: 4px; height: 4px; margin-right: 7px; background: currentColor; vertical-align: middle; }
 .obs-rule { width: 32px; height: 1px; background: currentColor; opacity: .35; }
 .obs-hero { position: relative; color: #f5f2e9; background: #101116; }
-.obs-hero-stage { position: relative; min-height: 880px; height: 100svh; max-height: 1300px; overflow: hidden; background: radial-gradient(ellipse at 67% 35%,#3b324c80,transparent 57%), #101116; }
+.obs-hero-stage { position: relative; min-height: 880px; height: 100svh; max-height: 1300px; overflow: hidden; background: radial-gradient(ellipse at 68% 40%,#e7c96f12,transparent 55%), #101116; }
 .obs-hero-frame { position: absolute; inset: 18px; border: 1px solid #ffffff26; border-radius: 10px; pointer-events: none; z-index: 4; }
 .obs-hero-frame:before { content: ''; position: absolute; left: 65px; top: 0; bottom: 0; border-left: 1px solid #ffffff20; }
-.obs-hero-copy { position: absolute; top: 140px; left: 8.5%; width: 250px; z-index: 3; }
+.obs-hero-copy { position: absolute; top: 140px; left: 8.5%; width: min(400px, 34vw); z-index: 3; }
 .obs-hero-copy > .obs-label { color: var(--gold); font-size: 9px; }
-.obs-hero-statement { font-size: 15px; line-height: 1.55; margin-top: 22px !important; max-width: 230px; }
+.obs-hero-statement { font-size: clamp(22px, 2.3vw, 34px); font-weight: 550; line-height: 1.18; letter-spacing: -.035em; margin-top: 22px !important; max-width: 400px; }
 .obs-hero-location { color: #b8b6bf; font: 10px/1.6 var(--font-label); margin-top: 18px !important; }
 .obs-status { display: inline-flex; gap: 8px; align-items: center; font: 10px/1.6 var(--font-label); }
 .obs-status:before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
 .obs-hero-copy .obs-status { margin-top: 22px; color: var(--gold); }
-.obs-hero-title { position: absolute; left: 8.4%; right: 5%; bottom: 96px; z-index: 3; pointer-events: none; text-transform: uppercase; font-size: clamp(2rem, 8.35vw, 10rem); line-height: .88; letter-spacing: -.075em !important; }
+.obs-hero-title { position: absolute; left: 8.4%; right: 5%; bottom: 96px; z-index: 3; pointer-events: none; text-transform: uppercase; font-size: clamp(2rem, min(6.4vw, 10.5vh), 8.5rem); line-height: .88; letter-spacing: -.075em !important; }
 .obs-hero-title > span { display: block; white-space: nowrap; }
 .obs-hero-title > span:last-child { text-align: right; margin-top: 12px; }
 .obs-title-dot { color: var(--gold); }
@@ -50,17 +50,17 @@
 .obs-hero-bottom a { display: inline-flex; gap: 20px; align-items: center; }
 .obs-hero-bottom a:hover { color: var(--gold); }
 .obs-hero-bottom > span { color: #b5b3be; }
-.obs-astrolabe-panel { position: absolute; width: min(77vw, 920px); aspect-ratio: 1; left: 60%; top: 43%; transform: translate(-50%, -50%); z-index: 2; }
+.obs-astrolabe-panel { position: absolute; width: min(48vw, 62vh, 760px); aspect-ratio: 1; left: 67%; top: 44%; transform: translate(-50%, -50%); z-index: 2; }
 .observatory .obs-astrolabe-panel .astrolabe-scene { position: absolute; inset: 0; width: 100%; height: 100%; transform: none !important; opacity: 1 !important; visibility: visible; filter: none; mask-image: none; -webkit-mask-image: none; z-index: 1; }
 .observatory .obs-astrolabe-panel .astrolabe-scene__instrument.orrery { pointer-events: auto; }
 .observatory .obs-astrolabe-panel .orrery-map-switch,
 .observatory .obs-astrolabe-panel .orrery__reset,
 .observatory .obs-astrolabe-panel .orrery__instruction { opacity: 1; visibility: visible; pointer-events: auto; }
-.observatory .obs-astrolabe-panel .orrery__readout { top: 16%; left: 27%; display: block; font-size: 8px; }
-.observatory .obs-astrolabe-panel .orrery-map-switch { bottom: auto; top: 17%; right: 3%; background: #111219d9; }
+.observatory .obs-astrolabe-panel .orrery__readout { top: 2%; left: 18%; display: block; font-size: 8px; }
+.observatory .obs-astrolabe-panel .orrery-map-switch { bottom: auto; top: 7%; right: 0; background: #111219d9; }
 .observatory .obs-astrolabe-panel .orrery-map-switch button { min-height: 35px; font-size: 9px; }
-.observatory .obs-astrolabe-panel .orrery__reset { bottom: auto; top: 24%; left: auto; right: 3%; width: 35px; height: 35px; }
-.observatory .obs-astrolabe-panel .orrery__guide { display: grid; top: 19%; bottom: auto; left: 45%; }
+.observatory .obs-astrolabe-panel .orrery__reset { bottom: auto; top: calc(7% + 46px); left: auto; right: 0; width: 35px; height: 35px; }
+.observatory .obs-astrolabe-panel .orrery__guide { display: grid; top: 8%; bottom: auto; left: 40%; }
 .observatory .obs-astrolabe-panel .orrery__instruction { font-size: 9px; }
 /* Each section shares the same left rail as the hero. */
 .obs-section { position: relative; margin-inline: 18px; padding: 84px 5.5% 90px 7.2%; border-inline: 1px solid var(--obs-line); border-bottom: 1px solid var(--obs-line); }
@@ -92,7 +92,12 @@
 .obs-project-title { display: flex; gap: 15px; align-items: baseline; margin: 23px 0 12px; }
 .obs-project-title h3 { font-size: clamp(1.35rem, 2.2vw, 2.2rem); line-height: 1.08; letter-spacing: -.045em; flex: 1; }
 .obs-project-title > svg { flex-shrink: 0; }
-.obs-project > p { font-size: 12px; line-height: 1.8; color: var(--obs-muted); max-width: 470px; }
+.obs-project > p { font-size: 13px; line-height: 1.75; color: var(--obs-muted); max-width: 470px; }
+.obs-project-meta { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0 0 14px; }
+.obs-project-meta div { display: grid; gap: 3px; }
+.obs-project-meta dt { font: 9px/1.4 var(--font-label); text-transform: uppercase; letter-spacing: .04em; color: var(--obs-muted); }
+.obs-project-meta dd { margin: 0; font-size: 13px; font-weight: 550; letter-spacing: -.015em; }
+.obs-project > .obs-project-outcome { margin-top: 12px; padding-left: 14px; border-left: 2px solid var(--gold); color: var(--obs-ink); }
 .obs-tags { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 20px; }
 .obs-tags span { font: 9px/1.6 var(--font-label); text-transform: uppercase; color: var(--obs-muted); }
 .obs-tags span:not(:last-child):after { content: '/'; margin-left: 12px; opacity: .5; }
@@ -152,7 +157,7 @@
 .obs-about-caption span { text-align: right; font: 10px/1.6 var(--font-label); }
 .obs-about-copy { padding-top: 6px; }
 .obs-about-copy > p:first-child { font-size: clamp(1.4rem,2.5vw,2.6rem); font-weight: 500; line-height: 1.35; letter-spacing: -.045em; }
-.obs-about-copy > p + p { font-size: 14px; line-height: 1.8; color: var(--obs-muted); margin-top: 30px; max-width: 350px; }
+.obs-about-copy > p + p { font-size: 15px; line-height: 1.8; color: var(--obs-muted); margin-top: 30px; max-width: 480px; }
 .obs-text-link { display: inline-flex; gap: 28px; align-items: center; border-bottom: 1px solid currentColor; padding: 12px 0; font-size: 12px; }
 .obs-about-copy .obs-text-link { margin-top: 30px; }
 .obs-skills { background: #18191d; color: #f1efe6; --obs-line: #ffffff26; --obs-muted: #adadb3; }
@@ -191,9 +196,10 @@
 .obs-contact .obs-status:before { background: #171819; }
 .obs-contact h2 { position: relative; z-index: 1; font-size: clamp(4rem,10.5vw,11rem); max-width: 850px; margin-top: 35px; }
 .obs-contact-star { position: absolute; right: 7%; top: 24%; font-size: 160px; line-height: 1; opacity: .2; }
+.obs-contact-lead { max-width: 520px; margin-top: 28px !important; font-size: 17px; line-height: 1.6; color: #2e2a1e; }
 .obs-contact-email { display: inline-flex; gap: 32px; align-items: center; border-bottom: 1px solid; padding-bottom: 14px; margin-top: 32px; font-size: 18px; }
 .obs-contact-bottom { display: flex; justify-content: space-between; gap: 30px; margin-top: 65px; padding-top: 25px; border-top: 1px solid var(--obs-line); font-size: 12px; }
-.obs-contact-bottom > div { display: flex; gap: 28px; }
+.obs-contact-bottom > div { display: flex; flex-wrap: wrap; gap: 12px 28px; }
 /* Shared navigation and footer, including project pages. */
 /* No backdrop-filter. At 93% opacity the blur behind the bar was all but
    invisible, yet a fixed element with a backdrop blur makes the browser
@@ -230,24 +236,39 @@
 .portfolio-shell .case-study-banner { background: #dfded5; padding: 40px 0; }
 .portfolio-shell .case-study-body { background: #f1f0e9; }
 .portfolio-shell .case-study-main h2,.portfolio-shell .sidebar-card h3 { font-family: var(--font-body); font-weight: 650; letter-spacing: -.035em; color: #171819; }
-.portfolio-shell .case-study-main p,.portfolio-shell .architecture-list,.portfolio-shell .sidebar-note { color: #555752; }
-.portfolio-shell .sidebar-card { background: #e7e6de; border-color: #17181926; }
-.portfolio-shell .metric-value { color: #171819; }
+.portfolio-shell .case-study-main p,.portfolio-shell .architecture-list,.portfolio-shell .architecture-list li,.portfolio-shell .sidebar-note { color: #555752; }
+.portfolio-shell .architecture-list svg { color: #a08024; flex-shrink: 0; margin-top: 3px; }
+.portfolio-shell .sidebar-card { background: #e7e6de; border-color: #17181926; padding: 26px 24px; }
+.portfolio-shell .metric-item { min-height: 0; padding: 14px 0; border-top: 1px solid #17181918; }
+.portfolio-shell .metric-item:first-child { border-top: 0; padding-top: 0; }
+.portfolio-shell .metric-item::before, .portfolio-shell .metric-item::after { display: none; }
+.portfolio-shell .metric-value { position: static; width: auto; transform: none; text-align: left; color: #171819; font-family: var(--font-body); font-size: 20px; font-weight: 650; letter-spacing: -.03em; line-height: 1.2; }
+.portfolio-shell .metric-label { order: -1; color: #656561; font-size: 9px; letter-spacing: .04em; }
+.portfolio-shell .sidebar-link { color: #7a5f12; }
+.portfolio-shell .sidebar-link:hover { color: #171819; }
+.portfolio-shell .sidebar-link span { color: #3d3a2e; border-color: #a0802466; }
 .portfolio-shell .tech-tag { color: #343630; border-color: #17181930; background: transparent; }
 .portfolio-shell .case-study-next-footer { background: #e7c96f; color: #171819; }
 .portfolio-shell .next-title { font-family: var(--font-body); font-weight: 700; letter-spacing: -.05em; }
 .portfolio-shell .next-desc { color: #4a432f; }
+.portfolio-shell .next-label { color: #4a432f; }
+.portfolio-shell .next-button { background: #171819; color: #f1efe6; }
+.portfolio-shell .next-button:hover { background: #2b2c30; color: #f1efe6; }
 .portfolio-shell .orrery-lab { background: #111217; color: #f1efe6; }
-@media(min-width:1800px) { .obs-hero-title { font-size: 9vw; } .obs-astrolabe-panel { width: min(80vh,1100px); } }
+@media(min-width:1800px) { .obs-astrolabe-panel { width: min(64vh, 1000px); } }
 @media(max-width:1100px) {
   .portfolio-shell .site-nav__links { gap: 16px; }
   .obs-hero-stage { min-height: 800px; }
-  .obs-hero-copy { width: 210px; }
+  .obs-hero-copy { width: 300px; }
   /* Centred, and never wider than the frame it sits in. Offset to 62% with
      87vw, the panel's right edge ran past the viewport below ~950px and took
      the map switch and reset button — both pinned to its right edge — off the
      screen with it. */
-  .obs-astrolabe-panel { width: min(87vw, calc(100vw - 48px)); left: 50%; top: 43%; }
+  .obs-astrolabe-panel { width: min(62vw, 58vh, calc(100vw - 48px)); left: 64%; top: 46%; }
+  /* The panel is narrower here than the instruction plus the map switch, so
+     the switch and reset drop a row instead of overlapping the instruction. */
+  .observatory .obs-astrolabe-panel .orrery-map-switch { top: 19%; }
+  .observatory .obs-astrolabe-panel .orrery__reset { top: calc(19% + 46px); }
   .obs-capabilities { grid-template-columns: 1fr 1fr; }
   .obs-capabilities article:nth-child(2) { border-right: 0; }
   .obs-capabilities article:nth-child(3) { padding-left: 0; border-top: 1px solid var(--obs-line); }
@@ -272,9 +293,9 @@
   .obs-hero-stage { height: 100svh; min-height: 840px; max-height: none; }
   .obs-hero-frame { inset: 10px; }
   .obs-hero-frame:before,.obs-section:before { display: none; }
-  .obs-hero-copy { left: 7%; top: 106px; width: 240px; }
+  .obs-hero-copy { left: 7%; top: 106px; width: 290px; }
   .obs-hero-copy > .obs-label { font-size: 8px; }
-  .obs-hero-statement { font-size: 14px; margin-top: 14px !important; }
+  .obs-hero-statement { font-size: 19px; max-width: 290px; margin-top: 14px !important; }
   .obs-hero-location { margin-top: 12px !important; }
   .obs-hero-copy .obs-status { margin-top: 12px; font-size: 9px; }
   /* Capped against the viewport height, not just its width. The panel is
@@ -321,7 +342,10 @@
   .obs-capabilities article { padding: 25px 14px; }
   .obs-capabilities article:nth-child(4) { padding-left: 14px; }
   .obs-capabilities h3 { font-size: 25px; }
-  .obs-capabilities p { font-size: 11px; }
+  .obs-capabilities { grid-template-columns: 1fr; }
+  .obs-capabilities article, .obs-capabilities article:nth-child(n) { padding: 26px 0; border-right: 0; border-top: 1px solid var(--obs-line); }
+  .obs-capabilities article:first-child { border-top: 0; }
+  .obs-capabilities p { font-size: 13px; }
   .obs-system-band { flex-direction: column; align-items: start; margin-inline: 10px; padding: 35px 6%; }
   .obs-system-band h2 { font-size: 26px; }
   .obs-experience-list summary { grid-template-columns: 1fr 25px; gap: 12px; }
@@ -330,7 +354,8 @@
   .obs-experience-list details > p { margin-left: 0; margin-right: 0; }
   .obs-contact h2 { font-size: 15vw; }
   .obs-contact .obs-status { font-size: 9px; max-width: 280px; }
-  .obs-contact-star { right: -25px; top: 35%; font-size: 130px; }
+  .obs-contact-star { right: 6%; top: 150px; font-size: 72px; }
+  .obs-contact-lead { font-size: 15px; }
   .obs-contact-bottom { flex-direction: column; font-size: 11px; gap: 20px; margin-top: 40px; }
   .obs-contact-email { font-size: 16px; }
   .portfolio-shell .case-study-meta-grid { grid-template-columns: 1fr 1fr; }
@@ -355,7 +380,7 @@
 .observatory .obs-astrolabe-panel .orrery__instruction { background: #111217e6; padding: 6px 9px; border: 1px solid #e7c96f25; }
 /* Scroll depth lives outside the instrument, which retains its own 3D controls. */
 .obs-instrument-scroll, .obs-instrument-pointer { position: absolute; inset: 0; pointer-events: none; }
-.obs-instrument-scroll { transform-origin: 60% 43%; z-index: 2; }
+.obs-instrument-scroll { transform-origin: 67% 44%; z-index: 2; }
 .obs-astrolabe-panel { pointer-events: auto; }
 /* clip, not hidden: hidden makes this a scroll container, and the image's
    scroll timeline (view()) would then measure this frame instead of the page. */
@@ -682,5 +707,6 @@
 .observatory .obs-astrolabe-panel .orrery-map-switch button[aria-pressed="true"] { color: #14151a; background: var(--gold); }
 .observatory .obs-astrolabe-panel .orrery-map-switch button[aria-pressed="true"]:hover,
 .observatory .obs-astrolabe-panel .orrery-map-switch button[aria-pressed="true"]:focus-visible { color: #14151a; }
+.observatory .obs-astrolabe-panel .orrery__reset { color: var(--gold); background: #111219d9; border-color: #e7c96f70; box-shadow: none; }
 .observatory .obs-astrolabe-panel .orrery__reset:hover,
 .observatory .obs-astrolabe-panel .orrery__reset:focus-visible { background: #1d1e24f2; border-color: var(--gold); }

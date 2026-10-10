@@ -1203,7 +1203,7 @@ html { background: #0e0818; }
   color: rgba(255, 240, 189, 0.78);
   font-size: 0.5rem;
   opacity: 0.85;
-  text-shadow: 0 1px 6px #0a0416, 0 0 12px #0a0416;
+  text-shadow: 0 1px 6px #0c0d10, 0 0 12px #0c0d10;
   transform: translateY(-0.65rem);
   transition: color 180ms ease, opacity 180ms ease, text-shadow 180ms ease;
 }
@@ -1232,8 +1232,8 @@ html { background: #0e0818; }
 /* Stars on the right of the chart read their labels inward */
 .orrery-star-3d.is-flipped .orrery-star__name, .orrery-star-3d.is-flipped .orrery-star__chapter { left: auto; right: calc(50% + 0.65rem); text-align: right; }
 .orrery-star-3d.is-flipped .orrery-star__name::after { transform-origin: right; }
-.orrery-star-3d .orrery-star__chapter { text-shadow: 0 1px 6px #0a0416, 0 0 12px #0a0416; }
-.orrery-star-3d.is-hovered .orrery-star__name { color: #fff; opacity: 1; text-shadow: 0 1px 8px rgba(240, 204, 124, 0.35), 0 0 14px #0a0416; }
+.orrery-star-3d .orrery-star__chapter { text-shadow: 0 1px 6px #0c0d10, 0 0 12px #0c0d10; }
+.orrery-star-3d.is-hovered .orrery-star__name { color: #fff; opacity: 1; text-shadow: 0 1px 8px rgba(240, 204, 124, 0.35), 0 0 14px #0c0d10; }
 .orrery-star-3d.is-hovered .orrery-star__chapter,
 .orrery-star-3d[aria-pressed="true"] .orrery-star__chapter { opacity: 1; transform: translateY(0.12rem); }
 .orrery-star-3d.is-hovered .orrery-star-3d__flare { background: transparent; box-shadow: none; transform: translate(-50%, -50%); }

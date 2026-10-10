@@ -19,11 +19,14 @@ export default function PortfolioMotion({ children }: { children: ReactNode }) {
       const timeline = gsap.timeline({
         scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: 0.8 },
       });
+      // The instrument and the name move apart, not through each other: the
+      // name used to rise while the instrument dropped and grew, and the two
+      // crossed under the nav in a tangle of type and brass.
       timeline
-        .to(".obs-instrument-scroll", { y: 150, scale: 1.12, ease: "none" }, 0)
+        .to(".obs-instrument-scroll", { y: -60, scale: 0.94, ease: "none" }, 0)
         .to(".obs-hero-copy", { y: -75, opacity: 0, ease: "none" }, 0)
-        .to(".obs-hero-title > span:first-child", { xPercent: -7, y: -95, ease: "none" }, 0)
-        .to(".obs-hero-title > span:last-child", { xPercent: 5, y: -145, ease: "none" }, 0)
+        .to(".obs-hero-title > span:first-child", { xPercent: -7, y: 30, ease: "none" }, 0)
+        .to(".obs-hero-title > span:last-child", { xPercent: 5, y: 20, ease: "none" }, 0)
         .to(".obs-hero-marker", { rotation: 90, y: -60, ease: "none" }, 0);
     });
 

@@ -13,6 +13,8 @@ import { coverageLabel, formatUptime } from "./format";
  */
 export type HeroReadout = {
   online: number;
+  /** Applications with at least one check. Below `total` just after a start. */
+  measured: number;
   total: number;
   uptime: string;
   uptimeWindow: string;
@@ -84,6 +86,7 @@ export function heroReadout(): HeroReadout | null {
 
   return {
     online: snapshots.filter((s) => s.health === "operational").length,
+    measured: snapshots.filter((s) => s.health !== "unknown").length,
     total: snapshots.length,
     uptime: uptime !== null ? formatUptime(uptime) : "—",
     uptimeWindow: coverageLabel("30d", observedSeconds, coverage),

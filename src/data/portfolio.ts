@@ -43,6 +43,9 @@ export const profile = {
   phone: "+62 812 4960 2770",
   location: "Malang, Indonesia",
   availability: "I am available for full-time and freelance work",
+  /** Under the contact heading: the kind of work to send. */
+  contactLead:
+    "I build web applications and internal tools. I also set up the servers and networks for them. Send me a short description of the work.",
   heroSummary:
     "I work on the website, database, and server. I also help with network setup and maintenance.",
   bio: "I started with computer networks and later moved into web development. My work includes projects for a smelter, a health agency, and a logistics company. I build applications and help maintain their servers and networks.",

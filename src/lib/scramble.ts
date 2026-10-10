@@ -323,8 +323,10 @@ function commit({ el, mode, speed, delay, nodes, mono, name, measured }: Prepare
 
   const total = surface.chars.length;
   // Long enough to read as decoding, short enough never to make anyone wait:
-  // a 30-character label takes about 1.5s at full speed, capped at 1.6s.
-  const duration = Math.min(1600, 35 * total + 380) * speed;
+  // a 12-character label takes about half a second, and nothing runs past
+  // 0.75s. At the old 1.6s cap, a screenshot or a quick scroll caught labels
+  // mid-noise ("LARAVR5 R0"), which read as broken text, not as an effect.
+  const duration = Math.min(750, 20 * total + 260) * speed;
   const notBefore = performance.now() + delay;
   let start = 0;
   let lastPaint = 0;

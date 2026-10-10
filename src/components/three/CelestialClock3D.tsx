@@ -21,6 +21,7 @@ import {
   bandGeometry,
   discGeometry,
   mergeParts,
+  outlineMaterial,
   palette as basePalette,
   radialMerge,
   useGeometryKit,
@@ -50,33 +51,45 @@ import {
  * layout: everything else here is flat, hairline and ink, with one butter gold
  * and a handful of pastel accents. Three changes bring it into that language:
  *
- *   - metal is the page gold, with a cool graphite shadow in place of olive
- *     bronze, and the highlight is the warm paper tone;
- *   - the globe is ink with a lilac cast rather than saturated violet, so the
- *     hero background reads through it and the gold stays the only loud colour;
- *   - the amethyst accents (graticule, Pisces figure, glows) take the iridescent
- *     pastels used across the rest of the page.
+ *   - metal is a rich amber gold, warmer and deeper than the flat --gold so
+ *     it does not wash out to cream under the toon banding; the dark parts
+ *     (case, meridian ring, gear bands) are deep teal rather than black, the
+ *     dark end of the --iri-sky/--iri-mint hues the globe glows in, and the
+ *     bearing jewels are coral;
+ *   - the globe is the hero's own ink, a step lighter than the background,
+ *     with no violet cast at all: the hero now has a faint gold glow, not a
+ *     purple one, and gold stays the only loud colour;
+ *   - the contours are page ink rather than the shared plum-black, so the
+ *     edges read as the same black as the type;
+ *   - the accents (graticule, Pisces figure, inner rail) take the exact
+ *     iridescent tokens from observatory.css (--iri-sky, --iri-lilac, --iri-mint).
+ *
+ * Every value below is a token the page already uses. Change one there,
+ * change it here.
  *
  * Everything is overridden here, not in stylized.tsx, because the orrery lab
  * shares that palette and should keep its own look.
  */
 const palette = {
   ...basePalette,
-  caseBack: "#15161b",
-  brassDeep: "#4d4e59",
-  brass: "#e7c96f",
-  brassLight: "#f1dc8e",
-  brassPale: "#faf1cf",
-  engrave: "#26262c",
-  amethyst: "#7f74c4",
+  outline: "#081a1e",
+  caseBack: "#0f3038",
+  brassDeep: "#1d6572",
+  brass: "#ebb847",
+  brassLight: "#f5d06c",
+  brassPale: "#fae2a0",
+  engrave: "#123f48",
+  amethyst: "#b9a6f1",
   amethystLight: "#b9a6f1",
-  jewel: "#3a3b45",
-  void: "#25233b",
-  voidDeep: "#101016",
-  starCore: "#fbf6e4",
+  jewel: "#e58f6f",
+  void: "#1b1c21",
+  voidDeep: "#101116",
+  starCore: "#f5f2e9",
   starGold: "#f1dc8e",
   sky: "#8fd9ef",
   mint: "#9ee0cd",
+  rose: "#f2b3d5",
+  butter: "#f1dc8e",
 } as const;
 
 /**
@@ -91,11 +104,11 @@ type ToonProps = Parameters<typeof BaseToonPart>[0];
 type FlatProps = Parameters<typeof BaseFlatPart>[0];
 
 function ToonPart({ outline = TOON_DEFAULT_OUTLINE, ...props }: ToonProps) {
-  return <BaseToonPart {...props} outline={outline * OUTLINE_SCALE} />;
+  return <BaseToonPart {...props} outline={outline * OUTLINE_SCALE} outlineColor={palette.outline} />;
 }
 
 function FlatPart({ outline = 0, ...props }: FlatProps) {
-  return <BaseFlatPart {...props} outline={outline * OUTLINE_SCALE} />;
+  return <BaseFlatPart {...props} outline={outline * OUTLINE_SCALE} outlineColor={palette.outline} />;
 }
 
 export type ClockStar = {
@@ -1039,6 +1052,125 @@ function ConstellationFigure({
   );
 }
 
+
+/**
+ * The globe's face, lit by the page's spectrum: the same five hues as the
+ * footer wordmark (--iri), drifting through the ink like light through glass.
+ *
+ * The wash is strongest just off the centre and falls away towards the limb,
+ * with a thin spectral rim where the sphere turns away. It peaks at about a
+ * third of full strength, so the stars and their labels — the instrument's
+ * navigation — always sit on a darker field than themselves.
+ *
+ * One shader on a mesh that already existed: no texture, no extra pass.
+ */
+const SPECTRUM_VERTEX = `
+  varying vec3 vNormalView;
+  varying vec3 vObject;
+  void main() {
+    vNormalView = normalize(normalMatrix * normal);
+    vObject = position / ${GLOBE_RADIUS.toFixed(2)};
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const SPECTRUM_FRAGMENT = `
+  uniform float uTime;
+  uniform float uStrength;
+  uniform vec3 uInk;
+  uniform vec3 uSky;
+  uniform vec3 uLilac;
+  uniform vec3 uRose;
+  uniform vec3 uButter;
+  uniform vec3 uMint;
+  varying vec3 vNormalView;
+  varying vec3 vObject;
+
+  // Sky -> lilac -> rose -> butter -> mint, and back round to sky.
+  vec3 spectrum(float h) {
+    h = fract(h) * 5.0;
+    if (h < 1.0) return mix(uSky, uLilac, h);
+    if (h < 2.0) return mix(uLilac, uRose, h - 1.0);
+    if (h < 3.0) return mix(uRose, uButter, h - 2.0);
+    if (h < 4.0) return mix(uButter, uMint, h - 3.0);
+    return mix(uMint, uSky, h - 4.0);
+  }
+
+  void main() {
+    vec3 p = vObject;
+    float t = uTime * 0.045;
+    // Cheap flowing field: a few crossed sine waves over the sphere.
+    float flow = sin(p.x * 2.3 + t * 3.0) * 0.5
+               + sin(p.y * 3.1 - t * 2.2 + p.z * 1.7) * 0.35
+               + sin((p.x + p.z) * 4.2 + t * 1.6) * 0.15;
+    float hue = dot(p, vec3(0.34, 0.52, 0.21)) * 1.05 + flow * 0.28 + t;
+
+    float facing = clamp(vNormalView.z, 0.0, 1.0);
+    // A soft bloom up and to the left of centre, under the main constellation.
+    vec2 off = vNormalView.xy - vec2(-0.18, 0.16);
+    float bloom = exp(-dot(off, off) * 2.4);
+    float body = (0.35 + 0.65 * bloom) * smoothstep(0.0, 0.85, facing) * (0.72 + 0.28 * flow);
+    float rim = pow(1.0 - facing, 3.2) * 0.85;
+
+    // Light added to the ink, not paint mixed into it: mixing pastels into
+    // near-black greys them out, adding them keeps them luminous.
+    vec3 colour = uInk * (1.0 - body * uStrength * 0.5);
+    colour += spectrum(hue) * body * uStrength;
+    colour += spectrum(hue + 0.4) * rim * uStrength * 0.9;
+    gl_FragColor = vec4(colour, 1.0);
+  }
+`;
+
+function GlobeSpectrum({
+  geometry,
+  isFocused,
+  reducedMotion,
+}: {
+  geometry: THREE.BufferGeometry;
+  isFocused: boolean;
+  reducedMotion: boolean;
+}) {
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  // Built once; the frame loop below writes through the material's ref.
+  const [uniforms] = useState(() => ({
+    uTime: { value: 7 },
+    uStrength: { value: 0.55 },
+    uInk: { value: new THREE.Color(palette.void) },
+    uSky: { value: new THREE.Color(palette.sky) },
+    uLilac: { value: new THREE.Color(palette.amethystLight) },
+    uRose: { value: new THREE.Color(palette.rose) },
+    uButter: { value: new THREE.Color(palette.butter) },
+    uMint: { value: new THREE.Color(palette.mint) },
+  }));
+
+  useFrame((_, delta) => {
+    const material = materialRef.current;
+    if (!material) return;
+    // Dimmer while a star is being read, so its label owns the globe.
+    const target = isFocused ? 0.3 : 0.55;
+    const strength = material.uniforms.uStrength;
+    strength.value = reducedMotion ? target : approach(strength.value, target, 0.06, delta);
+    if (!reducedMotion) material.uniforms.uTime.value += delta;
+  });
+
+  return (
+    <group>
+      <mesh geometry={geometry}>
+        <shaderMaterial
+          ref={materialRef}
+          vertexShader={SPECTRUM_VERTEX}
+          fragmentShader={SPECTRUM_FRAGMENT}
+          uniforms={uniforms}
+          polygonOffset
+          polygonOffsetFactor={-1}
+          polygonOffsetUnits={-1}
+        />
+      </mesh>
+      <mesh geometry={geometry} material={outlineMaterial(0.03 * OUTLINE_SCALE, palette.outline)} />
+    </group>
+  );
+}
+
 /** The celestial sphere: hard terminator, drawn graticule, engraved constellation. */
 function Globe({
   stars,
@@ -1088,7 +1220,7 @@ function Globe({
 
   return (
     <group>
-      <FlatPart geometry={kit.body} color={palette.void} outline={0.03} />
+      <GlobeSpectrum geometry={kit.body} isFocused={Boolean(selectedId)} reducedMotion={reducedMotion} />
 
       <GlobeAtmosphere isFocused={Boolean(selectedId)} reducedMotion={reducedMotion} />
 

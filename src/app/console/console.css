@@ -94,7 +94,7 @@
   gap: 1.5rem;
   padding: 0 clamp(1rem, 4vw, 2.5rem);
   height: 60px;
-  background: rgba(5, 7, 10, 0.85);
+  background: rgba(16, 17, 22, 0.9);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--c-rule);
 }
@@ -103,9 +103,10 @@
   display: flex;
   align-items: baseline;
   gap: 0.55rem;
-  font-family: var(--font-instrument-serif), Georgia, serif;
-  font-size: 1.05rem;
-  letter-spacing: 0;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 650;
+  letter-spacing: -0.025em;
   color: var(--c-ink);
   white-space: nowrap;
   text-decoration: none;
@@ -228,12 +229,13 @@
 }
 
 .console h1 {
-  font-family: var(--font-instrument-serif), Georgia, serif;
-  font-size: clamp(1.9rem, 4vw, 2.6rem);
-  font-weight: 400;
-  line-height: 1.1;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: clamp(1.9rem, 4vw, 3rem);
+  font-weight: 750;
+  line-height: 1;
   margin: 0 0 0.4rem;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
 }
 
 .console__lede {
@@ -740,9 +742,10 @@
   border-radius: 12px;
 }
 .console__empty h2 {
-  font-family: var(--font-instrument-serif), Georgia, serif;
-  font-size: 1.4rem;
-  font-weight: 400;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 650;
+  letter-spacing: -0.035em;
   margin: 0 0 0.5rem;
 }
 .console__empty p {
@@ -2064,9 +2067,10 @@
   border-top: 1px solid var(--c-rule-soft);
 }
 .board-head--sub h2 {
-  font-family: var(--font-instrument-serif), Georgia, serif;
-  font-size: 1.5rem;
-  font-weight: 400;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 1.4rem;
+  font-weight: 650;
+  letter-spacing: -0.035em;
   margin: 0;
 }
 
@@ -2213,3 +2217,29 @@
 .unlock-form button {
   margin-top: 0.25rem;
 }
+
+/* ======================================================================
+   Portfolio alignment.
+
+   The console used to inherit the :root brand tokens, which since the
+   observatory redesign are the old violet-black (--paper #0e0818) and
+   copper. The portfolio now draws in charcoal ink, paper cream and one
+   butter gold, so the console takes those values directly. The data palette
+   above is unchanged: series colours stay the validated set.
+   ====================================================================== */
+.console {
+  --c-page: #101116;
+  --c-surface: #18191d;
+  --c-surface-2: #1d1e23;
+  --c-raised: #25262a;
+  --c-ink: #f1efe6;
+  --c-ink-2: rgba(241, 239, 230, 0.64);
+  --c-muted: rgba(241, 239, 230, 0.42);
+  --c-copper: #e7c96f;
+  --c-ember: #f1d994;
+  --c-rule: rgba(255, 255, 255, 0.12);
+  --c-rule-soft: rgba(255, 255, 255, 0.06);
+  --grid: #24252b;
+  --axis: #34353b;
+}
+.console__brand small { color: rgba(241, 239, 230, 0.42); }
